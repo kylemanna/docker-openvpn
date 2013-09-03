@@ -86,3 +86,7 @@ generate a new client key each time the `serveconfig` command is
 called. The command could even take the client CN as argument, and
 another `revoke` command could be used to revoke previously issued
 keys.
+
+Also, the configuration could be served over SSL. This should be
+fairly enough, since we use `socat` for the pseudo HTTP server,
+and `socat` can also do SSL.
