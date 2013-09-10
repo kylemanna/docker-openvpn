@@ -50,7 +50,7 @@ persist-tun
 proto udp
 port 1194
 dev tun1194
-status openvpn-status-1194
+status openvpn-status-1194.log
 EOF
 
 MY_IP_ADDR=$(curl -s http://myip.enix.org/REMOTE_ADDR)
