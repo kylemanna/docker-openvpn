@@ -3,8 +3,8 @@
 Quick instructions:
 
 ```bash
-CID=$(docker run -d -privileged -p 1194:1194/udp -p 443:443/tcp jpetazzo/openvpn)
-docker run -t -i -p 8080:8080 -volumes-from $CID jpetazzo/openvpn serveconfig
+CID=$(docker run -d --privileged -p 1194:1194/udp -p 443:443/tcp jpetazzo/openvpn)
+docker run -t -i -p 8080:8080 --volumes-from $CID jpetazzo/openvpn serveconfig
 ```
 
 Now download the file located at the indicated URL. You will get a
@@ -48,7 +48,7 @@ on 443/tcp).
 
 The configuration is located in `/etc/openvpn`, and the Dockerfile
 declares that directory as a volume. It means that you can start another
-container with the `-volumes-from` flag, and access the configuration.
+container with the `--volumes-from` flag, and access the configuration.
 Conveniently, `jpetazzo/openvpn` comes with a script called `serveconfig`,
 which starts a pseudo HTTPS server on `8080/tcp`. The pseudo server
 does not even check the HTTP request; it just sends the HTTP status line,
