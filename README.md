@@ -27,7 +27,7 @@ it will show the download as "in progress" but it will remain stuck.
 You can download it with Firefox; or you can transfer it with another
 way: Dropbox, USB, micro-SD card...
 
-If you reboot the server (or stop the container), if you `docker run`
+If you reboot the server (or stop the container) and you `docker run`
 again, you will create a new service (with a new configuration) and
 you will have to re-download the configuration file. However, you can
 use `docker start` to restart the service without touching the configuration.
