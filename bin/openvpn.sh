@@ -150,6 +150,9 @@ case "$cmd" in
     openvpn)
         do_openvpn "$@"
         ;;
+    log)
+        tail -F /tmp/openvpn-status-1194.log
+        ;;
     *)
         abort "Unknown cmd \"$cmd\""
         ;;
