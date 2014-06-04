@@ -24,6 +24,7 @@ client
 nobind
 dev tun
 redirect-gateway def1
+remote-cert-tls server
 
 <key>
 $(cat $EASYRSA_PKI/private/$cn.key)
