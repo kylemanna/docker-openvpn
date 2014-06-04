@@ -36,24 +36,4 @@ echo "$cn" > $OPENVPN/servername
 
 easyrsa build-server-full $cn nopass
 
-[ -f "$OPENVPN/udp1194.conf" ] || cat > "$OPENVPN/udp1194.conf" <<EOF
-server 192.168.255.128 255.255.255.128
-verb 3
-#duplicate-cn
-key $EASYRSA_PKI/private/$cn.key
-ca $EASYRSA_PKI/ca.crt
-cert $EASYRSA_PKI/issued/$cn.crt
-dh $EASYRSA_PKI/dh.pem
-tls-auth $EASYRSA_PKI/ta.key
-key-direction 0
-keepalive 10 60
-persist-key
-persist-tun
-push "dhcp-option DNS 8.8.4.4"
-push "dhcp-option DNS 8.8.8.8"
-
-proto udp
-port 1194
-dev tun1194
-status /tmp/openvpn-status-1194.log
-EOF
+ovpn_genconfig "$cn"
