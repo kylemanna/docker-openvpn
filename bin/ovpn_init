@@ -44,8 +44,8 @@ key $EASYRSA_PKI/private/$cn.key
 ca $EASYRSA_PKI/ca.crt
 cert $EASYRSA_PKI/issued/$cn.crt
 dh $EASYRSA_PKI/dh.pem
-#tls-auth $EASYRSA_PKI/ta.key
-#key-direction 0
+tls-auth $EASYRSA_PKI/ta.key
+key-direction 0
 keepalive 10 60
 persist-key
 persist-tun

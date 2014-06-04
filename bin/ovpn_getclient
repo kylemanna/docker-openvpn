@@ -37,10 +37,10 @@ $(cat $EASYRSA_PKI/ca.crt)
 <dh>
 $(cat $EASYRSA_PKI/dh.pem)
 </dh>
-#<tls-auth>
-#$(echo cat $EASYRSA_PKI/ta.key)
-#</tls-auth>
-#key-direction 1
+<tls-auth>
+$(cat $EASYRSA_PKI/ta.key)
+</tls-auth>
+key-direction 1
 
 <connection>
 remote $servername 1194 udp
