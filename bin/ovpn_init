@@ -22,13 +22,15 @@ easyrsa build-ca nopass
 easyrsa gen-dh
 openvpn --genkey --secret $OPENVPN/pki/ta.key
 
-if [ -z "$cn"]; then
-    #TODO: Handle IPv6 (when I get a VPS with IPv6)...
-    ip4=$(dig +short myip.opendns.com @resolver1.opendns.com)
-    ptr=$(dig +short -x $ip4 | sed -e 's:\.$::')
-
-    [ -n "$ptr" ] && cn=$ptr || cn=$ip4
-fi
+# Was nice to autoset, but probably a bad idea in practice, users should
+# have to explicitly specify the common name of their server
+#if [ -z "$cn"]; then
+#    #TODO: Handle IPv6 (when I get a VPS with IPv6)...
+#    ip4=$(dig +short myip.opendns.com @resolver1.opendns.com)
+#    ptr=$(dig +short -x $ip4 | sed -e 's:\.$::')
+#
+#    [ -n "$ptr" ] && cn=$ptr || cn=$ip4
+#fi
 
 echo "$cn" > $OPENVPN/servername
 
