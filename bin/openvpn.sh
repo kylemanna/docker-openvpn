@@ -52,6 +52,8 @@ do_init() {
         [ -n "$ptr" ] && cn=$ptr || cn=$ip4
     fi
 
+    echo "$cn" > $OPENVPN/servername
+
     easyrsa build-server-full $cn nopass
 
     [ -f "$OPENVPN/udp1194.conf" ] || cat > "$OPENVPN/udp1194.conf" <<EOF
