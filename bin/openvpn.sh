@@ -22,14 +22,58 @@ if [ $# -lt 1 ]; then
 fi
 
 do_openvpn() {
-    if [ ! -d /dev/net ]; then
-        mkdir -p /dev/net
-    fi
+    mkdir -p /dev/net
     if [ ! -c /dev/net/tun ]; then
         mknod /dev/net/tun c 10 200
     fi
 
-    cd /etc/easyrsa
+    iptables -t nat -A POSTROUTING -s 192.168.255.0/24 -o eth0 -j MASQUERADE
+
+    openvpn --config "$OPENVPN/udp1194.conf"
+}
+
+do_init() {
+    cn=$1
+
+    # Provides a sufficient warning before erasing pre-existing files
+    easyrsa init-pki
+
+    # For a CA key with a password, manually init; this is autopilot
+    easyrsa build-ca nopass
+
+    easyrsa gen-dh
+    openvpn --genkey --secret $OPENVPN/pki/ta.key
+
+    if [ -z "$cn"]; then
+        #TODO: Handle IPv6 (when I get a VPS with IPv6)...
+        ip4=$(dig +short myip.opendns.com @resolver1.opendns.com)
+        ptr=$(dig +short -x $ip4 | sed -e 's:\.$::')
+
+        [ -n "$ptr" ] && cn=$ptr || cn=$ip4
+    fi
+
+    easyrsa build-server-full $cn nopass
+
+    [ -f "$OPENVPN/udp1194.conf" ] || cat > "$OPENVPN/udp1194.conf" <<EOF
+server 192.168.255.128 255.255.255.128
+verb 3
+#duplicate-cn
+key $EASYRSA_PKI/private/$cn.key
+ca $EASYRSA_PKI/ca.crt
+cert $EASYRSA_PKI/issued/$cn.crt
+dh $EASYRSA_PKI/dh.pem
+#tls-auth $EASYRSA_PKI/ta.key 0
+keepalive 10 60
+persist-key
+persist-tun
+push "dhcp-option DNS 8.8.4.4"
+push "dhcp-option DNS 8.8.8.8"
+
+proto udp
+port 1194
+dev tun1194
+status /tmp/openvpn-status-1194.log
+EOF
 }
 
 # Read arguments from command line
@@ -39,10 +83,9 @@ shift
 case "$cmd" in
     # nop for volume creation
     init)
-        exit 0
+        do_init "$@"
         ;;
     easyrsa)
-        cd $OPENVPN
         easyrsa "$@"
         ;;
     easyrsa-export-vars)
