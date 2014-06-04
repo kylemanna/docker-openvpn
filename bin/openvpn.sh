@@ -3,13 +3,6 @@
 # OpenVPN + Docker Wrapper Script
 #
 
-OPENVPN="/etc/openvpn"
-
-# Needed by easyrsa itself
-export EASYRSA="/usr/local/share/easy-rsa/easyrsa3"
-export EASYRSA_PKI="$OPENVPN/pki"
-export EASYRSA_VARS_FILE="$OPENVPN/vars"
-
 set -ex
 
 abort() {

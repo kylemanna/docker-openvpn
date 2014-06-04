@@ -14,6 +14,12 @@ RUN ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin
 ADD ./bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
 
+# Needed by scripts
+ENV OPENVPN /etc/openvpn
+ENV EASYRSA /usr/local/share/easy-rsa/easyrsa3
+ENV EASYRSA_PKI $OPENVPN/pki
+ENV EASYRSA_VARS_FILE $OPENVPN/vars
+
 VOLUME ["/etc/openvpn"]
 
 EXPOSE 1194/udp
