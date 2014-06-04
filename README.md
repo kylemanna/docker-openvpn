@@ -1,5 +1,20 @@
 # OpenVPN for Docker
 
+TODO: Docs are out of date, need to update, example until updated:
+
+    # Init PKI and OpenVPN configs
+    docker run --name openvpn-data -it kylemanna/openvpn ovpn_init vpn.servername.com
+
+    # Start OpenVPN server process
+    docker run --volumes-from openvpn-data -d -p 1194:1194/udp --privileged kylemanna/openvpn
+
+    # Generate a client cert
+    docker run --volumes-from openvpn-data --rm -it kylemanna/openvpn easyrsa build-client-full clientname nopass
+
+    # Retrieve the client configuration with embedded certs
+    docker run --volumes-from openvpn-data --rm kylemanna/openvpn ovpn_getclient clientname
+
+
 Quick instructions:
 
 ```bash
