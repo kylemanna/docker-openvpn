@@ -64,7 +64,8 @@ key $EASYRSA_PKI/private/$cn.key
 ca $EASYRSA_PKI/ca.crt
 cert $EASYRSA_PKI/issued/$cn.crt
 dh $EASYRSA_PKI/dh.pem
-#tls-auth $EASYRSA_PKI/ta.key 0
+#tls-auth $EASYRSA_PKI/ta.key
+#key-direction 0
 keepalive 10 60
 persist-key
 persist-tun
@@ -75,6 +76,46 @@ proto udp
 port 1194
 dev tun1194
 status /tmp/openvpn-status-1194.log
+EOF
+}
+
+do_getclientconfig() {
+    cn=$1
+
+    [ -z "$cn" ] && abort "Common name not specified"
+
+    if [ ! -f "$EASYRSA_PKI/private/$cn.key" ]; then
+        easyrsa build-server-full $cn nopass
+    fi
+
+    servername=$(cat $OPENVPN/servername)
+
+    cat <<EOF
+client
+nobind
+dev tun
+redirect-gateway def1
+
+<key>
+$(cat $EASYRSA_PKI/private/$cn.key)
+</key>
+<cert>
+$(cat $EASYRSA_PKI/issued/$cn.crt)
+</cert>
+<ca>
+$(cat $EASYRSA_PKI/ca.crt)
+</ca>
+<dh>
+$(cat $EASYRSA_PKI/dh.pem)
+</dh>
+#<tls-auth>
+#$(echo cat $EASYRSA_PKI/ta.key)
+#</tls-auth>
+#key-direction 1
+
+<connection>
+remote $servername 1194 udp
+</connection>
 EOF
 }
 
@@ -102,6 +143,9 @@ case "$cmd" in
         ;;
     bash)
         $cmd "$@"
+        ;;
+    getclientconfig)
+        do_getclientconfig "$@"
         ;;
     openvpn)
         do_openvpn "$@"
