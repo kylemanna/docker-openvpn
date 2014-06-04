@@ -1,0 +1,16 @@
+#!/bin/sh
+
+#
+# Run the OpenVPN server normally
+#
+
+set -ex
+
+mkdir -p /dev/net
+if [ ! -c /dev/net/tun ]; then
+    mknod /dev/net/tun c 10 200
+fi
+
+iptables -t nat -A POSTROUTING -s 192.168.255.0/24 -o eth0 -j MASQUERADE
+
+openvpn --config "$OPENVPN/udp1194.conf"

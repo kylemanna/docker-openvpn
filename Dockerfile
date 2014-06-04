@@ -11,9 +11,6 @@ RUN git clone https://github.com/OpenVPN/easy-rsa.git /usr/local/share/easy-rsa
 RUN cd /usr/local/share/easy-rsa && git checkout -b tested 89f369c5bbd13fbf0da2ea6361632c244e8af532
 RUN ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin
 
-ADD ./bin /usr/local/bin
-RUN chmod a+x /usr/local/bin/*
-
 # Needed by scripts
 ENV OPENVPN /etc/openvpn
 ENV EASYRSA /usr/local/share/easy-rsa/easyrsa3
@@ -24,4 +21,7 @@ VOLUME ["/etc/openvpn"]
 
 EXPOSE 1194/udp
 
-ENTRYPOINT ["openvpn.sh"]
+CMD ["ovpn_run"]
+
+ADD ./bin /usr/local/bin
+RUN chmod a+x /usr/local/bin/*

@@ -1,0 +1,48 @@
+#!/bin/sh
+
+#
+# Get an OpenVPN client configuration file
+#
+
+set -ex
+
+cn=$1
+
+if [ -z "$cn" ]; then
+    echo "Common name not specified"
+    exit 1
+fi
+
+if [ ! -f "$EASYRSA_PKI/private/$cn.key" ]; then
+    easyrsa build-server-full $cn nopass
+fi
+
+servername=$(cat $OPENVPN/servername)
+
+cat <<EOF
+client
+nobind
+dev tun
+redirect-gateway def1
+
+<key>
+$(cat $EASYRSA_PKI/private/$cn.key)
+</key>
+<cert>
+$(cat $EASYRSA_PKI/issued/$cn.crt)
+</cert>
+<ca>
+$(cat $EASYRSA_PKI/ca.crt)
+</ca>
+<dh>
+$(cat $EASYRSA_PKI/dh.pem)
+</dh>
+#<tls-auth>
+#$(echo cat $EASYRSA_PKI/ta.key)
+#</tls-auth>
+#key-direction 1
+
+<connection>
+remote $servername 1194 udp
+</connection>
+EOF

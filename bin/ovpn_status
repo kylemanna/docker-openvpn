@@ -1,0 +1,9 @@
+#!/bin/sh
+
+#
+# Get OpenVPN server status
+#
+
+set -ex
+
+tail -F /tmp/openvpn-status-1194.log
