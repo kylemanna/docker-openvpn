@@ -13,11 +13,16 @@ if [ -z "$cn" ]; then
     exit 1
 fi
 
+# Specify "nopass" as arg[2] to make the CA insecure
+nopass=$2
+
 # Provides a sufficient warning before erasing pre-existing files
 easyrsa init-pki
 
-# For a CA key with a password, manually init; this is autopilot
-easyrsa build-ca nopass
+# CA always has a password for protection in event server is compromised. The
+# password is only needed to sign client/server certificates.  No password is
+# needed for normal OpenVPN operation.
+easyrsa build-ca $nopass
 
 easyrsa gen-dh
 openvpn --genkey --secret $OPENVPN/pki/ta.key
@@ -34,6 +39,7 @@ openvpn --genkey --secret $OPENVPN/pki/ta.key
 
 echo "$cn" > $OPENVPN/servername
 
+# For a server key with a password, manually init; this is autopilot
 easyrsa build-server-full $cn nopass
 
 ovpn_genconfig "$cn"
