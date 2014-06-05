@@ -1,76 +1,55 @@
 # OpenVPN for Docker
 
-TODO: Docs are out of date, need to update, example until updated:
+OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
-    # Init PKI and OpenVPN configs
-    docker run --name openvpn-data -it kylemanna/openvpn ovpn_init vpn.servername.com
+## Quick Start
 
-    # Start OpenVPN server process
-    docker run --volumes-from openvpn-data -d -p 1194:1194/udp --privileged kylemanna/openvpn
+* Initalize the `openvpn-data` container that will hold the configuration files
+  and certificates
 
-    # Generate a client cert
-    docker run --volumes-from openvpn-data --rm -it kylemanna/openvpn easyrsa build-client-full clientname nopass
+        docker run --name openvpn-data -it kylemanna/openvpn ovpn_init VPN.SERVERNAME.COM
 
-    # Retrieve the client configuration with embedded certs
-    docker run --volumes-from openvpn-data --rm kylemanna/openvpn ovpn_getclient clientname
+* Start OpenVPN server process
 
+        docker run --volumes-from openvpn-data -d -p 1194:1194/udp --privileged kylemanna/openvpn
 
-Quick instructions:
+* Generate a client certificate without a passphrase
 
-```bash
-CID=$(docker run -d --privileged -p 1194:1194/udp -p 443:443/tcp jpetazzo/openvpn)
-docker run -t -i -p 8080:8080 --volumes-from $CID jpetazzo/openvpn serveconfig
-```
+        docker run --volumes-from openvpn-data --rm -it kylemanna/openvpn easyrsa build-client-full CLIENTNAME nopass
 
-Now download the file located at the indicated URL. You will get a
-certificate warning, since the connection is done over SSL, but we are
-using a self-signed certificate. After downloading the configuration,
-stop the `serveconfig` container. You can restart it later if you need
-to re-download the configuration, or to download it to multiple devices.
+* Retrieve the client configuration with embedded certificates
 
-The file can be used immediately as an OpenVPN profile. It embeds all the
-required configuration and credentials. It has been tested successfully on
-Linux, Windows, and Android clients. If you can test it on OS X and iPhone,
-let me know!
-
-**Note:** there is a [bug in the Android Download Manager](
-http://code.google.com/p/android/issues/detail?id=3492) which prevents
-downloading files from untrusted SSL servers; and in that case, our
-self-signed certificate means that our server is untrusted. If you
-try to download with the default browser on your Android device,
-it will show the download as "in progress" but it will remain stuck.
-You can download it with Firefox; or you can transfer it with another
-way: Dropbox, USB, micro-SD card...
-
-If you reboot the server (or stop the container) and you `docker run`
-again, you will create a new service (with a new configuration) and
-you will have to re-download the configuration file. However, you can
-use `docker start` to restart the service without touching the configuration.
+        docker run --volumes-from openvpn-data --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
 
-## How does it work?
+## How Does It Work?
 
-When the `jpetazzo/openvpn` image is started, it generates:
+Initialize the volume container using the `kylemanna/openvpn` image with the
+`ovpn_init` to automatically generate:
 
-- Diffie-Hellman parameters,
-- a private key,
-- a self-certificate matching the private key,
-- two OpenVPN server configurations (for UDP and TCP),
-- an OpenVPN client profile.
+- Diffie-Hellman parameters
+- a private key
+- a self-certificate matching the private key for the OpenVPN server
+- an EasyRSA CA key and certificate
+- a TLS auth key from HMAC security
 
-Then, it starts two OpenVPN server processes (one on 1194/udp, another
-on 443/tcp).
+The OpenVPN server is started with the default run cmd of `ovpn_run`
 
 The configuration is located in `/etc/openvpn`, and the Dockerfile
 declares that directory as a volume. It means that you can start another
 container with the `--volumes-from` flag, and access the configuration.
-Conveniently, `jpetazzo/openvpn` comes with a script called `serveconfig`,
-which starts a pseudo HTTPS server on `8080/tcp`. The pseudo server
-does not even check the HTTP request; it just sends the HTTP status line,
-headers, and body right away.
+The volume also holds the PKI keys and certs so that it could be backed up.
+
+To generate a client certificate, `kylemanna/openvpn` uses EasyRSA via the
+`easyrsa` command in the container's path.  The `EASYRSA_*` environmental
+variables place the PKI CA under `/etc/opevpn/pki`.
+
+Conveniently, `kylemanna/openvpn` comes with a script called `ovpn_getclient`,
+which dumps an inline OpenVPN client configuration file.  This single file can
+then be given to a client for access to the VPN.
 
 
-## OpenVPN details
+## OpenVPN Details
 
 We use `tun` mode, because it works on the widest range of devices.
 `tap` mode, for instance, does not work on Android, except if the device
@@ -79,8 +58,7 @@ is rooted.
 The topology used is `net30`, because it works on the widest range of OS.
 `p2p`, for instance, does not work on Windows.
 
-The TCP server uses `192.168.255.0/25` and the UDP server uses
-`192.168.255.128/25`.
+The UDP server uses`192.168.255.128/25`.
 
 The client profile specifies `redirect-gateway def1`, meaning that after
 establishing the VPN connection, all traffic will go through the VPN.
@@ -91,22 +69,48 @@ resolvers like those of Google (8.8.4.4 and 8.8.8.8) or OpenDNS
 (208.67.222.222 and 208.67.220.220).
 
 
-## Security discussion
+## Security Discussion
 
-For simplicity, the client and the server use the same private key and
-certificate. This is certainly a terrible idea. If someone can get their
-hands on the configuration on one of your clients, they will be able to
-connect to your VPN, and you will have to generate new keys. Which is,
-by the way, extremely easy, since each time you `docker run` the OpenVPN
-image, a new key is created. If someone steals your configuration file
-(and key), they will also be able to impersonate the VPN server (if they
-can also somehow hijack your connection).
+The Docker container runs its own EasyRSA PKI Certificate Authority.  This was
+chosen as a good way to compromise on security and convenience.  The container
+runs under the assumption that the OpenVPN container is running on a secure
+host, that is to say that an adversary does not have access to the PKI files
+under `/etc/openvpn/pki`.  This is a fairly reasonable compromise because if an
+adversary had access to these files, the adversary could manipulate the
+function of the OpenVPN server itself (sniff packets, create a new PKI CA, MITM
+packets, etc).
 
-It would probably be a good idea to generate two sets of keys.
+* The certificate authority key is kept in the container by default for
+  simplicity.  It's highly recommended to secure the CA key with some
+  passphrase to protect against a filesystem compromise.  A more secure system
+  would put the EasyRSA PKI CA on an offline system (can use the same Docker
+  image to accomplish this).
+* It would be impossible for an adversary to sign bad or forged certificates
+  without first cracking the key's passphase should the adversary have root
+  access to the filesystem.
+* The EasyRSA `build-client-full` command will generate and leave keys on the
+  server, again possible to compromise and steal the keys.  The keys generated
+  need to signed by the CA which the user hopefully configured with a passphrase
+  as described above.
+* Assuming the rest of the Docker container's filesystem is secure, TLS + PKI
+  security should prevent any malicious host from using the VPN.
 
-It would probably be even better to generate the server key when
-running the container for the first time (as it is done now), but
-generate a new client key each time the `serveconfig` command is
-called. The command could even take the client CN as argument, and
-another `revoke` command could be used to revoke previously issued
-keys.
+
+## Differences from jpetazzo/dockvpn
+
+* No longer uses serveconfig to distribute the configuration via https
+* Proper PKI support integrated into image
+* OpenVPN config files, PKI keys and certs are stored on a storage
+  volume for re-use across containers
+* Only offer UDP support for now, I don't have a good use case for TCP
+* Addition of tls-auth for HMAC security
+
+## Tested On
+
+* Docker hosts:
+  * server a Digitial Ocean Droplet with 512 MB RAM running Ubuntu 14.04
+* Clients
+  * Android App OpenVPN Connect 1.1.14 (built 56)
+     * OpenVPN core 3.0 android armv7a thumb2 32-bit
+  * OS X Mavericks with Tunnelblick 3.4beta26 (build 3828) using openvpn-2.3.4
+  * ArchLinux OpenVPN pkg 2.3.4-1
