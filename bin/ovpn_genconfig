@@ -6,7 +6,8 @@
 
 set -ex
 
-cn=$1
+servername=$(cat "$OPENVPN/servername" 2> /dev/null)
+cn=${1-$servername}
 
 if [ -z "$cn" ]; then
     echo "Common name not specified"
