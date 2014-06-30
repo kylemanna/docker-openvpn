@@ -14,7 +14,14 @@ if [ -z "$cn" ]; then
     exit 1
 fi
 
-cat > "$OPENVPN/udp1194.conf" <<EOF
+conf=$OPENVPN/udp1194.conf
+if [ -f "$conf" ]; then
+    bak=$conf.$(date +%s).bak
+    echo "Backing up $conf -> $bak"
+    mv "$conf" "$bak"
+fi
+
+cat > "$conf" <<EOF
 server 192.168.255.0 255.255.255.0
 verb 3
 #duplicate-cn
