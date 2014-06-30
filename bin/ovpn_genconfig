@@ -14,7 +14,7 @@ if [ -z "$cn" ]; then
 fi
 
 cat > "$OPENVPN/udp1194.conf" <<EOF
-server 192.168.255.128 255.255.255.128
+server 192.168.255.0 255.255.255.0
 verb 3
 #duplicate-cn
 key $EASYRSA_PKI/private/$cn.key
