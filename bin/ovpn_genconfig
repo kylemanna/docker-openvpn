@@ -28,6 +28,7 @@ persist-key
 persist-tun
 push "dhcp-option DNS 8.8.4.4"
 push "dhcp-option DNS 8.8.8.8"
+client-config-dir $OPENVPN/ccd
 
 proto udp
 port 1194
