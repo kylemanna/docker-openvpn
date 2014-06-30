@@ -11,6 +11,13 @@ if [ ! -c /dev/net/tun ]; then
     mknod /dev/net/tun c 10 200
 fi
 
+if [ ! -d "$OPENVPN/ccd" ]; then
+    mkdir -p /etc/openvpn/ccd
+fi
+
+# Static subnet
+iptables -t nat -A POSTROUTING -s 192.168.254.0/24 -o eth0 -j MASQUERADE
+# Dynamic subnet
 iptables -t nat -A POSTROUTING -s 192.168.255.0/24 -o eth0 -j MASQUERADE
 
 openvpn --config "$OPENVPN/udp1194.conf"

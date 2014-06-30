@@ -6,15 +6,23 @@
 
 set -ex
 
-cn=$1
+servername=$(cat "$OPENVPN/servername" 2> /dev/null)
+cn=${1-$servername}
 
 if [ -z "$cn" ]; then
     echo "Common name not specified"
     exit 1
 fi
 
-cat > "$OPENVPN/udp1194.conf" <<EOF
-server 192.168.255.128 255.255.255.128
+conf=$OPENVPN/udp1194.conf
+if [ -f "$conf" ]; then
+    bak=$conf.$(date +%s).bak
+    echo "Backing up $conf -> $bak"
+    mv "$conf" "$bak"
+fi
+
+cat > "$conf" <<EOF
+server 192.168.255.0 255.255.255.0
 verb 3
 #duplicate-cn
 key $EASYRSA_PKI/private/$cn.key
@@ -28,6 +36,9 @@ persist-key
 persist-tun
 push "dhcp-option DNS 8.8.4.4"
 push "dhcp-option DNS 8.8.8.8"
+
+client-config-dir $OPENVPN/ccd
+route 192.168.254.0 255.255.255.0
 
 proto udp
 port 1194
