@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # Initialize the PKI and OpenVPN configs
@@ -6,12 +6,21 @@
 
 set -ex
 
-cn=$1
+server_url=$1
 
-if [ -z "$cn" ]; then
+# Server name is in the form "udp://vpn.example.com:1194"
+if [[ "$server_url" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.]+)(:([0-9]+))?$ ]]; then
+    proto=${BASH_REMATCH[2]};
+    cn=${BASH_REMATCH[3]};
+    port=${BASH_REMATCH[5]};
+else
     echo "Common name not specified"
     exit 1
 fi
+
+# Apply defaults
+[ -z "$proto" ] && proto=1194
+[ -z "$port" ] && port=udp
 
 # Specify "nopass" as arg[2] to make the CA insecure
 nopass=$2
@@ -37,7 +46,7 @@ openvpn --genkey --secret $OPENVPN/pki/ta.key
 #    [ -n "$ptr" ] && cn=$ptr || cn=$ip4
 #fi
 
-echo "$cn" > $OPENVPN/servername
+echo "$server_url" > $OPENVPN/server_url
 
 # For a server key with a password, manually init; this is autopilot
 easyrsa build-server-full $cn nopass

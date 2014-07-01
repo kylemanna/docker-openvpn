@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # Generate OpenVPN configs
@@ -6,13 +6,20 @@
 
 set -ex
 
-servername=$(cat "$OPENVPN/servername" 2> /dev/null)
-cn=${1-$servername}
+server_url=$1
+[ -z "$server_url" ] && server_url=$(cat "$OPENVPN/server_url" 2> /dev/null)
 
-if [ -z "$cn" ]; then
+if [[ "$server_url" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.]+)(:([0-9]+))?$ ]]; then
+    proto=${BASH_REMATCH[2]};
+    port=${BASH_REMATCH[5]};
+else
     echo "Common name not specified"
     exit 1
 fi
+
+# Apply defaults
+[ -z "$proto" ] && proto=1194
+[ -z "$port" ] && port=udp
 
 conf=$OPENVPN/udp1194.conf
 if [ -f "$conf" ]; then
@@ -40,8 +47,8 @@ push "dhcp-option DNS 8.8.8.8"
 client-config-dir $OPENVPN/ccd
 route 192.168.254.0 255.255.255.0
 
-proto udp
-port 1194
+proto $proto
+port $port
 dev tun1194
 status /tmp/openvpn-status-1194.log
 EOF
