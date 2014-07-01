@@ -58,7 +58,7 @@ is rooted.
 The topology used is `net30`, because it works on the widest range of OS.
 `p2p`, for instance, does not work on Windows.
 
-The UDP server uses`192.168.255.128/25`.
+The UDP server uses`192.168.255.0/24` for dynamic clients by default.
 
 The client profile specifies `redirect-gateway def1`, meaning that after
 establishing the VPN connection, all traffic will go through the VPN.
