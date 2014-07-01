@@ -52,3 +52,6 @@ port $port
 dev tun0
 status /tmp/openvpn-status.log
 EOF
+
+# Clean-up duplicate configs
+diff -q "$bak" "$conf" && rm "$bak"
