@@ -6,4 +6,4 @@
 
 set -ex
 
-tail -F /tmp/openvpn-status-1194.log
+tail -F /tmp/openvpn-status.log
