@@ -7,7 +7,7 @@ OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 * Initalize the `openvpn-data` container that will hold the configuration files
   and certificates
 
-        docker run --name openvpn-data -it kylemanna/openvpn ovpn_init VPN.SERVERNAME.COM
+        docker run --name openvpn-data -it kylemanna/openvpn ovpn_init udp://VPN.SERVERNAME.COM:1194
 
 * Start OpenVPN server process
 
@@ -58,7 +58,7 @@ is rooted.
 The topology used is `net30`, because it works on the widest range of OS.
 `p2p`, for instance, does not work on Windows.
 
-The UDP server uses`192.168.255.128/25`.
+The UDP server uses`192.168.255.0/24` for dynamic clients by default.
 
 The client profile specifies `redirect-gateway def1`, meaning that after
 establishing the VPN connection, all traffic will go through the VPN.
