@@ -7,7 +7,7 @@ OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 * Initalize the `openvpn-data` container that will hold the configuration files
   and certificates
 
-        docker run --name openvpn-data -it kylemanna/openvpn ovpn_init VPN.SERVERNAME.COM
+        docker run --name openvpn-data -it kylemanna/openvpn ovpn_init udp://VPN.SERVERNAME.COM:1194
 
 * Start OpenVPN server process
 
