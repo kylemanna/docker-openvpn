@@ -17,7 +17,6 @@ cat <<EOF
 client
 nobind
 dev tun
-redirect-gateway def1
 remote-cert-tls server
 
 <key>
@@ -38,6 +37,10 @@ $(cat $EASYRSA_PKI/ta.key)
 key-direction 1
 
 <connection>
-remote $servername $port $proto
+remote $OVPN_CN $OVPN_PORT $OVPN_PROTO
 </connection>
 EOF
+
+if [ "$OVPN_DEFROUTE" != "0" ];then
+    echo "redirect-gateway def1"
+fi
