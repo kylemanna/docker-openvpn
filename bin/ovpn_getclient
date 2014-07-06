@@ -6,27 +6,10 @@
 
 set -ex
 
-if [ -s "$OPENVPN/server_url" ]; then
-    server_url=$(cat "$OPENVPN/server_url" 2> /dev/null)
-else
-    # TODO Backwards compatible, need to throw away eventually
-    server_url=$(cat "$OPENVPN/servername" 2> /dev/null)
-fi
+source "$OPENVPN/ovpn_env.sh"
+cn=$1
 
-if [[ "$server_url" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.]+)(:([0-9]+))?$ ]]; then
-    proto=${BASH_REMATCH[2]};
-    servername=${BASH_REMATCH[3]};
-    port=${BASH_REMATCH[5]};
-else
-    echo "Common name not specified"
-    exit 1
-fi
-
-# Apply defaults
-[ -z "$proto" ] && proto=1194
-[ -z "$port" ] && port=udp
-
-if [ ! -f "$EASYRSA_PKI/private/$cn.key" ]; then
+if [ ! -f "$EASYRSA_PKI/private/${cn}.key" ]; then
     easyrsa build-server-full $cn nopass
 fi
 
@@ -38,10 +21,10 @@ redirect-gateway def1
 remote-cert-tls server
 
 <key>
-$(cat $EASYRSA_PKI/private/$cn.key)
+$(cat $EASYRSA_PKI/private/${cn}.key)
 </key>
 <cert>
-$(cat $EASYRSA_PKI/issued/$cn.crt)
+$(cat $EASYRSA_PKI/issued/${cn}.crt)
 </cert>
 <ca>
 $(cat $EASYRSA_PKI/ca.crt)

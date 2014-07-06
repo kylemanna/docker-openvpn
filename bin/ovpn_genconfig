@@ -6,20 +6,37 @@
 
 set -ex
 
-server_url=$1
-[ -z "$server_url" ] && server_url=$(cat "$OPENVPN/server_url" 2> /dev/null)
+OVPN_ENV=$OPENVPN/ovpn_env.sh
 
-if [[ "$server_url" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.]+)(:([0-9]+))?$ ]]; then
-    proto=${BASH_REMATCH[2]};
-    port=${BASH_REMATCH[5]};
+# Import defaults if present
+[ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
+
+# Override config if set
+[ -n "$1" ] && OVPN_SERVER_URL="$1"
+
+# Server name is in the form "udp://vpn.example.com:1194"
+if [[ "$OVPN_SERVER_URL" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.]+)(:([0-9]+))?$ ]]; then
+    OVPN_PROTO=${BASH_REMATCH[2]};
+    OVPN_CN=${BASH_REMATCH[3]};
+    OVPN_PORT=${BASH_REMATCH[5]};
 else
     echo "Common name not specified"
     exit 1
 fi
 
 # Apply defaults
-[ -z "$proto" ] && proto=1194
-[ -z "$port" ] && port=udp
+[ -z "$OVPN_PROTO" ] && OVPN_PROTO=udp
+[ -z "$OVPN_PORT" ] && OVPN_PORT=1194
+
+
+# Preserve config
+if [ -f "$OVPN_ENV" ]; then
+    bak_env=$OVPN_ENV.$(date +%s).bak
+    echo "Backing up $OVPN_ENV -> $bak_env"
+    mv "$OVPN_ENV" "$bak_env"
+fi
+export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
+env | grep ^OVPN_ > "$OVPN_ENV"
 
 conf=$OPENVPN/openvpn.conf
 if [ -f "$conf" ]; then
@@ -32,9 +49,9 @@ cat > "$conf" <<EOF
 server 192.168.255.0 255.255.255.0
 verb 3
 #duplicate-cn
-key $EASYRSA_PKI/private/$cn.key
+key $EASYRSA_PKI/private/$OVPN_CN.key
 ca $EASYRSA_PKI/ca.crt
-cert $EASYRSA_PKI/issued/$cn.crt
+cert $EASYRSA_PKI/issued/$OVPN_CN.crt
 dh $EASYRSA_PKI/dh.pem
 tls-auth $EASYRSA_PKI/ta.key
 key-direction 0
@@ -47,11 +64,12 @@ push "dhcp-option DNS 8.8.8.8"
 client-config-dir $OPENVPN/ccd
 route 192.168.254.0 255.255.255.0
 
-proto $proto
-port $port
+proto $OVPN_PROTO
+port $OVPN_PORT
 dev tun0
 status /tmp/openvpn-status.log
 EOF
 
-# Clean-up duplicate configs
-diff -q "$bak" "$conf" && rm "$bak"
+# Clean-up duplicate configs (always return success)
+diff -q "$bak_env" "$OVPN_ENV" 2> /dev/null && rm "$bak_env" || true
+diff -q "$bak" "$conf" 2> /dev/null && rm "$bak" || true
