@@ -4,15 +4,82 @@
 # Generate OpenVPN configs
 #
 
+# Convert 1.2.3.4/24 -> 255.255.255.0
+cidr2mask()
+{
+    local i
+    local subnetmask=""
+    local cidr=${1#*/}
+    local full_octets=$(($cidr/8))
+    local partial_octet=$(($cidr%8))
+
+    for ((i=0;i<4;i+=1)); do
+        if [ $i -lt $full_octets ]; then
+            subnetmask+=255
+        elif [ $i -eq $full_octets ]; then
+            subnetmask+=$((256 - 2**(8-$partial_octet)))
+        else
+            subnetmask+=0
+        fi
+        [ $i -lt 3 ] && subnetmask+=.
+    done
+    echo $subnetmask
+}
+
+# Used often enough to justify a function
+getroute() {
+    echo ${1%/*} $(cidr2mask $1)
+}
+
+usage() {
+    echo "usage: $0 [-d]"
+    echo "                  -u SERVER_PUBLIC_URL"
+    echo "                 [-s SERVER_SUBNET]"
+    echo "                 [-r ROUTE ...]"
+    echo
+    echo "optional arguments:"
+    echo " -d    Disable NAT routing and default route"
+}
+
 set -ex
 
 OVPN_ENV=$OPENVPN/ovpn_env.sh
+OVPN_SERVER=192.168.255.0/24
+OVPN_DEFROUTE=1
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
-# Override config if set
-[ -n "$1" ] && OVPN_SERVER_URL="$1"
+# Parse arguments
+while getopts ":r:s:du:" opt; do
+    case $opt in
+        r)
+            OVPN_ROUTES+=" $OPTARG"
+            ;;
+        s)
+            OVPN_SERVER=$OPTARG
+            ;;
+        d)
+            OVPN_DEFROUTE=0
+            ;;
+        u)
+            OVPN_SERVER_URL=$OPTARG
+            ;;
+        \?)
+            set +x
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            exit 1
+            ;;
+        :)
+            set +x
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+
 
 # Server name is in the form "udp://vpn.example.com:1194"
 if [[ "$OVPN_SERVER_URL" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.]+)(:([0-9]+))?$ ]]; then
@@ -20,14 +87,19 @@ if [[ "$OVPN_SERVER_URL" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.]+)(:([0-9]+))?$ ]]; th
     OVPN_CN=${BASH_REMATCH[3]};
     OVPN_PORT=${BASH_REMATCH[5]};
 else
-    echo "Common name not specified"
+    set +x
+    echo "Common name not specified, see '-u'"
+    usage
     exit 1
 fi
 
 # Apply defaults
 [ -z "$OVPN_PROTO" ] && OVPN_PROTO=udp
 [ -z "$OVPN_PORT" ] && OVPN_PORT=1194
+[ -z "$OVPN_ROUTES" ] && OVPN_ROUTES=192.168.254.0/24
 
+export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
+export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
@@ -35,8 +107,7 @@ if [ -f "$OVPN_ENV" ]; then
     echo "Backing up $OVPN_ENV -> $bak_env"
     mv "$OVPN_ENV" "$bak_env"
 fi
-export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
-env | grep ^OVPN_ > "$OVPN_ENV"
+export | grep OVPN_ > "$OVPN_ENV"
 
 conf=$OPENVPN/openvpn.conf
 if [ -f "$conf" ]; then
@@ -46,12 +117,12 @@ if [ -f "$conf" ]; then
 fi
 
 cat > "$conf" <<EOF
-server 192.168.255.0 255.255.255.0
+server $(getroute $OVPN_SERVER)
 verb 3
 #duplicate-cn
-key $EASYRSA_PKI/private/$OVPN_CN.key
+key $EASYRSA_PKI/private/${OVPN_CN}.key
 ca $EASYRSA_PKI/ca.crt
-cert $EASYRSA_PKI/issued/$OVPN_CN.crt
+cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
 dh $EASYRSA_PKI/dh.pem
 tls-auth $EASYRSA_PKI/ta.key
 key-direction 0
@@ -61,14 +132,18 @@ persist-tun
 push "dhcp-option DNS 8.8.4.4"
 push "dhcp-option DNS 8.8.8.8"
 
-client-config-dir $OPENVPN/ccd
-route 192.168.254.0 255.255.255.0
-
 proto $OVPN_PROTO
 port $OVPN_PORT
 dev tun0
 status /tmp/openvpn-status.log
+
+client-config-dir $OPENVPN/ccd
 EOF
+
+# Append Routes
+for i in ${OVPN_ROUTES[@]}; do
+    echo route $(getroute $i) >> "$conf"
+done
 
 # Clean-up duplicate configs (always return success)
 diff -q "$bak_env" "$OVPN_ENV" 2> /dev/null && rm "$bak_env" || true
