@@ -50,11 +50,18 @@ OVPN_DEFROUTE=1
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
+ORIG_OVPN_ROUTES=$OVPN_ROUTES
+OVPN_ROUTES=""
+
 # Parse arguments
 while getopts ":r:s:du:" opt; do
     case $opt in
         r)
-            OVPN_ROUTES+=" $OPTARG"
+            if [ -n "$OVPN_ROUTES" ]; then
+                OVPN_ROUTES+=" $OPTARG"
+            else
+                OVPN_ROUTES+="$OPTARG"
+            fi
             ;;
         s)
             OVPN_SERVER=$OPTARG
@@ -96,7 +103,14 @@ fi
 # Apply defaults
 [ -z "$OVPN_PROTO" ] && OVPN_PROTO=udp
 [ -z "$OVPN_PORT" ] && OVPN_PORT=1194
-[ -z "$OVPN_ROUTES" ] && OVPN_ROUTES=192.168.254.0/24
+
+if [ -z "$OVPN_ROUTES" ]; then
+    if [ -n "$ORIG_OVPN_ROUTES" ]; then
+        OVPN_ROUTES=$ORIG_OVPN_ROUTES
+    else
+        OVPN_ROUTES=192.168.254.0/24
+    fi
+fi
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
