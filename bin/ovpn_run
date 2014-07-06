@@ -1,10 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # Run the OpenVPN server normally
 #
 
 set -ex
+
+source "$OPENVPN/ovpn_env.sh"
 
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
@@ -15,14 +17,15 @@ if [ ! -d "$OPENVPN/ccd" ]; then
     mkdir -p /etc/openvpn/ccd
 fi
 
-# Static subnet
-iptables -t nat -A POSTROUTING -s 192.168.254.0/24 -o eth0 -j MASQUERADE
-# Dynamic subnet
-iptables -t nat -A POSTROUTING -s 192.168.255.0/24 -o eth0 -j MASQUERADE
+# Setup NAT forwarding if requested
+if [ "$OVPN_DEFROUTE" != "0" ];then
+    iptables -t nat -A POSTROUTING -s $OVPN_SERVER -o eth0 -j MASQUERADE
+
+    for i in ${OVPN_ROUTES[@]}; do
+        iptables -t nat -A POSTROUTING -s $i -o eth0 -j MASQUERADE
+    done
+fi
 
 conf="$OPENVPN/openvpn.conf"
-
-# TODO Remove after we stop caring about backwards compatibility
-[ ! -s "$conf" ] && conf="$OPENVPN/udp1194.conf"
 
 openvpn --config "$conf"
