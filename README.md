@@ -29,7 +29,7 @@ OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 ## How Does It Work?
 
 Initialize the volume container using the `kylemanna/openvpn` image with the
-`ovpn_init` to automatically generate:
+included scripts to automatically generate:
 
 - Diffie-Hellman parameters
 - a private key
