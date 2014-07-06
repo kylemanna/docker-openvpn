@@ -157,6 +157,8 @@ EOF
 
 # Append Routes
 for i in ${OVPN_ROUTES[@]}; do
+    # If user passed "0" skip this, assume no extra routes
+    [ "$i" = "0" ] && break;
     echo route $(getroute $i) >> "$conf"
 done
 
