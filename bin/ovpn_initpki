@@ -1,18 +1,15 @@
 #!/bin/bash
 
 #
-# Initialize the PKI and OpenVPN configs
+# Initialize the EasyRSA PKI
 #
 
 set -ex
 
-# Generate the ovpn env file
-ovpn_genconfig "$1"
-
 source "$OPENVPN/ovpn_env.sh"
 
-# Specify "nopass" as arg[2] to make the CA insecure
-nopass=$2
+# Specify "nopass" as arg[2] to make the CA insecure (not recommended!)
+nopass=$1
 
 # Provides a sufficient warning before erasing pre-existing files
 easyrsa init-pki
