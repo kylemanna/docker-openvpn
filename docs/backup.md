@@ -9,6 +9,10 @@ I'd recommend encrypting the archive with something strong (e.g. gpg or openssl 
 
 TL;DR Protect the resulting archive file, by ensure there is very limited access to it.
 
-## Simple
+## Backup to Archive
 
-    docker run  --volumes-from openvpn-data --rm kylemanna/openvpn tar czf - -C /etc openvpn > openvpn-backup.tar.gz
+    docker run --volumes-from openvpn-data --rm busybox tar -cvf - -C /etc openvpn | xz > openvpn-backup.tar.xz
+
+## Retore to New Image
+
+    xzcat openvpn-backup.tar.xz | docker run --name openvpn-data -v /etc/openvpn -i busybox tar -xvf - -C /etc
