@@ -39,6 +39,7 @@ usage() {
     echo
     echo "optional arguments:"
     echo " -d    Disable NAT routing and default route"
+    echo " -c    Enable client-to-client option"
 }
 
 set -ex
@@ -54,7 +55,7 @@ ORIG_OVPN_ROUTES=$OVPN_ROUTES
 OVPN_ROUTES=""
 
 # Parse arguments
-while getopts ":r:s:du:" opt; do
+while getopts ":r:s:du:c" opt; do
     case $opt in
         r)
             if [ -n "$OVPN_ROUTES" ]; then
@@ -71,6 +72,9 @@ while getopts ":r:s:du:" opt; do
             ;;
         u)
             OVPN_SERVER_URL=$OPTARG
+            ;;
+        c)
+            OVPN_CLIENT_TO_CLIENT=1
             ;;
         \?)
             set +x
@@ -114,6 +118,7 @@ fi
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
+export OVPN_CLIENT_TO_CLIENT
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
@@ -154,6 +159,8 @@ status /tmp/openvpn-status.log
 
 client-config-dir $OPENVPN/ccd
 EOF
+
+[ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
 
 # Append Routes
 for i in ${OVPN_ROUTES[@]}; do
