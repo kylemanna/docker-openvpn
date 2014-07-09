@@ -48,23 +48,17 @@ set -ex
 OVPN_ENV=$OPENVPN/ovpn_env.sh
 OVPN_SERVER=192.168.255.0/24
 OVPN_DEFROUTE=1
+OVPN_ROUTES=()
 OVPN_PUSH=()
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
-ORIG_OVPN_ROUTES=$OVPN_ROUTES
-OVPN_ROUTES=""
-
 # Parse arguments
 while getopts ":r:s:du:cp:" opt; do
     case $opt in
         r)
-            if [ -n "$OVPN_ROUTES" ]; then
-                OVPN_ROUTES+=" $OPTARG"
-            else
-                OVPN_ROUTES+="$OPTARG"
-            fi
+            OVPN_ROUTES+=("$OPTARG")
             ;;
         s)
             OVPN_SERVER=$OPTARG
@@ -112,14 +106,7 @@ fi
 # Apply defaults
 [ -z "$OVPN_PROTO" ] && OVPN_PROTO=udp
 [ -z "$OVPN_PORT" ] && OVPN_PORT=1194
-
-if [ -z "$OVPN_ROUTES" ]; then
-    if [ -n "$ORIG_OVPN_ROUTES" ]; then
-        OVPN_ROUTES=$ORIG_OVPN_ROUTES
-    else
-        OVPN_ROUTES=192.168.254.0/24
-    fi
-fi
+[ ${#OVPN_ROUTES[@]} -eq 0 ] && OVPN_ROUTES=("192.168.254.0/24")
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
@@ -168,10 +155,10 @@ EOF
 [ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
 
 # Append Routes
-for i in ${OVPN_ROUTES[@]}; do
+for i in "${OVPN_ROUTES[@]}"; do
     # If user passed "0" skip this, assume no extra routes
     [ "$i" = "0" ] && break;
-    echo route $(getroute $i) >> "$conf"
+    echo route $(getroute "$i") >> "$conf"
 done
 
 # Append push commands
