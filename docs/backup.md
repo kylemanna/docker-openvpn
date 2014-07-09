@@ -11,8 +11,8 @@ TL;DR Protect the resulting archive file, by ensure there is very limited access
 
 ## Backup to Archive
 
-    docker run --volumes-from openvpn-data --rm busybox tar -cvf - -C /etc openvpn | xz > openvpn-backup.tar.xz
+    docker run --volumes-from $OVPN_DATA --rm busybox tar -cvf - -C /etc openvpn | xz > openvpn-backup.tar.xz
 
 ## Retore to New Image
 
-    xzcat openvpn-backup.tar.xz | docker run --name openvpn-data -v /etc/openvpn -i busybox tar -xvf - -C /etc
+    xzcat openvpn-backup.tar.xz | docker run --name $OVPN_DATA -v /etc/openvpn -i busybox tar -xvf - -C /etc
