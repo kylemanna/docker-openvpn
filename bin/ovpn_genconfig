@@ -36,9 +36,11 @@ usage() {
     echo "                  -u SERVER_PUBLIC_URL"
     echo "                 [-s SERVER_SUBNET]"
     echo "                 [-r ROUTE ...]"
+    echo "                 [-p PUSH ...]"
     echo
     echo "optional arguments:"
     echo " -d    Disable NAT routing and default route"
+    echo " -c    Enable client-to-client option"
 }
 
 set -ex
@@ -46,22 +48,17 @@ set -ex
 OVPN_ENV=$OPENVPN/ovpn_env.sh
 OVPN_SERVER=192.168.255.0/24
 OVPN_DEFROUTE=1
+OVPN_ROUTES=()
+OVPN_PUSH=()
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
-ORIG_OVPN_ROUTES=$OVPN_ROUTES
-OVPN_ROUTES=""
-
 # Parse arguments
-while getopts ":r:s:du:" opt; do
+while getopts ":r:s:du:cp:" opt; do
     case $opt in
         r)
-            if [ -n "$OVPN_ROUTES" ]; then
-                OVPN_ROUTES+=" $OPTARG"
-            else
-                OVPN_ROUTES+="$OPTARG"
-            fi
+            OVPN_ROUTES+=("$OPTARG")
             ;;
         s)
             OVPN_SERVER=$OPTARG
@@ -71,6 +68,12 @@ while getopts ":r:s:du:" opt; do
             ;;
         u)
             OVPN_SERVER_URL=$OPTARG
+            ;;
+        c)
+            OVPN_CLIENT_TO_CLIENT=1
+            ;;
+        p)
+            OVPN_PUSH+=("$OPTARG")
             ;;
         \?)
             set +x
@@ -103,17 +106,11 @@ fi
 # Apply defaults
 [ -z "$OVPN_PROTO" ] && OVPN_PROTO=udp
 [ -z "$OVPN_PORT" ] && OVPN_PORT=1194
-
-if [ -z "$OVPN_ROUTES" ]; then
-    if [ -n "$ORIG_OVPN_ROUTES" ]; then
-        OVPN_ROUTES=$ORIG_OVPN_ROUTES
-    else
-        OVPN_ROUTES=192.168.254.0/24
-    fi
-fi
+[ ${#OVPN_ROUTES[@]} -eq 0 ] && OVPN_ROUTES=("192.168.254.0/24")
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
+export OVPN_CLIENT_TO_CLIENT OVPN_PUSH
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
@@ -155,13 +152,22 @@ status /tmp/openvpn-status.log
 client-config-dir $OPENVPN/ccd
 EOF
 
+[ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
+
 # Append Routes
-for i in ${OVPN_ROUTES[@]}; do
+for i in "${OVPN_ROUTES[@]}"; do
     # If user passed "0" skip this, assume no extra routes
     [ "$i" = "0" ] && break;
-    echo route $(getroute $i) >> "$conf"
+    echo route $(getroute "$i") >> "$conf"
+done
+
+# Append push commands
+for i in "${OVPN_PUSH[@]}"; do
+    echo push \"$i\" >> "$conf"
 done
 
 # Clean-up duplicate configs (always return success)
 diff -q "$bak_env" "$OVPN_ENV" 2> /dev/null && rm "$bak_env" || true
 diff -q "$bak" "$conf" 2> /dev/null && rm "$bak" || true
+
+echo "Successfully generated config"

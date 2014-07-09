@@ -21,8 +21,8 @@ fi
 if [ "$OVPN_DEFROUTE" != "0" ];then
     iptables -t nat -A POSTROUTING -s $OVPN_SERVER -o eth0 -j MASQUERADE
 
-    for i in ${OVPN_ROUTES[@]}; do
-        iptables -t nat -A POSTROUTING -s $i -o eth0 -j MASQUERADE
+    for i in "${OVPN_ROUTES[@]}"; do
+        iptables -t nat -A POSTROUTING -s "$i" -o eth0 -j MASQUERADE
     done
 fi
 
