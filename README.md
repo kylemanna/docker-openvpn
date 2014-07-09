@@ -4,26 +4,26 @@ OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
 ## Quick Start
 
-* Create the `openvpn-data` volume container
+* Create the `$OVPN_DATA` volume container, i.e. `OVPN_DATA="ovpn-data"`
 
-        docker run --name openvpn-data -v /etc/openvpn busybox
+        docker run --name $OVPN_DATA -v /etc/openvpn busybox
 
-* Initalize the `openvpn-data` container that will hold the configuration files and certificates
+* Initalize the `$OVPN_DATA` container that will hold the configuration files and certificates
 
-        docker run --volumes-from openvpn-data kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM:1194
-        docker run --volumes-from openvpn-data -it kylemanna/openvpn ovpn_initpki
+        docker run --volumes-from $OVPN_DATA kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM:1194
+        docker run --volumes-from $OVPN_DATA -it kylemanna/openvpn ovpn_initpki
 
 * Start OpenVPN server process
 
-        docker run --volumes-from openvpn-data -d -p 1194:1194/udp --privileged kylemanna/openvpn
+        docker run --volumes-from $OVPN_DATA -d -p 1194:1194/udp --privileged kylemanna/openvpn
 
 * Generate a client certificate without a passphrase
 
-        docker run --volumes-from openvpn-data --rm -it kylemanna/openvpn easyrsa build-client-full CLIENTNAME nopass
+        docker run --volumes-from $OVPN_DATA --rm -it kylemanna/openvpn easyrsa build-client-full CLIENTNAME nopass
 
 * Retrieve the client configuration with embedded certificates
 
-        docker run --volumes-from openvpn-data --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
+        docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
 
 ## How Does It Work?
