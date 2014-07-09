@@ -172,3 +172,5 @@ done
 # Clean-up duplicate configs (always return success)
 diff -q "$bak_env" "$OVPN_ENV" 2> /dev/null && rm "$bak_env" || true
 diff -q "$bak" "$conf" 2> /dev/null && rm "$bak" || true
+
+echo "Successfully generated config"
