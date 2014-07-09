@@ -2,6 +2,13 @@
 
 Random things I do to debug the containers.
 
+## Login Shells
+
+* Create a shell in the running docker container (aka namespace) with [nsenter](https://github.com/jpetazzo/nsenter)
+* If you don't have nsenter/docker-enter, you can mount the data container and modify it with
+
+        docker run --rm -it --volumes-from $OVPN_DATA kylemanna/openvpn bash -l
+
 ## Stream OpenVPN Logs
 
 1. Get the container's name or container ID:
