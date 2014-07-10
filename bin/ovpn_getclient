@@ -10,7 +10,8 @@ source "$OPENVPN/ovpn_env.sh"
 cn=$1
 
 if [ ! -f "$EASYRSA_PKI/private/${cn}.key" ]; then
-    easyrsa build-server-full $cn nopass
+    echo "Unable to find ${cn}, please try again or generate the key first"
+    exit 1
 fi
 
 cat <<EOF
