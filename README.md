@@ -2,6 +2,8 @@
 
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
+Extensively tested on [Digital Ocean](https://www.digitalocean.com/?refcode=d19f7fe88c94).
+
 ## Quick Start
 
 * Create the `$OVPN_DATA` volume container, i.e. `OVPN_DATA="ovpn-data"`
@@ -118,7 +120,7 @@ packets, etc).
 ## Tested On
 
 * Docker hosts:
-  * server a Digitial Ocean Droplet with 512 MB RAM running Ubuntu 14.04
+  * server a [Digital Ocean](https://www.digitalocean.com/?refcode=d19f7fe88c94) Droplet with 512 MB RAM running Ubuntu 14.04
 * Clients
   * Android App OpenVPN Connect 1.1.14 (built 56)
      * OpenVPN core 3.0 android armv7a thumb2 32-bit
