@@ -2,7 +2,7 @@
 
 The ovpn_genconfig script is intended for simple configurations that apply to the majority of the users.  If your use case isn't general, it likely won't be supported.  This document aims to explain how to work around that.
 
-## Create host volume mounts rather then data volumes
+## Create host volume mounts rather than data volumes
 
 * Refer to the Quick Start document, and substitute `--volumes-from $OVPN_DATA` with `-v /path/on/host/openvpn0:/etc/openvpn`
 * Quick example that is likely to be out of date, but here's how to get started:
