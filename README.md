@@ -114,7 +114,6 @@ packets, etc).
 * Proper PKI support integrated into image
 * OpenVPN config files, PKI keys and certs are stored on a storage
   volume for re-use across containers
-* Only offer UDP support for now, I don't have a good use case for TCP
 * Addition of tls-auth for HMAC security
 
 ## Tested On
