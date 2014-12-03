@@ -1,0 +1,3 @@
+#!/bin/sh
+cd /etc/openvpn
+uwsgi --master --https 0.0.0.0:8080,/etc/openvpn/server-cert.pem,/etc/openvpn/server-key.pem --chdir /usr/local/sbin --wsgi-file config_server.py --callable app --processes 1 --logto /etc/openvpn/https8080.log &
