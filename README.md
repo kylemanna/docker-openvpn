@@ -21,10 +21,11 @@ It adds the following features:
 1. Go to the CoreOS site and use the dropdown on the `Download CoreOS` button. Select EC2.
 2. Look for the region you wish to run your VPN in.
 3. Click one of the AMI IDs that correspond to your region.
-4. Go through the instance creation process, but when asked for user data, paste the contents of `userdata.yml` into the box.
-5. When asked for a security group, create a new one. Open TCP ports 443 and 8080. Also, open UDP port 1194.
-6. When the instance has come up, wait a couple of minutes and go to `https://<instance IP>:8080`.
-7. Download the config, then point OpenVPN at it and connect.
+4. Go through the instance creation process, but when asked for user data, paste the contents of `userdata.yml` into the box. You may also download `userdata.yml` and use the 'as file'  option when asked for user data.
+5. When asked for a security group, create a new one. Open TCP ports 443 and 8080.
+6. When the instance has come up, wait. (5-10 minutes on t1. and t2. micros)  
+7. Go to `https://<instance IP>:8080`.
+8. Download the config, then point OpenVPN at it and connect.
 
 ### Steps (DigitalOcean):
 
