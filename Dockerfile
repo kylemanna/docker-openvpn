@@ -10,9 +10,8 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Update checkout to use tags when v3.0 is finally released
-RUN git clone https://github.com/OpenVPN/easy-rsa.git /usr/local/share/easy-rsa
-RUN cd /usr/local/share/easy-rsa && git checkout -b tested 89f369c5bbd13fbf0da2ea6361632c244e8af532
-RUN ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin
+RUN git clone --depth 1 --branch v3.0.0-rc2 https://github.com/OpenVPN/easy-rsa.git /usr/local/share/easy-rsa && \
+    ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin
 
 # Needed by scripts
 ENV OPENVPN /etc/openvpn
