@@ -5,16 +5,17 @@ FROM debian:jessie
 
 MAINTAINER Kyle Manna <kyle@kylemanna.com>
 
-RUN apt-get update && apt-get install -y openvpn iptables git-core
+RUN apt-get update && apt-get install -y openvpn iptables curl
 
-# Update checkout to use tags when v3.0 is finally released
-RUN git clone https://github.com/OpenVPN/easy-rsa.git /usr/local/share/easy-rsa
-RUN cd /usr/local/share/easy-rsa && git checkout -b tested 89f369c5bbd13fbf0da2ea6361632c244e8af532
-RUN ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin
+# Install easyrsa 3.0.0-rc2 (switch to release when available)
+RUN cd /usr/local/share/ && \
+    curl -sSL https://github.com/OpenVPN/easy-rsa/releases/download/v3.0.0-rc2/EasyRSA-3.0.0-rc2.tgz | tar -zx && \
+    mv EasyRSA-3.0.0-rc2 easyrsa && \
+    ln -s /usr/local/share/easyrsa/easyrsa /usr/local/bin
 
 # Needed by scripts
 ENV OPENVPN /etc/openvpn
-ENV EASYRSA /usr/local/share/easy-rsa/easyrsa3
+ENV EASYRSA /usr/local/share/easyrsa
 ENV EASYRSA_PKI $OPENVPN/pki
 ENV EASYRSA_VARS_FILE $OPENVPN/vars
 
