@@ -1,6 +1,6 @@
 # Dispos-A-VPN
 
-It works on DigitalOcean so far. It should work on AWS, but I need to test it.
+It works on DigitalOcean and AWS. I haven't tested it anywhere else.
 
 This was originally a fork of https://github.com/jpetazzo/dockvpn, but was redone to use Tinfoil Security's VPN script.
 
@@ -21,7 +21,7 @@ It adds the following features:
 1. Go to the CoreOS site and use the dropdown on the `Download CoreOS` button. Select EC2.
 2. Look for the region you wish to run your VPN in.
 3. Click one of the AMI IDs that correspond to your region.
-4. Go through the instance creation process, but when asked for user data, paste the contents of `userdata.yml` into the box. You may also download `userdata.yml` and use the 'as file'  option when asked for user data.
+4. Go through the instance creation process, but when asked for user data, paste the contents of `userdata.yml` into the box. You may also download `userdata.yml` and use the 'as file' option when asked for user data.
 5. When asked for a security group, create a new one. Open TCP ports 443 and 8080.
 6. When the instance has come up, wait. (5-10 minutes on t1. and t2. micros)  
 7. Go to `https://<instance IP>:8080`.
