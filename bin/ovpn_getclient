@@ -37,9 +37,7 @@ $(cat $EASYRSA_PKI/ta.key)
 </tls-auth>
 key-direction 1
 
-<connection>
 remote $OVPN_CN $OVPN_PORT $OVPN_PROTO
-</connection>
 EOF
 
 if [ "$OVPN_DEFROUTE" != "0" ];then
