@@ -31,4 +31,4 @@ fi
 
 conf="$OPENVPN/openvpn.conf"
 
-openvpn --config "$conf"
+exec openvpn --config "$conf"
