@@ -10,7 +10,7 @@ Extensively tested on [Digital Ocean](https://www.digitalocean.com/?refcode=d19f
 
         docker run --name $OVPN_DATA -v /etc/openvpn busybox
 
-* Initalize the `$OVPN_DATA` container that will hold the configuration files and certificates
+* Initialize the `$OVPN_DATA` container that will hold the configuration files and certificates
 
         docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM:1194
         docker run --volumes-from $OVPN_DATA --rm -it kylemanna/openvpn ovpn_initpki
@@ -21,7 +21,7 @@ Extensively tested on [Digital Ocean](https://www.digitalocean.com/?refcode=d19f
 
             docker run --volumes-from $OVPN_DATA -d -p 1194:1194/udp --cap-add=NET_ADMIN kylemanna/openvpn
 
-    - On Docker older than 1.2 version
+    - On Docker older than version 1.2
 
             docker run --volumes-from $OVPN_DATA -d -p 1194:1194/udp --privileged kylemanna/openvpn
 
