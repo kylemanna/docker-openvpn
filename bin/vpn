@@ -48,7 +48,7 @@ echo "Determining server IP."
 SERVER_IP=$(curl -s canhazip.com || echo "<insert server IP here>")
 
 echo "Writing server configuration."
->tcp443.conf cat <<EOF
+>udp1194.conf cat <<EOF
 server      10.8.0.0 255.255.255.0
 verb        3
 duplicate-cn
@@ -72,10 +72,10 @@ push        "route-metric 512"
 push        "route 0.0.0.0 0.0.0.0"
 user        nobody
 group       nogroup
-proto       tcp
-port        443
-dev         tun443
-status      openvpn-status-443.log
+proto       udp
+port        1194
+dev         tun1194
+status      openvpn-status-1194.log
 EOF
 
 echo "Writing client configuration."
@@ -84,7 +84,7 @@ client
 nobind
 dev tun
 redirect-gateway def1 bypass-dhcp
-remote $SERVER_IP 443 tcp
+remote $SERVER_IP 1194 udp
 comp-lzo yes
 <key>
 $(cat client-key.pem)
@@ -99,4 +99,4 @@ EOF
 echo "Starting config server."
 /usr/local/sbin/config &
 
-while true ; do openvpn tcp443.conf ; done >> tcp443.log
+while true ; do openvpn udp1194.conf ; done >> udp1194.log
