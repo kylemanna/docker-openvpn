@@ -12,5 +12,5 @@ coreos:
         ExecStartPre=-/usr/bin/docker kill dispos-a-vpn
         ExecStartPre=-/usr/bin/docker rm dispos-a-vpn
         ExecStartPre=-/usr/bin/docker pull rsc1/dispos-a-vpn
-        ExecStart=/usr/bin/docker run --privileged -p 443:443/tcp -p 8080:8080/tcp --name dispos-a-vpn rsc1/dispos-a-vpn
+        ExecStart=/usr/bin/docker run --privileged -p 443:443/tcp -p 1194:1194/tcp --name dispos-a-vpn rsc1/dispos-a-vpn
         ExecStop=/usr/bin/docker kill dispos-a-vpn
