@@ -14,4 +14,4 @@ ADD supervisord.conf /etc/supervisor/conf.d/
 
 RUN chmod +x /usr/local/sbin/*
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-CMD ["/bin/sh", "vpn"]
+CMD ["/bin/sh", "/usr/local/sbin/vpn"]
