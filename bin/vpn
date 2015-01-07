@@ -3,6 +3,10 @@
 # Script to set up OpenVPN for routing all traffic.
 # https://github.com/tinfoil/openvpn_autoconfig
 #
+debconf-set-selections <<EOF
+iptables-persistent iptables-persistent/autosave_v4 boolean true
+iptables-persistent iptables-persistent/autosave_v6 boolean true
+EOF
 
 set -e
 
