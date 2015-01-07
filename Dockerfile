@@ -1,4 +1,4 @@
-ADD ./postfix.sh /opt/postfix.shFROM ubuntu:trusty
+FROM ubuntu:trusty
 MAINTAINER Jason Gegere <jason@htmlgraphic.com>
 
 ADD ./bin/ /usr/local/sbin
