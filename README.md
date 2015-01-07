@@ -25,7 +25,7 @@ Start a new instance with only the VPN port open.
 ```
 docker stop VPN
 docker rm VPN
-docker run -d --restart=always --volumes-from ovpn-data --privileged -p 443:443/tcp -p 1194:1194/udp --name VPN htmlgraphic/openvpn:0.5
+docker run -d --restart=always --volumes-from ovpn-data --privileged -p 1194:1194/udp --name VPN htmlgraphic/openvpn:0.5
 ```
 
 ## Requirements:
