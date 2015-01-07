@@ -13,6 +13,6 @@ stdout_logfile=/var/log/supervisor/%(program_name)s-stdout.log
 stderr_logfile=/var/log/supervisor/%(program_name)s-stderr.log
 
 [program:openvpn]
-command=openvpn /etc/openvpn/udp1194.conf >> /etc/openvpn/udp1194.log
+command=/usr/local/sbin/bin/openvpn.sh
 autostart=true
 autorestart=true
