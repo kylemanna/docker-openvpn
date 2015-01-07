@@ -14,7 +14,7 @@ cd /etc/openvpn
 
 # Check if certs and client.ovpn connection file exists within data container
 # if it doesn't create all the needed files
-if [ ! -f /etc/openvpn/client.ovpn ]; then
+if [ ! -f client.ovpn ]; then
 
 # Certificate Authority
 >ca-key.pem      openssl genrsa 2048
