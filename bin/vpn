@@ -103,4 +103,7 @@ EOF
 echo "Starting config server."
 /usr/local/sbin/config &
 
-while true ; do openvpn udp1194.conf ; done >> udp1194.log
+
+# Spin everything up
+#
+/usr/bin/supervisord -n -c /etc/supervisor/conf.d/supervisord.conf
