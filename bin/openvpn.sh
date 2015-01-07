@@ -15,4 +15,4 @@ stderr_logfile=/var/log/supervisor/%(program_name)s-stderr.log
 [program:openvpn]
 command=/usr/local/sbin/bin/openvpn.sh
 autostart=true
-autorestart=true
+autorestart=false
