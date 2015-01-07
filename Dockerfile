@@ -10,4 +10,4 @@ RUN pip install cherrypy uwsgi
 
 RUN chmod +x /usr/local/sbin/*
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-CMD ["vpn"]
+CMD ["/bin/sh", "vpn"]
