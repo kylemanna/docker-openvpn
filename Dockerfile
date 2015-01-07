@@ -10,4 +10,4 @@ RUN echo deb http://archive.ubuntu.com/ubuntu/ precise main universe > /etc/apt/
 
 RUN chmod +x /usr/local/sbin/*
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-CMD vpn
+CMD ["vpn"]
