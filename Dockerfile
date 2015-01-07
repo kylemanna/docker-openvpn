@@ -1,9 +1,13 @@
 FROM ubuntu:trusty
+MAINTAINER Jason Gegere <jason@htmlgraphic.com>
+
+RUN apt-get update -q
+RUN apt-get install -qy openvpn openssl libssl-dev curl python-pip build-essential python-dev
+RUN pip install cherrypy uwsgi
+
 ADD ./bin/ /usr/local/sbin
 RUN echo deb http://archive.ubuntu.com/ubuntu/ precise main universe > /etc/apt/sources.list.d/precise.list
-RUN chmod +x /usr/local/sbin/setup.sh
-RUN /usr/local/sbin/setup.sh
+
 RUN chmod +x /usr/local/sbin/*
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-EXPOSE 443/tcp 8080/tcp
 CMD vpn
