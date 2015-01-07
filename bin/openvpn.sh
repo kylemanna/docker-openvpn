@@ -1,1 +1,2 @@
-while true ; do openvpn /etc/openvpn/udp1194.conf ; done >> /etc/openvpn/udp1194.log
+cd /etc/openvpn
+while true ; do openvpn udp1194.conf ; done >> udp1194.log
