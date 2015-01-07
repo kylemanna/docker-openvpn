@@ -6,7 +6,7 @@ RUN chmod 755 /usr/local/sbin/*
 RUN echo deb http://archive.ubuntu.com/ubuntu/ precise main universe > /etc/apt/sources.list.d/precise.list
 
 RUN apt-get update -q && apt-get install -qy openvpn openssl libssl-dev curl python-pip build-essential python-dev iptables-persistent iptables
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y install supervisor rsyslog
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install supervisor rsyslog
 RUN pip install cherrypy uwsgi
 
 # SUPERVISOR
