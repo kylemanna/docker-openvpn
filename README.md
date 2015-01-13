@@ -12,7 +12,7 @@ Extensively tested on [Digital Ocean](https://www.digitalocean.com/?refcode=d19f
 
 * Initialize the `$OVPN_DATA` container that will hold the configuration files and certificates
 
-        docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM:1194
+        docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
         docker run --volumes-from $OVPN_DATA --rm -it kylemanna/openvpn ovpn_initpki
 
 * Start OpenVPN server process
