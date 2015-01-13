@@ -2,7 +2,7 @@
 
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
-Extensively tested on [Digital Ocean](https://www.digitalocean.com/?refcode=d19f7fe88c94).
+Extensively tested on [Digital Ocean $5/mo node](http://bit.ly/1It5g4o).
 
 ## Quick Start
 
