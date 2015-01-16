@@ -140,8 +140,8 @@ key-direction 0
 keepalive 10 60
 persist-key
 persist-tun
-push "dhcp-option DNS 8.8.4.4"
-push "dhcp-option DNS 8.8.8.8"
+#push "dhcp-option DNS 8.8.4.4"
+#push "dhcp-option DNS 8.8.8.8"
 
 proto $OVPN_PROTO
 # Rely on Docker to do port mapping, internally always 1194
