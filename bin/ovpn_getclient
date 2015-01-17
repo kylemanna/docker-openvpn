@@ -43,3 +43,5 @@ EOF
 if [ "$OVPN_DEFROUTE" != "0" ];then
     echo "redirect-gateway def1"
 fi
+
+[ -n "$OVPN_MTU" ] && echo "tun-mtu $OVPN_MTU"

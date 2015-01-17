@@ -43,6 +43,7 @@ usage() {
     echo " -c    Enable client-to-client option"
     echo " -D    Disable built in external dns (google dns)"
     echo " -N    Configure NAT to access external server network"
+    echo " -m    Set client MTU"
 }
 
 set -ex
@@ -59,7 +60,7 @@ OVPN_PUSH=()
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":r:s:du:cp:DN" opt; do
+while getopts ":r:s:du:cp:DNm:" opt; do
     case $opt in
         r)
             OVPN_ROUTES+=("$OPTARG")
@@ -84,6 +85,9 @@ while getopts ":r:s:du:cp:DN" opt; do
             ;;
         N)
             OVPN_NAT=1
+            ;;
+        m)
+            OVPN_MTU=$OPTARG
             ;;
         \?)
             set +x
@@ -120,7 +124,7 @@ fi
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
-export OVPN_CLIENT_TO_CLIENT OVPN_PUSH
+export OVPN_CLIENT_TO_CLIENT OVPN_PUSH OVPN_NAT OVPN_DNS OVPN_MTU
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
