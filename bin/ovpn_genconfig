@@ -42,6 +42,7 @@ usage() {
     echo " -d    Disable NAT routing and default route"
     echo " -c    Enable client-to-client option"
     echo " -D    Disable built in external dns (google dns)"
+    echo " -N    Configure NAT to access external server network"
 }
 
 set -ex
@@ -49,6 +50,7 @@ set -ex
 OVPN_ENV=$OPENVPN/ovpn_env.sh
 OVPN_SERVER=192.168.255.0/24
 OVPN_DEFROUTE=1
+OVPN_NAT=0
 OVPN_DNS=1
 OVPN_ROUTES=()
 OVPN_PUSH=()
@@ -57,7 +59,7 @@ OVPN_PUSH=()
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":r:s:du:cp:D" opt; do
+while getopts ":r:s:du:cp:DN" opt; do
     case $opt in
         r)
             OVPN_ROUTES+=("$OPTARG")
@@ -79,6 +81,9 @@ while getopts ":r:s:du:cp:D" opt; do
             ;;
         D)
             OVPN_DNS=0
+            ;;
+        N)
+            OVPN_NAT=1
             ;;
         \?)
             set +x
