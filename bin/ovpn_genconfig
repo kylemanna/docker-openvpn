@@ -41,6 +41,9 @@ usage() {
     echo "optional arguments:"
     echo " -d    Disable NAT routing and default route"
     echo " -c    Enable client-to-client option"
+    echo " -D    Disable built in external dns (google dns)"
+    echo " -N    Configure NAT to access external server network"
+    echo " -m    Set client MTU"
 }
 
 set -ex
@@ -48,6 +51,8 @@ set -ex
 OVPN_ENV=$OPENVPN/ovpn_env.sh
 OVPN_SERVER=192.168.255.0/24
 OVPN_DEFROUTE=1
+OVPN_NAT=0
+OVPN_DNS=1
 OVPN_ROUTES=()
 OVPN_PUSH=()
 
@@ -55,7 +60,7 @@ OVPN_PUSH=()
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":r:s:du:cp:" opt; do
+while getopts ":r:s:du:cp:DNm:" opt; do
     case $opt in
         r)
             OVPN_ROUTES+=("$OPTARG")
@@ -74,6 +79,15 @@ while getopts ":r:s:du:cp:" opt; do
             ;;
         p)
             OVPN_PUSH+=("$OPTARG")
+            ;;
+        D)
+            OVPN_DNS=0
+            ;;
+        N)
+            OVPN_NAT=1
+            ;;
+        m)
+            OVPN_MTU=$OPTARG
             ;;
         \?)
             set +x
@@ -110,7 +124,7 @@ fi
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
-export OVPN_CLIENT_TO_CLIENT OVPN_PUSH
+export OVPN_CLIENT_TO_CLIENT OVPN_PUSH OVPN_NAT OVPN_DNS OVPN_MTU
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
@@ -140,8 +154,6 @@ key-direction 0
 keepalive 10 60
 persist-key
 persist-tun
-push "dhcp-option DNS 8.8.4.4"
-push "dhcp-option DNS 8.8.8.8"
 
 proto $OVPN_PROTO
 # Rely on Docker to do port mapping, internally always 1194
@@ -156,7 +168,8 @@ group nogroup
 EOF
 
 [ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
-
+[ "$OVPN_DNS" == "1" ] && echo push "dhcp-option DNS 8.8.4.4" >> "$conf"
+[ "$OVPN_DNS" == "1" ] && echo push "dhcp-option DNS 8.8.8.8" >> "$conf"
 # Append Routes
 for i in "${OVPN_ROUTES[@]}"; do
     # If user passed "0" skip this, assume no extra routes

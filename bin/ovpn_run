@@ -18,7 +18,7 @@ if [ ! -d "$OPENVPN/ccd" ]; then
 fi
 
 # Setup NAT forwarding if requested
-if [ "$OVPN_DEFROUTE" != "0" ];then
+if [ "$OVPN_DEFROUTE" != "0" ] || [ "$OVPN_NAT" == "1" ] ; then
     iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o eth0 -j MASQUERADE || {
       iptables -t nat -A POSTROUTING -s $OVPN_SERVER -o eth0 -j MASQUERADE
     }
