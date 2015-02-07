@@ -109,6 +109,33 @@ packets, etc).
   security should prevent any malicious host from using the VPN.
 
 
+## Benefits of Running Inside a Docker Container
+
+### The Entire Daemon and Dependencies are in the Docker Image
+
+This means that it will function correctly (after Docker itself is setup) on
+all distributions Linux distributions such as: Ubuntu, Arch, Debian, Fedora,
+etc.  Furthermore, an old stable server can run a bleeding edge OpenVPN server
+without having to install/muck with library dependencies (i.e. run latest
+OpenVPN with latest OpenSSL on Ubuntu 12.04 LTS).
+
+### It Doesn't Stomp All Over the Server's Filesystem
+
+Everything for the Docker container is contained in two images: the ephemeral
+run time image (kylemanna/openvpn) and the data image (using busybox as a
+base).  To remove it, remove the two Docker images and corresponding containers
+and it's all gone.  This also makes it easier to run multiple servers since
+each lives in the bubble of the container (of course multiple IPs or separate
+ports are needed to communicate with the world).
+
+### Some (arguable) Security Benefits
+
+At the simplest level compromising the container may prevent additional
+compromise of the server.  There are many arguments surrounding this, but the
+take away is that it certainly makes it more difficult to break out of the
+container.  People are actively working on Linux containers to make this more
+of a guarantee in the future.
+
 ## Differences from jpetazzo/dockvpn
 
 * No longer uses serveconfig to distribute the configuration via https
