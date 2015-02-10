@@ -6,6 +6,7 @@ Extensively tested on [Digital Ocean $5/mo node](http://bit.ly/1C7cKr3) and has
 a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
 Upstream links:
+
 * Docker Registry @ [kylemanna/openvpn](https://registry.hub.docker.com/u/kylemanna/openvpn)
 * GitHub @ [kylemanna/docker-openvpn](https://github.com/kylemanna/docker-openvpn)
 
