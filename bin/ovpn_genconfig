@@ -111,10 +111,10 @@ while getopts ":r:s:du:cp:DNm:" opt; do
 done
 
 # if new routes were not defined with -r, use default
-[ ${#TMP_ROUTES[@]} -gt 0 ] && OVPN_ROUTES=${TMP_ROUTES[@]}
+[ ${#TMP_ROUTES[@]} -gt 0 ] && OVPN_ROUTES=("${TMP_ROUTES[@]}")
 
 # if new push directives were not defined with -p, use default
-[ ${#TMP_PUSH[@]} -gt 0 ] && OVPN_PUSH=${TMP_PUSH[@]}
+[ ${#TMP_PUSH[@]} -gt 0 ] && OVPN_PUSH=("${TMP_PUSH[@]}")
 
 # Server name is in the form "udp://vpn.example.com:1194"
 if [[ "$OVPN_SERVER_URL" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.\-]+)(:([0-9]+))?$ ]]; then
