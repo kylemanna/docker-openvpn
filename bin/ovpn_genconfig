@@ -58,7 +58,9 @@ OVPN_DEFROUTE=1
 OVPN_NAT=0
 OVPN_DNS=1
 OVPN_ROUTES=()
+TMP_ROUTES=()
 OVPN_PUSH=()
+TMP_PUSH=()
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
@@ -67,7 +69,7 @@ OVPN_PUSH=()
 while getopts ":r:s:du:cp:DNm:" opt; do
     case $opt in
         r)
-            OVPN_ROUTES+=("$OPTARG")
+            TMP_ROUTES+=("$OPTARG")
             ;;
         s)
             OVPN_SERVER=$OPTARG
@@ -82,7 +84,7 @@ while getopts ":r:s:du:cp:DNm:" opt; do
             OVPN_CLIENT_TO_CLIENT=1
             ;;
         p)
-            OVPN_PUSH+=("$OPTARG")
+            TMP_PUSH+=("$OPTARG")
             ;;
         D)
             OVPN_DNS=0
@@ -108,6 +110,11 @@ while getopts ":r:s:du:cp:DNm:" opt; do
     esac
 done
 
+# if new routes were not defined with -r, use default
+[ ${#TMP_ROUTES[@]} -gt 0 ] && OVPN_ROUTES=${TMP_ROUTES[@]}
+
+# if new push directives were not defined with -p, use default
+[ ${#TMP_PUSH[@]} -gt 0 ] && OVPN_PUSH=${TMP_PUSH[@]}
 
 # Server name is in the form "udp://vpn.example.com:1194"
 if [[ "$OVPN_SERVER_URL" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.\-]+)(:([0-9]+))?$ ]]; then
