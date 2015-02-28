@@ -39,6 +39,9 @@ Upstream links:
 
         docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
+* Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
+
+        for example - docker run --volumes-from $OVPN_DATA -d -p 1194:1194/udp --privileged -e DEBUG=1 kylemanna/openvpn
 
 ## How Does It Work?
 

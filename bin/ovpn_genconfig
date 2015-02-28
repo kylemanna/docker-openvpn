@@ -46,7 +46,11 @@ usage() {
     echo " -m    Set client MTU"
 }
 
-set -ex
+if [ "$DEBUG" == "1" ]; then
+  set -x
+fi
+
+set -e
 
 OVPN_ENV=$OPENVPN/ovpn_env.sh
 OVPN_SERVER=192.168.255.0/24
