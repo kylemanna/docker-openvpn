@@ -193,12 +193,14 @@ for i in "${OVPN_PUSH[@]}"; do
     echo push \"$i\" >> "$conf"
 done
 
+set +e 
+
 # Clean-up duplicate configs
-if diff -q "$bak_env" "$OVPN_ENV"; then
+if diff -q "$bak_env" "$OVPN_ENV" 2>/dev/null; then
     echo "Removing duplicate back-up: $bak_env"
     rm -fv "$bak_env"
 fi
-if diff -q "$bak" "$conf"; then
+if diff -q "$bak" "$conf" 2>/dev/null; then
     echo "Removing duplicate back-up: $bak"
     rm -fv "$bak"
 fi
