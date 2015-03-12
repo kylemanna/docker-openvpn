@@ -37,7 +37,7 @@ Upstream links:
 
 * Retrieve the client configuration with embedded certificates
 
-        docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
+        docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_getclient CLIENTNAME combined > CLIENTNAME.ovpn
 
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
 
@@ -105,7 +105,7 @@ packets, etc).
   simplicity.  It's highly recommended to secure the CA key with some
   passphrase to protect against a filesystem compromise.  A more secure system
   would put the EasyRSA PKI CA on an offline system (can use the same Docker
-  image to accomplish this).
+  image and the script ovpn_copy_server_files to accomplish this).
 * It would be impossible for an adversary to sign bad or forged certificates
   without first cracking the key's passphase should the adversary have root
   access to the filesystem.
