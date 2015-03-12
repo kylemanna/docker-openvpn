@@ -29,6 +29,6 @@ rsync --recursive --verbose --prune-empty-dirs \
     --include "/openvpn.conf" \
     --include "/ovpn_env.sh" \
     --exclude="*" \
-    "$OPENVPN/" "$TARGET" -n
+    "$OPENVPN/" "$TARGET"
 
 echo "Created the openvpn configuration for the server: $TARGET"
