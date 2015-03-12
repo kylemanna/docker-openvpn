@@ -9,6 +9,9 @@ if ! source "$OPENVPN/ovpn_env.sh"; then
     echo "Could not source $OPENVPN/ovpn_env.sh."
     exit 1
 fi
+if [ -z "$EASYRSA_PKI" ]; then
+    export EASYRSA_PKI="$OPENVPN/pki"
+fi
 
 pushd "$EASYRSA_PKI"
 for name in issued/*.crt; do
