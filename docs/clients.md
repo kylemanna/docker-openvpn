@@ -2,12 +2,12 @@
 
 ## Client configuration mode
 
-The `ovpn_getclient` can produce two different format of configuration.
+The `ovpn_getclient` can produce two different versions of the configuration.
 
 1. combined: All needed configuration and cryptographic material is in one file (Use "combined-save" to write the configuration file in the same path as the separated parameter does).
 2. separated: Separated files.
 
-Some client software might be picky about which configuration format it accepts.
+Note that some client software might be picky about which configuration format it accepts.
 
 ## Batch mode
 
