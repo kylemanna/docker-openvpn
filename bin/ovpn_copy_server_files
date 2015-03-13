@@ -1,0 +1,34 @@
+#!/bin/bash
+## @licence AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.html>
+## @author Copyright (C) 2015 Robin Schneider <ypid@riseup.net>
+
+if [ -z "$OPENVPN" ]; then
+    export OPENVPN="$PWD"
+fi
+if ! source "$OPENVPN/ovpn_env.sh"; then
+    echo "Could not source $OPENVPN/ovpn_env.sh."
+    exit 1
+fi
+
+TARGET="/tmp/openvpn_${OVPN_CN}"
+if [ -n "$1" ]; then
+    TARGET="$1"
+else
+    TARGET="$OPENVPN/server"
+fi
+
+rsync --recursive --verbose --prune-empty-dirs \
+    --exclude="clients" \
+    --exclude="server" \
+    --include "*/" \
+    --include "/pki/private/${OVPN_CN}.key" \
+    --include "/pki/ca.crt" \
+    --include "/pki/issued/${OVPN_CN}.crt" \
+    --include "/pki/dh.pem" \
+    --include "ta.key" \
+    --include "/openvpn.conf" \
+    --include "/ovpn_env.sh" \
+    --exclude="*" \
+    "$OPENVPN/" "$TARGET"
+
+echo "Created the openvpn configuration for the server: $TARGET"
