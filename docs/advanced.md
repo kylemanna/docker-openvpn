@@ -1,6 +1,6 @@
 # Advanced Configurations
 
-The ovpn_genconfig script is intended for simple configurations that apply to the majority of the users.  If your use case isn't general, it likely won't be supported.  This document aims to explain how to work around that.
+The [`ovpn_genconfig`](/bin/ovpn_genconfig) script is intended for simple configurations that apply to the majority of the users.  If your use case isn't general, it likely won't be supported.  This document aims to explain how to work around that.
 
 ## Create host volume mounts rather than data volumes
 
@@ -18,4 +18,3 @@ The ovpn_genconfig script is intended for simple configurations that apply to th
 * Start the server with:
 
         docker run -v $PWD:/etc/openvpn -d -p 1194:1194/udp --privileged kylemanna/openvpn
-

@@ -105,7 +105,7 @@ packets, etc).
   simplicity.  It's highly recommended to secure the CA key with some
   passphrase to protect against a filesystem compromise.  A more secure system
   would put the EasyRSA PKI CA on an offline system (can use the same Docker
-  image and the script ovpn_copy_server_files to accomplish this).
+  image and the script [`ovpn_copy_server_files`](/docs/clients.md) to accomplish this).
 * It would be impossible for an adversary to sign bad or forged certificates
   without first cracking the key's passphase should the adversary have root
   access to the filesystem.
