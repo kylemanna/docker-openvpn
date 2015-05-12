@@ -160,7 +160,6 @@ ca $EASYRSA_PKI/ca.crt
 cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
 dh $EASYRSA_PKI/dh.pem
 tls-auth $EASYRSA_PKI/ta.key
-crl-verify $EASYRSA_PKI/crl.pem
 key-direction 0
 keepalive 10 60
 persist-key
@@ -178,9 +177,6 @@ user nobody
 group nogroup
 EOF
 
-
-# Create an empty CRL
-[ ! -f "$EASYRSA_PKI/crl.pem" ] && touch $EASYRSA_PKI/crl.pem
 
 [ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
 [ "$OVPN_DNS" == "1" ] && echo push "dhcp-option DNS 8.8.4.4" >> "$conf"

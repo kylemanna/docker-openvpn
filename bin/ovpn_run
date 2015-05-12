@@ -33,8 +33,18 @@ if [ "$OVPN_DEFROUTE" != "0" ] || [ "$OVPN_NAT" == "1" ] ; then
     done
 fi
 
+# Use a hacky hardlink as the CRL Needs to be readable by the user/group
+# OpenVPN is running as.  Only pass arguments to OpenVPN if it's found.
+if [ -r "$EASYRSA_PKI/crl.pem" ]; then
+    if [ ! -r "$OPENVPN/crl.pem" ]; then
+        ln "$EASYRSA_PKI/crl.pem" "$OPENVPN/crl.pem"
+        chmod 644 "$OPENVPN/crl.pem"
+    fi
+    ARGS=("--crl-verify" "$OPENVPN/crl.pem")
+fi
+
 if [ "$#" -gt 0 ]; then
     exec openvpn "$@"
 else
-    exec openvpn --config "$OPENVPN/openvpn.conf"
+    exec openvpn ${ARGS[@]} --config "$OPENVPN/openvpn.conf"
 fi
