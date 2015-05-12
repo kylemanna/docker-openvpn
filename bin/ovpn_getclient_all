@@ -1,5 +1,5 @@
 #!/bin/bash
-## @licence AGPLv3 <https://www.gnu.org/licenses/agpl-3.0.html>
+## @licence MIT <http://opensource.org/licenses/MIT>
 ## @author Copyright (C) 2015 Robin Schneider <ypid@riseup.net>
 
 if [ -z "$OPENVPN" ]; then
