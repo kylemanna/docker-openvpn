@@ -1,5 +1,7 @@
 # OpenVPN for Docker
 
+[![Join the chat at https://gitter.im/kylemanna/docker-openvpn](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kylemanna/docker-openvpn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
 Extensively tested on [Digital Ocean $5/mo node](http://bit.ly/1C7cKr3) and has
