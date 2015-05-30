@@ -17,18 +17,15 @@ else
     TARGET="$OPENVPN/server"
 fi
 
-rsync --recursive --verbose --prune-empty-dirs \
-    --exclude="clients" \
-    --exclude="server" \
-    --include "*/" \
-    --include "/pki/private/${OVPN_CN}.key" \
-    --include "/pki/ca.crt" \
-    --include "/pki/issued/${OVPN_CN}.crt" \
-    --include "/pki/dh.pem" \
-    --include "ta.key" \
-    --include "/openvpn.conf" \
-    --include "/ovpn_env.sh" \
-    --exclude="*" \
+echo "
+pki/private/${OVPN_CN}.key
+pki/issued/${OVPN_CN}.crt
+pki/dh.pem
+pki/ta.key
+pki/ca.crt
+" | rsync --recursive --verbose \
+    --files-from - \
     "$OPENVPN/" "$TARGET"
+ln --symbolic --force ../openvpn.conf ../ovpn_env.sh "$TARGET"
 
 echo "Created the openvpn configuration for the server: $TARGET"
