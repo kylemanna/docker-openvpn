@@ -65,6 +65,7 @@ ca ca.crt
 cert ${cn}.crt
 dh dh.pem
 tls-auth ta.key 1
+$OVPN_ADDITIONAL_CLIENT_CONFIG
 "
     fi
 
