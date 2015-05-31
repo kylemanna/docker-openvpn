@@ -27,5 +27,6 @@ pki/ca.crt
     --files-from - \
     "$OPENVPN/" "$TARGET"
 ln --symbolic --force ../openvpn.conf ../ovpn_env.sh "$TARGET"
+mkdir -p "$TARGET/ccd"
 
 echo "Created the openvpn configuration for the server: $TARGET"
