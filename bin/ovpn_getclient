@@ -45,7 +45,7 @@ remote $OVPN_CN $OVPN_PORT $OVPN_PROTO
 $(cat $EASYRSA_PKI/private/${cn}.key)
 </key>
 <cert>
-$(cat $EASYRSA_PKI/issued/${cn}.crt)
+$(openssl x509 -in $EASYRSA_PKI/issued/${cn}.crt)
 </cert>
 <ca>
 $(cat $EASYRSA_PKI/ca.crt)
