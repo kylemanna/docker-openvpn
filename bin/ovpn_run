@@ -43,6 +43,16 @@ if [ -r "$EASYRSA_PKI/crl.pem" ]; then
     ARGS=("--crl-verify" "$OPENVPN/crl.pem")
 fi
 
+ip -6 route show default 2>/dev/null
+if [ $? = 0 ]; then
+    echo "Enabling IPv6 Forwarding"
+    # If this fails, ensure the docker container is run with --privileged
+    # Could be side stepped with `ip netns` madness to drop privileged flag
+
+    sysctl net.ipv6.conf.default.forwarding=1
+    sysctl net.ipv6.conf.all.forwarding=1
+fi
+
 if [ "$#" -gt 0 ]; then
     exec openvpn "$@"
 else
