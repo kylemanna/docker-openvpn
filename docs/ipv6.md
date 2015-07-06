@@ -8,6 +8,7 @@ This feature is advanced and recommended only for those who already have a funct
 
 Systemd is used to setup a static route and Debian 8.1 or later is recommended as the host distribution.  Others probably work, but haven't been tested.
 
+
 ### Step 1 — Setup IPv6 on the Host Machine
 
 The tutorial uses a free tunnel from [tunnelbroker.net](https://tunnelbroker.net/) to get a /64 and /48 prefix allocated to me.  The tunnel endpoint is less then 3 ms away from Digital Ocean's San Francisco datacenter.
@@ -33,17 +34,33 @@ Test that IPv6 works on the host:
 
 If this doesn't work, figure it out.  It may be necessary to add an firewall rule to allow IP protocol 41 through the firewall.
 
-### Step 2 — Setup the systemd Unit File
 
-Copy the systemd init file from the docker-openvpn /init directory of the repository and install into `/etc/systemd/system/docker-openvpn.conf`
+### Step 2 — Update Docker's Init To Enable IPv6 Support
+
+Copy the system's existing docker file and append the `--ipv6` argument to the end of the command line:
+
+    sed -e 's:^\(ExecStart.*\):\1 --ipv6:' /lib/systemd/system/docker.service | tee /etc/systemd/system/docker.service
+
+Reload the daemon and restart docker so that it takes affect:
+
+    systemctl daemon-reload && systemctl restart docker.service
+
+
+### Step 3 — Setup the systemd Unit File
+
+Copy the systemd init file from the docker-openvpn /init directory of the repository and install into `/etc/systemd/system/docker-openvpn.service`
+
+    curl -o /etc/systemd/system/docker-openvpn.service https://raw.githubusercontent.com/kylemanna/docker-openvpn/dev/init/docker-openvpn.service
 
 Edit the file, replace `IP6_PREFIX` value with the value of your /64 prefix.
+
+    vi /etc/systemd/system/docker-openvpn.service
 
 Finally, reload systemd so the changes take affect:
 
     systemctl daemon-reload
 
-### Step 3 — Start OpenVPN
+### Step 4 — Start OpenVPN
 
 Ensure that OpenVPN has been initialized and configured as described in the top level `README.md`.
 
