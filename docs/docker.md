@@ -13,13 +13,17 @@ It is recommended to use platforms that support systemd as future versions of th
 
 Docker is moving fast and Debian / Ubuntu's long term support (LTS) policy doesn't keep up. To work around this we'll install a PPA that will get us the latest version of Docker.
 
+Ensure dependencies are installed:
+
+    sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+
 Add the upstream Docker repository package signing key. The apt-key command uses elevated privileges via sudo, so a password prompt for the user's password may appear:
 
     curl https://get.docker.io/gpg | sudo apt-key add -
 
 Add the upstream Docker repository to the system list:
 
-    echo deb http://get.docker.io/ubuntu docker main | sudo tee /etc/apt/sources.list.d/docker.list
+    echo deb https://get.docker.io/ubuntu docker main | sudo tee /etc/apt/sources.list.d/docker.list
 
 Update the package list and install the Docker package:
 
@@ -45,4 +49,4 @@ Once inside the container you'll see the `root@<container id>:/#` prompt signify
 
 Expected result:
 
-    Debian GNU/Linux jessie/sid
+    Debian GNU/Linux 8
