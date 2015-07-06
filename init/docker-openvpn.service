@@ -1,0 +1,30 @@
+[Unit]
+Description=OpenVPN Docker Container
+Documentation=https://github.com/kylemanna/docker-openvpn
+After=network.target docker.socket
+Requires=docker.socket
+
+[Service]
+# Modify IP6_PREFIX to match network config
+Environment="IP6_PREFIX=2001:db8::/64"
+Environment="OVPN_NAME=openvpn0"
+Environment="OVPN_DATA=ovpn-data"
+
+# Clean-up previous bad states
+ExecStartPre=-/usr/bin/docker rm -f openvpn0
+
+# Ensure forwarding is enabled on host's networking stack (hacky)
+ExecStartPre=/sbin/sysctl net.ipv6.conf.default.forwarding=1
+ExecStartPre=/sbin/sysctl net.ipv6.conf.all.forwarding=1
+
+# Main process
+ExecStart=/usr/bin/docker run --rm --privileged --volumes-from $OVPN_DATA --name $OVPN_NAME -p 1194:1194/udp kylemanna/openvpn:dev ovpn_run --config openvpn.conf --server-ipv6 $IP6_PREFIX
+
+# Add static route for IPv6 after it starts up
+ExecStartPost=/bin/sh -c "sleep 1; ip route replace $IP6_PREFIX via $(docker inspect -f '{{ .NetworkSettings.GlobalIPv6Address }}' $OVPN_NAME ) dev docker0"
+
+# Clean-up
+ExecStopPost=-/sbin/ip route del $IP6_PREFIX dev docker0
+
+[Install]
+WantedBy=multi-user.target
