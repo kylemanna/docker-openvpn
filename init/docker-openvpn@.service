@@ -16,8 +16,9 @@ Environment="DATA_VOL=ovpn-data-%i"
 Environment="IMG=kylemanna/openvpn:dev"
 Environment="PORT=1194:1194/udp"
 
-# Override defaults in env file
-EnvironmentFile=-/etc/default/docker-openvpn-%i
+# To override environment variables, use local configuration directory:
+# /etc/systemd/system/docker-openvpn@foo.d/local.conf
+# http://www.freedesktop.org/software/systemd/man/systemd.unit.html
 
 # Clean-up bad state if still hanging around
 ExecStartPre=-/usr/bin/docker rm -f $NAME
