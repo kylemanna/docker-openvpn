@@ -13,7 +13,7 @@ Restart=always
 #Environment="ARGS=--config openvpn.conf --server-ipv6 2001:db8::/64"
 Environment="NAME=ovpn-%i"
 Environment="DATA_VOL=ovpn-data-%i"
-Environment="IMG=kylemanna/openvpn:dev"
+Environment="IMG=kylemanna/openvpn:latest"
 Environment="PORT=1194:1194/udp"
 
 # To override environment variables, use local configuration directory:
