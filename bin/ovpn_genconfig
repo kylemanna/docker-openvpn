@@ -171,8 +171,6 @@ port 1194
 dev tun0
 status /tmp/openvpn-status.log
 
-client-config-dir $OPENVPN/ccd
-
 user nobody
 group nogroup
 EOF

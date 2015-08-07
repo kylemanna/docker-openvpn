@@ -10,6 +10,9 @@ fi
 
 set -e
 
+# Build runtime arguments array based on environment
+ARGS=("--config" "$OPENVPN/openvpn.conf")
+
 source "$OPENVPN/ovpn_env.sh"
 
 mkdir -p /dev/net
@@ -17,8 +20,8 @@ if [ ! -c /dev/net/tun ]; then
     mknod /dev/net/tun c 10 200
 fi
 
-if [ ! -d "$OPENVPN/ccd" ]; then
-    mkdir -p /etc/openvpn/ccd
+if [ -d "$OPENVPN/ccd" ]; then
+    ARGS+=("--client-config-dir" "$OPENVPN/ccd")
 fi
 
 # Setup NAT forwarding if requested
@@ -40,11 +43,21 @@ if [ -r "$EASYRSA_PKI/crl.pem" ]; then
         ln "$EASYRSA_PKI/crl.pem" "$OPENVPN/crl.pem"
         chmod 644 "$OPENVPN/crl.pem"
     fi
-    ARGS=("--crl-verify" "$OPENVPN/crl.pem")
+    ARGS+=("--crl-verify" "$OPENVPN/crl.pem")
+fi
+
+ip -6 route show default 2>/dev/null
+if [ $? = 0 ]; then
+    echo "Enabling IPv6 Forwarding"
+    # If this fails, ensure the docker container is run with --privileged
+    # Could be side stepped with `ip netns` madness to drop privileged flag
+
+    sysctl net.ipv6.conf.default.forwarding=1
+    sysctl net.ipv6.conf.all.forwarding=1
 fi
 
 if [ "$#" -gt 0 ]; then
     exec openvpn "$@"
 else
-    exec openvpn ${ARGS[@]} --config "$OPENVPN/openvpn.conf"
+    exec openvpn ${ARGS[@]}
 fi
