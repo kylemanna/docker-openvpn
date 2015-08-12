@@ -1,6 +1,6 @@
 # IPv6 Support
 
-This is a work in progress, more polish to follow.  Use the `dev` git branch and `dev` docker image tag for testing.
+This is a work in progress, more polish to follow.
 
 ## Tunnel IPv6 Address To OpenVPN Clients
 
@@ -13,7 +13,7 @@ Systemd is used to setup a static route and Debian 8.1 or later is recommended a
 
 The tutorial uses a free tunnel from [tunnelbroker.net](https://tunnelbroker.net/) to get a /64 and /48 prefix allocated to me.  The tunnel endpoint is less then 3 ms away from Digital Ocean's San Francisco datacenter.
 
-Place the following in `/etc/network/interfaces`.  Relace `PUBLIC_IP` with your host's public IPv4 address and replace 2001:db8::2 and 2001:db8::1 with the corresponding tunnel endpoints:
+Place the following in `/etc/network/interfaces`.  Replace `PUBLIC_IP` with your host's public IPv4 address and replace 2001:db8::2 and 2001:db8::1 with the corresponding tunnel endpoints:
 
     auto he-ipv6
     iface he-ipv6 inet6 v4tunnel
@@ -37,13 +37,14 @@ If this doesn't work, figure it out.  It may be necessary to add an firewall rul
 
 ### Step 2 — Update Docker's Init To Enable IPv6 Support
 
-Copy the system's existing docker file and append the `--ipv6` argument to the end of the command line:
 
-    sed -e 's:^\(ExecStart.*\):\1 --ipv6:' /lib/systemd/system/docker.service | tee /etc/systemd/system/docker.service
+Append the `--ipv6` argument to the `DOCKER_OPTS` variable in:
+
+    /etc/default/docker
 
 Reload the daemon and restart docker so that it takes affect:
 
-    systemctl daemon-reload && systemctl restart docker.service
+    systemctl restart docker.service
 
 
 ### Step 3 — Setup the systemd Unit File
