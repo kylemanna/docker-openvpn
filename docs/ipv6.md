@@ -44,7 +44,7 @@ Append the `--ipv6` argument to the `DOCKER_OPTS` variable in:
 
 Reload the daemon and restart docker so that it takes affect:
 
-    service docker restart
+    systemctl restart docker.service
 
 
 ### Step 3 — Setup the systemd Unit File
