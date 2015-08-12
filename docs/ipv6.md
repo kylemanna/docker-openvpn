@@ -37,13 +37,15 @@ If this doesn't work, figure it out.  It may be necessary to add an firewall rul
 
 ### Step 2 — Update Docker's Init To Enable IPv6 Support
 
+Add the `--ipv6` to the Docker daemon invocation.
 
-Append the `--ipv6` argument to the `DOCKER_OPTS` variable in:
+On **Ubuntu** and old versions of Debian Append the `--ipv6` argument to the `DOCKER_OPTS` variable in:
 
     /etc/default/docker
 
-Reload the daemon and restart docker so that it takes affect:
+On modern **systemd** distributions copy the service file and modify it and reload the service:
 
+    sed -e 's:^\(ExecStart.*\):\1 --ipv6:' /lib/systemd/system/docker.service | tee /etc/systemd/system/docker.service
     systemctl restart docker.service
 
 
@@ -51,11 +53,11 @@ Reload the daemon and restart docker so that it takes affect:
 
 Copy the systemd init file from the docker-openvpn /init directory of the repository and install into `/etc/systemd/system/docker-openvpn.service`
 
-    curl -o /etc/systemd/system/docker-openvpn.service https://raw.githubusercontent.com/kylemanna/docker-openvpn/dev/init/docker-openvpn.service
+    curl -o /etc/systemd/system/docker-openvpn@.service 'https://raw.githubusercontent.com/kylemanna/docker-openvpn/dev/init/docker-openvpn%40.service'
 
 Edit the file, replace `IP6_PREFIX` value with the value of your /64 prefix.
 
-    vi /etc/systemd/system/docker-openvpn.service
+    vi /etc/systemd/system/docker-openvpn@.service
 
 Finally, reload systemd so the changes take affect:
 
@@ -65,14 +67,14 @@ Finally, reload systemd so the changes take affect:
 
 Ensure that OpenVPN has been initialized and configured as described in the top level `README.md`.
 
-Start the systemd service file:
+Start the systemd service file specifying the volume container suffix as the instance.  For example, `INSTANCE=test0` has a docker volume container named `ovpn-data-test0` and service will create `ovpn-test0` container:
 
-    systemctl start docker-openvpn
+    systemctl start docker-openvpn@test0
 
 Verify logs if needed:
 
-    systemctl status docker-openvpn
-    docker logs openvpn0
+    systemctl status docker-openvpn@test0
+    docker logs ovpn-test0
 
 ### Step 4 — Modify Client Config for IPv6 Default Route
 
