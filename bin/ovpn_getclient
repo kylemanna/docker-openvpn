@@ -34,7 +34,7 @@ get_client_config() {
     echo "
 client
 nobind
-dev tun
+dev $OVPN_DEVICE
 remote-cert-tls server
 
 remote $OVPN_CN $OVPN_PORT $OVPN_PROTO
