@@ -11,7 +11,7 @@ It is recommended to use platforms that support systemd as future versions of th
 
 ### Step 1 — Set Up Docker
 
-Docker is moving fast and Debian / Ubuntu's long term support (LTS) policy doesn't keep up. To work around this we'll install a PPA that will get us the latest version of Docker.
+Docker is moving fast and Debian / Ubuntu's long term support (LTS) policy doesn't keep up. To work around this we'll install a PPA that will get us the latest version of Docker. For Debian Jessie users, just install docker.io from jessie-backports.
 
 Ensure dependencies are installed:
 
@@ -41,11 +41,15 @@ After **re-logging in** verify the group membership using the id command. The ex
 
 Run a Debian jessie docker container:
 
-    docker run --rm -it debian:jessie bash -l
+```Shell
+docker run --rm -it debian:jessie bash -l
+```
 
 Once inside the container you'll see the `root@<container id>:/#` prompt signifying that the current shell is in a Docker container. To confirm that it's different from the host, check the version of Debian running in the container:
 
-    cat /etc/issue.net
+```Shell
+cat /etc/issue.net
+```
 
 Expected result:
 
