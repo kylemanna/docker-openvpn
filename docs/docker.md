@@ -11,7 +11,7 @@ It is recommended to use platforms that support systemd as future versions of th
 
 ### Step 1 — Set Up Docker
 
-Docker is moving fast and Debian / Ubuntu's long term support (LTS) policy doesn't keep up. To work around this we'll install a PPA that will get us the latest version of Docker.
+Docker is moving fast and Debian / Ubuntu's long term support (LTS) policy doesn't keep up. To work around this we'll install a PPA that will get us the latest version of Docker. For Debian Jessie users, just install docker.io from jessie-backports.
 
 Ensure dependencies are installed:
 

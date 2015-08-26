@@ -45,7 +45,7 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
 
-        for example - docker run --volumes-from $OVPN_DATA -d -p 1194:1194/udp --privileged -e DEBUG=1 kylemanna/openvpn
+        docker run --volumes-from $OVPN_DATA -d -p 1194:1194/udp --privileged -e DEBUG=1 kylemanna/openvpn
 
 ## How Does It Work?
 
@@ -109,13 +109,13 @@ packets, etc).
   simplicity.  It's highly recommended to secure the CA key with some
   passphrase to protect against a filesystem compromise.  A more secure system
   would put the EasyRSA PKI CA on an offline system (can use the same Docker
-  image and the script [`ovpn_copy_server_files`](/docs/clients.md) to accomplish this).
+  image and the script [`ovpn_copy_server_files`](/docs/paranoid.md) to accomplish this).
 * It would be impossible for an adversary to sign bad or forged certificates
   without first cracking the key's passphase should the adversary have root
   access to the filesystem.
 * The EasyRSA `build-client-full` command will generate and leave keys on the
   server, again possible to compromise and steal the keys.  The keys generated
-  need to signed by the CA which the user hopefully configured with a passphrase
+  need to be signed by the CA which the user hopefully configured with a passphrase
   as described above.
 * Assuming the rest of the Docker container's filesystem is secure, TLS + PKI
   security should prevent any malicious host from using the VPN.

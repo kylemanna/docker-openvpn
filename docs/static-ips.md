@@ -1,6 +1,6 @@
 # Static IP Addresses
 
-The docker image is setup for static client configuration on the 192.168.254.0/24 subnet.  To use it follow the Quick Start section below.  Note that the IP addresses octects need to be picked special, see [OpenVPN Documentation](https://openvpn.net/index.php/open-source/documentation/howto.html#policy) for more details.
+The docker image is setup for static client configuration on the 192.168.254.0/24 subnet.  To use it follow the Quick Start section below.  Note that the IP addresses octets need to be picked special, see [OpenVPN Documentation](https://openvpn.net/index.php/open-source/documentation/howto.html#policy) for more details.
 
 ## Quick Start
 
