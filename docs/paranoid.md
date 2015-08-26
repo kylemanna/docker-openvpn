@@ -5,9 +5,9 @@ As mentioned in the [backup section](/docs/backup.md), there are good reasons to
 
 Execute the following commands. Note that you might want to change the volume `$PWD` or use a data docker container for this.
 
-    docker run --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
-    docker run --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_initpki
-    docker run --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_copy_server_files
+    docker run --net=none --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
+    docker run --net=none --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_initpki
+    docker run --net=none --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_copy_server_files
 
 The [`ovpn_copy_server_files`](/bin/ovpn_copy_server_files) script puts all the needed configuration in a subdirectory which defaults to `$OPENVPN/server`. All you need to do now is to copy this directory to the server and you are good to go.
 
@@ -22,7 +22,7 @@ If you want to select the cyphers used by OpenVPN the following parameters of th
 
 The following options have been tested successfully:
 
-    docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_genconfig -C 'AES-256-CBC' -a 'SHA384'
+    docker run --volumes-from $OVPN_DATA --net=none --rm kylemanna/openvpn ovpn_genconfig -C 'AES-256-CBC' -a 'SHA384'
 
 Changing the `tls-cipher` option seems to be more complicated because some clients (namely NetworkManager in Debian Jessie) seem to have trouble with this. Running `openvpn` manually also did not solve the issue:
 

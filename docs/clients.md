@@ -15,7 +15,7 @@ If you have more than a few clients, you will want to generate and update your c
 
 Execute the following to generate the configuration for all clients:
 
-    docker run --rm -it --volumes-from $OVPN_DATA --volume /tmp/openvpn_clients:/etc/openvpn/clients kylemanna/openvpn ovpn_getclient_all
+    docker run --net=none --rm -it --volumes-from $OVPN_DATA --volume /tmp/openvpn_clients:/etc/openvpn/clients kylemanna/openvpn ovpn_getclient_all
 
 After doing so, you will find the following files in each of the `$cn` directories:
 
@@ -30,7 +30,7 @@ After doing so, you will find the following files in each of the `$cn` directori
 
 Revoke `client1`'s certificate and generate the certificate revocation list (CRL):
 
-    docker run --rm -it --volumes-from $OVPN_DATA kylemanna/openvpn easyrsa revoke client1
-    docker run --rm -it --volumes-from $OVPN_DATA kylemanna/openvpn easyrsa gen-crl
+    docker run --net=none --rm -it --volumes-from $OVPN_DATA kylemanna/openvpn easyrsa revoke client1
+    docker run --net=none --rm -it --volumes-from $OVPN_DATA kylemanna/openvpn easyrsa gen-crl
 
 The OpenVPN server will read this change every time a client connects (no need to restart server) and deny clients access using revoked certificates.
