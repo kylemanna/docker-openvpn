@@ -72,6 +72,18 @@ $OVPN_ADDITIONAL_CLIENT_CONFIG
     if [ -n "$OVPN_MTU" ]; then
         echo "tun-mtu $OVPN_MTU"
     fi
+
+    if [ -n "$OVPN_TLS_CIPHER" ]; then
+        echo "tls-cipher $OVPN_TLS_CIPHER"
+    fi
+
+    if [ -n "$OVPN_CIPHER" ]; then
+        echo "cipher $OVPN_CIPHER"
+    fi
+
+    if [ -n "$OVPN_AUTH" ]; then
+        echo "auth $OVPN_AUTH"
+    fi
 }
 
 dir="$OPENVPN/clients/$cn"

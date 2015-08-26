@@ -45,6 +45,9 @@ usage() {
     echo " -N    Configure NAT to access external server network"
     echo " -m    Set client MTU"
     echo " -t    Use TAP device (instead of TUN device)"
+    echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
+    echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)."
+    echo " -a    Authenticate  packets with HMAC using the given message digest algorithm (auth)."
 }
 
 if [ "$DEBUG" == "1" ]; then
@@ -64,13 +67,25 @@ OVPN_ROUTES=()
 TMP_ROUTES=()
 OVPN_PUSH=()
 TMP_PUSH=()
+OVPN_TLS_CIPHER=''
+OVPN_CIPHER=''
+OVPN_AUTH=''
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":r:s:du:cp:DNm:t" opt; do
+while getopts ":a:C:T:r:s:du:cp:DNm:t" opt; do
     case $opt in
+        a)
+            OVPN_AUTH="$OPTARG"
+            ;;
+        C)
+            OVPN_CIPHER="$OPTARG"
+            ;;
+        T)
+            OVPN_TLS_CIPHER="$OPTARG"
+            ;;
         r)
             TMP_ROUTES+=("$OPTARG")
             ;;
@@ -142,6 +157,7 @@ fi
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
 export OVPN_CLIENT_TO_CLIENT OVPN_PUSH OVPN_NAT OVPN_DNS OVPN_MTU OVPN_DEVICE
+export OVPN_TLS_CIPHER OVPN_CIPHER OVPN_AUTH
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
@@ -181,6 +197,9 @@ user nobody
 group nogroup
 EOF
 
+[ -n "$OVPN_TLS_CIPHER" ] && echo "tls-cipher $OVPN_TLS_CIPHER" >> "$conf"
+[ -n "$OVPN_CIPHER" ] && echo "cipher $OVPN_CIPHER" >> "$conf"
+[ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
 [ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
 [ "$OVPN_DNS" == "1" ] && echo push "dhcp-option DNS 8.8.4.4" >> "$conf"
