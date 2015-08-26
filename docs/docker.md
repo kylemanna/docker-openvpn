@@ -41,15 +41,11 @@ After **re-logging in** verify the group membership using the id command. The ex
 
 Run a Debian jessie docker container:
 
-```Shell
-docker run --rm -it debian:jessie bash -l
-```
+    docker run --rm -it debian:jessie bash -l
 
 Once inside the container you'll see the `root@<container id>:/#` prompt signifying that the current shell is in a Docker container. To confirm that it's different from the host, check the version of Debian running in the container:
 
-```Shell
-cat /etc/issue.net
-```
+    cat /etc/issue.net
 
 Expected result:
 
