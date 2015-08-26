@@ -17,6 +17,9 @@ else
     TARGET="$OPENVPN/server"
 fi
 
+## Ensure that no other keys then the one for the server is present.
+rm --recursive --force "$TARGET/pki/private" "$TARGET/pki/issued"
+
 echo "
 pki/private/${OVPN_CN}.key
 pki/issued/${OVPN_CN}.crt
