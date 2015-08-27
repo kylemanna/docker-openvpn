@@ -21,6 +21,8 @@ fi
 rm --recursive --force "$TARGET/pki/private" "$TARGET/pki/issued"
 
 echo "
+openvpn.conf
+ovpn_env.sh
 pki/private/${OVPN_CN}.key
 pki/issued/${OVPN_CN}.crt
 pki/dh.pem
@@ -29,7 +31,6 @@ pki/ca.crt
 " | rsync --recursive --verbose \
     --files-from - \
     "$OPENVPN/" "$TARGET"
-ln --symbolic --force ../openvpn.conf ../ovpn_env.sh "$TARGET"
 mkdir -p "$TARGET/ccd"
 
 echo "Created the openvpn configuration for the server: $TARGET"
