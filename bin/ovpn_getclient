@@ -23,22 +23,46 @@ fi
 
 cn="$1"
 parm="$2"
+additional_parameters="$3"
+additional_options=()
+
 
 if [ ! -f "$EASYRSA_PKI/private/${cn}.key" ]; then
     echo "Unable to find \"${cn}\", please try again or generate the key first" >&2
     exit 1
 fi
 
+## http://stackoverflow.com/a/8574392
+containsElement () {
+    local e
+    for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+    return 1
+}
+
 get_client_config() {
     mode="$1"
+    additional_parameters="$2"
+
+    if [ -n "$additional_parameters" ]; then
+        IFS=';' read -ra additional_parameters_list <<< "$additional_parameters"
+        for parameter in "${additional_parameters_list[@]}"; do
+            openvpn_option="${parameter%% *}"
+            additional_options+=("$openvpn_option")
+        done
+    fi
+
     echo "
 client
 nobind
 dev $OVPN_DEVICE
 remote-cert-tls server
-
-remote $OVPN_CN $OVPN_PORT $OVPN_PROTO
 "
+
+    if ! containsElement "remote" "${additional_options[@]}"
+    then
+        echo -e "remote $OVPN_CN $OVPN_PORT $OVPN_PROTO\n"
+    fi
+
     if [ "$mode" == "combined" ]; then
         echo "
 <key>
@@ -84,23 +108,30 @@ $OVPN_ADDITIONAL_CLIENT_CONFIG
     if [ -n "$OVPN_AUTH" ]; then
         echo "auth $OVPN_AUTH"
     fi
+
+    if [ -n "$additional_parameters" ]; then
+        IFS=';' read -ra additional_parameters_list <<< "$additional_parameters"
+        for parameter in "${additional_parameters_list[@]}"; do
+            echo "$parameter"
+        done
+    fi
 }
 
 dir="$OPENVPN/clients/$cn"
 case "$parm" in
     "separated")
         mkdir -p "$dir"
-        get_client_config "$parm" > "$dir/${cn}.ovpn"
+        get_client_config "$parm" "$additional_parameters" > "$dir/${cn}.ovpn"
         cp "$EASYRSA_PKI/private/${cn}.key" "$dir/${cn}.key"
         cp "$EASYRSA_PKI/ca.crt" "$dir/ca.crt"
         cp "$EASYRSA_PKI/issued/${cn}.crt" "$dir/${cn}.crt"
         cp "$EASYRSA_PKI/ta.key" "$dir/ta.key"
         ;;
     "" | "combined")
-        get_client_config "combined"
+        get_client_config "combined" "$additional_parameters"
         ;;
     "combined-save")
-        get_client_config "combined" > "$dir/${cn}-combined.ovpn"
+        get_client_config "combined" "$additional_parameters" > "$dir/${cn}-combined.ovpn"
         ;;
     *)
         echo "This script can produce the client configuration in to formats:" >&2

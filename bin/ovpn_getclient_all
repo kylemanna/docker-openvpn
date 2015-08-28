@@ -18,8 +18,8 @@ for name in issued/*.crt; do
     name=${name%.crt}
     name=${name#issued/}
     if [ "$name" != "$OVPN_CN" ]; then
-        ovpn_getclient "$name" separated
-        ovpn_getclient "$name" combined-save
+        ovpn_getclient "$name" separated "${@}"
+        ovpn_getclient "$name" combined-save "${@}"
     fi
 done
 popd
