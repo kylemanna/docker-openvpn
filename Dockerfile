@@ -6,12 +6,14 @@ FROM debian:jessie
 MAINTAINER Kyle Manna <kyle@kylemanna.com>
 
 RUN apt-get update && \
-    apt-get install -y openvpn iptables git-core && \
+    apt-get install -y openvpn iptables curl && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Update checkout to use tags when v3.0 is finally released
-RUN git clone --depth 1 --branch v3.0.0-rc2 https://github.com/OpenVPN/easy-rsa.git /usr/local/share/easy-rsa && \
-    ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin
+RUN curl -L https://github.com/OpenVPN/easy-rsa/archive/v3.0.0.tar.gz | tar xzf -  && \
+	mkdir -p /usr/local/share/easy-rsa && \
+	mv easy-rsa-3.0.0/easyrsa3 /usr/local/share/easy-rsa/easyrsa3 && \
+    ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin && \
+    rm -fr /easy-rsa-3.0.0
 
 # Needed by scripts
 ENV OPENVPN /etc/openvpn
@@ -28,4 +30,4 @@ WORKDIR /etc/openvpn
 CMD ["ovpn_run"]
 
 ADD ./bin /usr/local/bin
-RUN chmod a+x /usr/local/bin/*
+RUN chmod +x /usr/local/bin/ovpn_* /usr/local/bin/easyrsa_*
