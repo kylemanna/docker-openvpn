@@ -1,0 +1,21 @@
+# Disallowing packages: openvpn
+# If you require these packages, please review the package approval process at: https://github.com/travis-ci/apt-package-whitelist#package-approval-process
+#addons:
+#    apt:
+#        sources:
+#            - ubuntu-toolchain-r-test
+#        packages:
+#            - openvpn
+
+services:
+    - docker
+
+before_install:
+    - docker --version
+    - docker build -t kylemanna/openvpn .
+    - docker inspect kylemanna/openvpn
+    - docker run kylemanna/openvpn openvpn --version || true # why does it returns 1?
+    - docker run kylemanna/openvpn openssl version
+
+script:
+    - pushd tests && for i in *.sh; do "./$i"; done && popd
