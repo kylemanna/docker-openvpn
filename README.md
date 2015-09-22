@@ -1,5 +1,7 @@
 # OpenVPN for Docker
 
+[![Build Status](https://travis-ci.org/kylemanna/docker-openvpn.svg)](https://travis-ci.org/kylemanna/docker-openvpn)
+
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
 Extensively tested on [Digital Ocean $5/mo node](http://bit.ly/1C7cKr3) and has
