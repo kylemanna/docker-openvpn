@@ -26,6 +26,14 @@ After doing so, you will find the following files in each of the `$cn` directori
     $cn.key
     ta.key
 
+## Custom client configuration options
+
+In case you want to add or change certain client options you can use the third parameter to specify them. This can for example be used in a multi-server setup to write all remotes in the client’s configuration and have them choose which server to connect to. The following command can be used to achieve this:
+
+    docker run --rm -it --volumes-from $OVPN_DATA --volume /tmp/openvpn_clients:/etc/openvpn/clients kylemanna/openvpn ovpn_getclient $cn combined-save "remote vpn.example.com;remote vpn.example.net;remote-random"
+
+Note that by specifying one or more remote parameter manually, the default remote entry is omitted. This was done to allow you to choose a order for the remotes because OpenVPN will try the remotes in the specified order unless the "remote-random" option set.
+
 ## Revoking Client Certificates
 
 Revoke `client1`'s certificate and generate the certificate revocation list (CRL):
