@@ -19,7 +19,7 @@ fi
 mkdir -p "${TARGET}"
 
 ## Ensure that no other keys then the one for the server is present.
-rm --recursive --force "$TARGET/pki/private" "$TARGET/pki/issued"
+rm -rf "$TARGET/pki/private" "$TARGET/pki/issued"
 
 FILES=(
     "openvpn.conf"
