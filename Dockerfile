@@ -1,21 +1,18 @@
 # Original credit: https://github.com/jpetazzo/dockvpn
 
-# Leaner build then Ubunutu
-FROM debian:jessie
+# Leaner build then Ubuntu
+FROM alpine:3.2
 
 MAINTAINER Kyle Manna <kyle@kylemanna.com>
 
-RUN apt-get update && \
-    apt-get install -y openvpn iptables curl && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN mkdir -p /usr/local/share/easy-rsa && \
-    curl -L https://github.com/OpenVPN/easy-rsa/archive/v3.0.0.tar.gz | tar xzf - --strip=1 -C /usr/local/share/easy-rsa easy-rsa-3.0.0/easyrsa3 && \
-    ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin
+RUN echo "http://dl-4.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories && \
+    apk add --update openvpn iptables bash easy-rsa && \
+    ln -s /usr/share/easy-rsa/easyrsa /usr/local/bin && \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/*
 
 # Needed by scripts
 ENV OPENVPN /etc/openvpn
-ENV EASYRSA /usr/local/share/easy-rsa/easyrsa3
+ENV EASYRSA /usr/share/easy-rsa
 ENV EASYRSA_PKI $OPENVPN/pki
 ENV EASYRSA_VARS_FILE $OPENVPN/vars
 
