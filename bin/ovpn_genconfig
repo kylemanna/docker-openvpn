@@ -37,11 +37,12 @@ usage() {
     echo "                 [-s SERVER_SUBNET]"
     echo "                 [-r ROUTE ...]"
     echo "                 [-p PUSH ...]"
+    echo "                 [-n DNS_SERVER ...]"
     echo
     echo "optional arguments:"
     echo " -d    Disable NAT routing and default route"
     echo " -c    Enable client-to-client option"
-    echo " -D    Disable built in external dns (google dns)"
+    echo " -D    Do not push dns servers"
     echo " -N    Configure NAT to access external server network"
     echo " -m    Set client MTU"
     echo " -t    Use TAP device (instead of TUN device)"
@@ -67,6 +68,8 @@ OVPN_ROUTES=()
 TMP_ROUTES=()
 OVPN_PUSH=()
 TMP_PUSH=()
+OVPN_DNS_SERVERS=("8.8.8.8" "8.8.4.4")
+TMP_DNS_SERVERS=()
 OVPN_TLS_CIPHER=''
 OVPN_CIPHER=''
 OVPN_AUTH=''
@@ -75,7 +78,7 @@ OVPN_AUTH=''
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:C:T:r:s:du:cp:DNm:t" opt; do
+while getopts ":a:C:T:r:s:du:cp:n:DNm:t" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -103,6 +106,9 @@ while getopts ":a:C:T:r:s:du:cp:DNm:t" opt; do
             ;;
         p)
             TMP_PUSH+=("$OPTARG")
+            ;;
+        n)
+            TMP_DNS_SERVERS+=("$OPTARG")
             ;;
         D)
             OVPN_DNS=0
@@ -136,6 +142,9 @@ done
 
 # if new push directives were not defined with -p, use default
 [ ${#TMP_PUSH[@]} -gt 0 ] && OVPN_PUSH=("${TMP_PUSH[@]}")
+
+# if dns servers were not defined with -n, use google nameservers
+[ ${#TMP_DNS_SERVERS[@]} -gt 0 ] && OVPN_DNS_SERVERS=("${TMP_DNS_SERVERS[@]}")
 
 # Server name is in the form "udp://vpn.example.com:1194"
 if [[ "$OVPN_SERVER_URL" =~ ^((udp|tcp)://)?([0-9a-zA-Z\.\-]+)(:([0-9]+))?$ ]]; then
@@ -202,8 +211,9 @@ EOF
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
 [ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
-[ "$OVPN_DNS" == "1" ] && echo push "dhcp-option DNS 8.8.4.4" >> "$conf"
-[ "$OVPN_DNS" == "1" ] && echo push "dhcp-option DNS 8.8.8.8" >> "$conf"
+for i in "${OVPN_DNS_SERVERS[@]}"; do
+  echo "push dhcp-option DNS $i" >> "$conf"
+done
 # Append Routes
 for i in "${OVPN_ROUTES[@]}"; do
     # If user passed "0" skip this, assume no extra routes
