@@ -211,7 +211,8 @@ EOF
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
 [ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
-for i in "${OVPN_DNS_SERVERS[@]}"; do
+
+[ "$OVPN_DNS" == "1" ] && for i in "${OVPN_DNS_SERVERS[@]}"; do
   echo "push dhcp-option DNS $i" >> "$conf"
 done
 # Append Routes
