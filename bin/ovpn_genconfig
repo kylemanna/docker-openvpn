@@ -49,6 +49,7 @@ usage() {
     echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
     echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)."
     echo " -a    Authenticate  packets with HMAC using the given message digest algorithm (auth)."
+    echo " -z    Enable comp-lzo compression."
 }
 
 if [ "$DEBUG" == "1" ]; then
@@ -78,7 +79,7 @@ OVPN_AUTH=''
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:C:T:r:s:du:cp:n:DNm:t" opt; do
+while getopts ":a:C:T:r:s:du:cp:n:DNm:t:z" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -121,6 +122,9 @@ while getopts ":a:C:T:r:s:du:cp:n:DNm:t" opt; do
             ;;
         t)
             OVPN_DEVICE="tap"
+            ;;
+        z)
+            OVPN_COMP_LZO=1
             ;;
         \?)
             set +x
@@ -167,6 +171,7 @@ export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
 export OVPN_CLIENT_TO_CLIENT OVPN_PUSH OVPN_NAT OVPN_DNS OVPN_MTU OVPN_DEVICE
 export OVPN_TLS_CIPHER OVPN_CIPHER OVPN_AUTH
+export OVPN_COMP_LZO
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
@@ -211,6 +216,7 @@ EOF
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
 [ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
+[ -n "$OVPN_COMP_LZO" ] && echo "comp-lzo" >> "$conf"
 
 [ "$OVPN_DNS" == "1" ] && for i in "${OVPN_DNS_SERVERS[@]}"; do
   echo "push dhcp-option DNS $i" >> "$conf"
