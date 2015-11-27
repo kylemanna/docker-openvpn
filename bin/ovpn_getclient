@@ -84,6 +84,10 @@ $OVPN_ADDITIONAL_CLIENT_CONFIG
     if [ -n "$OVPN_AUTH" ]; then
         echo "auth $OVPN_AUTH"
     fi
+
+    if [ -n "$OVPN_COMP_LZO" ]; then
+        echo "comp-lzo"
+    fi
 }
 
 dir="$OPENVPN/clients/$cn"
