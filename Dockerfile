@@ -5,7 +5,7 @@ FROM alpine:3.2
 
 MAINTAINER Kyle Manna <kyle@kylemanna.com>
 
-RUN echo "http://dl-4.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories && \
+RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community/" >> /etc/apk/repositories && \
     apk add --update openvpn iptables bash easy-rsa && \
     ln -s /usr/share/easy-rsa/easyrsa /usr/local/bin && \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/*
