@@ -80,7 +80,7 @@ OVPN_AUTH=''
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:C:T:r:s:du:cp:n:DNm:t:z" opt; do
+while getopts ":a:C:T:r:s:du:cp:n:DNm:tz" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
