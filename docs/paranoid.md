@@ -3,7 +3,7 @@
 ## Keep the CA root key save
 As mentioned in the [backup section](/docs/backup.md), there are good reasons to not generate the CA and/or leave it on the server. This document describes how you can generate the CA and all your certificates on a secure machine and then copy only the needed files (which never includes the CA root key obviously ;) ) to the server(s) and clients.
 
-To create a separate DVC with a CA root key and all other PKI files and a dedicated DVC for an OpenVPN server, containing only the filed needed by the server, execute the following script. Note that you should use the `ovpn-ca-data` DVC for any PKI related operations, e.g. generating user certificates.
+To create a separate DVC with a CA root key and all other PKI files and a dedicated DVC for an OpenVPN server, containing only the files needed by the server, execute the following script. Note that you should use the `ovpn-ca-data` DVC for any PKI related operations, e.g. generating user certificates.
 
     #!/bin/sh
 
