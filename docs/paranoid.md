@@ -3,13 +3,29 @@
 ## Keep the CA root key save
 As mentioned in the [backup section](/docs/backup.md), there are good reasons to not generate the CA and/or leave it on the server. This document describes how you can generate the CA and all your certificates on a secure machine and then copy only the needed files (which never includes the CA root key obviously ;) ) to the server(s) and clients.
 
-Execute the following commands. Note that you might want to change the volume `$PWD` or use a data docker container for this.
+To create a separate DVC with a CA root key and all other PKI files and a dedicated DVC for an OpenVPN server, containing only the filed needed by the server, execute the following script. Note that you should use the `ovpn-ca-data` DVC for any PKI related operations, e.g. generating user certificates.
 
-    docker run --net=none --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
-    docker run --net=none --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_initpki
-    docker run --net=none --rm -t -i -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_copy_server_files
+    #!/bin/sh
 
-The [`ovpn_copy_server_files`](/bin/ovpn_copy_server_files) script puts all the needed configuration in a subdirectory which defaults to `$OPENVPN/server`. All you need to do now is to copy this directory to the server and you are good to go.
+    OVPN_SERVER_DATA="ovpn-server-data"
+    OVPN_CA_DATA="ovpn-ca-data"
+    OVPN_SERVER_NAME="udp://VPN.YOURDOMAIN.COM"
+    
+    for name in $OVPN_SERVER_DATA $OVPN_CA_DATA
+    do
+    	docker run --name $name -v /etc/openvpn busybox
+    done
+    
+    docker run --net=none --volumes-from $OVPN_CA_DATA --rm  kylemanna/openvpn ovpn_genconfig -u $OVPN_SERVER_NAME
+    docker run --net=none --volumes-from $OVPN_CA_DATA --rm -it kylemanna/openvpn ovpn_initpki
+    
+    TMP_DIR=$(mktemp -d)
+    
+    docker run --net=none --rm -t -i --volumes-from $OVPN_CA_DATA  -v $TMP_DIR:/etc/openvpn/server  kylemanna/openvpn ovpn_copy_server_files
+    docker run --net=none --rm -t -i --volumes-from $OVPN_SERVER_DATA  -v $TMP_DIR:/openvpn/ busybox  cp -a /openvpn/ /etc/
+    
+    rm -rf $TMP_DIR
+
 
 ## Crypto Hardening
 
