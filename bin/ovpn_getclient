@@ -61,7 +61,6 @@ key ${cn}.key
 ca ca.crt
 cert ${cn}.crt
 tls-auth ta.key 1
-$OVPN_ADDITIONAL_CLIENT_CONFIG
 "
     fi
 
@@ -88,6 +87,8 @@ $OVPN_ADDITIONAL_CLIENT_CONFIG
     if [ -n "$OVPN_COMP_LZO" ]; then
         echo "comp-lzo"
     fi
+
+    echo -e $OVPN_ADDITIONAL_CLIENT_CONFIG
 }
 
 dir="$OPENVPN/clients/$cn"
