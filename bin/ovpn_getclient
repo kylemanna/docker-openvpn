@@ -88,7 +88,9 @@ tls-auth ta.key 1
         echo "comp-lzo"
     fi
 
-    echo -e $OVPN_ADDITIONAL_CLIENT_CONFIG
+    if [ -n "$OVPN_ADDITIONAL_CLIENT_CONFIG" ]; then
+        echo -e $OVPN_ADDITIONAL_CLIENT_CONFIG
+    fi
 }
 
 dir="$OPENVPN/clients/$cn"
