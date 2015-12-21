@@ -1,6 +1,10 @@
 # OpenVPN for Docker
 
 [![Build Status](https://travis-ci.org/kylemanna/docker-openvpn.svg)](https://travis-ci.org/kylemanna/docker-openvpn)
+[![Docker Stars](https://img.shields.io/docker/stars/kylemanna/openvpn.svg)](https://hub.docker.com/r/kylemanna/openvpn/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/kylemanna/openvpn.svg)](https://hub.docker.com/r/kylemanna/openvpn/)
+[![ImageLayers Size](https://img.shields.io/imagelayers/image-size/kylemanna/openvpn/latest.svg)](https://hub.docker.com/r/kylemanna/openvpn/)
+[![ImageLayers Layers](https://img.shields.io/imagelayers/layers/kylemanna/openvpn/latest.svg)](https://hub.docker.com/r/kylemanna/openvpn/)
 
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
@@ -9,7 +13,7 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
 #### Upstream Links
 
-* Docker Registry @ [kylemanna/openvpn](https://registry.hub.docker.com/u/kylemanna/openvpn)
+* Docker Registry @ [kylemanna/openvpn](https://hub.docker.com/r/kylemanna/openvpn/)
 * GitHub @ [kylemanna/docker-openvpn](https://github.com/kylemanna/docker-openvpn)
 
 #### Example Service
