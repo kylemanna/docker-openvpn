@@ -16,7 +16,8 @@ spec:
     volumeMounts:
     - mountPath: /etc/ovpn-secrets
       name: secrets
+      readOnly: true
   volumes:
-    - name: secrets
-      secret:
-        secretName: open-vpn
+  - name: secrets
+    secret:
+      secretName: open-vpn
