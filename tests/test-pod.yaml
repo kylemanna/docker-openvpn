@@ -1,0 +1,22 @@
+kind: "Pod"
+apiVersion: "v1"
+metadata:
+  name: "test-pod"
+  labels:
+    name: "test"
+spec:
+  containers:
+  - name: test-pod
+    image: 'kylemanna/openvpn'
+    env:
+    - name: KUBERNETES
+      value: "true"
+    command:
+    - 'ovpn_run'
+    volumeMounts:
+    - mountPath: /etc/ovpn-secrets
+      name: secrets
+  volumes:
+    - name: secrets
+      secret:
+        secretName: open-vpn
