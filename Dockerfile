@@ -1,7 +1,7 @@
 # Original credit: https://github.com/jpetazzo/dockvpn
 
 # Leaner build then Ubuntu
-FROM alpine:3.2
+FROM vibioh/alpine-arm:latest
 
 MAINTAINER Kyle Manna <kyle@kylemanna.com>
 
