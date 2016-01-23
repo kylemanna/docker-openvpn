@@ -1,0 +1,30 @@
+kind: "Pod"
+apiVersion: "v1"
+metadata:
+  name: "openvpn"
+  labels:
+    name: "openvpn"
+spec:
+  containers:
+  - name: "openvpn"
+    image: 'kylemanna/openvpn'
+    securityContext:
+          capabilities:
+            add:
+              - NET_ADMIN
+    env:
+    - name: KUBERNETES
+      value: "true"
+    ports:
+    - name: vpn
+      containerPort: 1194
+      hostPort: 1194
+      protocol: UDP
+      name: open-vpn
+    volumeMounts:
+    - mountPath: /etc/ovpn-secrets
+      name: open-vpn
+  volumes:
+  - name: open-vpn
+    secret:
+      secretName: open-vpn
