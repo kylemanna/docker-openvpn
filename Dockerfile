@@ -6,7 +6,7 @@ FROM debian:jessie
 MAINTAINER Kyle Manna <kyle@kylemanna.com>
 
 RUN apt-get update && \
-    apt-get install -y openvpn iptables curl && \
+    apt-get install -y openvpn iptables curl libpam-google-authenticator && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN mkdir -p /usr/local/share/easy-rsa && \
