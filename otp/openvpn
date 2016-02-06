@@ -1,0 +1,2 @@
+# Uses google authenticator library as PAM module using a single folder for all users tokens
+auth required pam_google_authenticator.so secret=/etc/openvpn/otp/${USER}.google_authenticator
