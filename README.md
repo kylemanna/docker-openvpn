@@ -79,6 +79,7 @@ Conveniently, `kylemanna/openvpn` comes with a script called `ovpn_getclient`,
 which dumps an inline OpenVPN client configuration file.  This single file can
 then be given to a client for access to the VPN.
 
+To enable Two Factor Authentication for clients (a.k.a. OTP) see [this document](/docs/otp.md).
 
 ## OpenVPN Details
 
