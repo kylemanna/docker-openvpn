@@ -171,3 +171,8 @@ of a guarantee in the future.
      * OpenVPN core 3.0 android armv7a thumb2 32-bit
   * OS X Mavericks with Tunnelblick 3.4beta26 (build 3828) using openvpn-2.3.4
   * ArchLinux OpenVPN pkg 2.3.4-1
+  * 
+
+## Having permissions issues with Selinux enabled?
+
+See [this](docs/selinux.md)
