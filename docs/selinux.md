@@ -10,6 +10,15 @@ semodule_package -o docker-openvpn.pp -m docker-openvpn.mod
 sudo semodule -i docker-openvpn.pp
 ```
 
+Also, some configurations don't allow containers to load kernel modules, so on the host run this:
+
+```
+sudo modprobe tun
+```
+
+So the container doesn't have to load the `tun` module.
+
+
 # Still having issues?
 
 In January 2016, Fedora based systems got an update that fixed an issue for labeling namespaced net objects under /proc
