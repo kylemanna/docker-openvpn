@@ -1,0 +1,7 @@
+# Uses google authenticator library as PAM module using a single folder for all users tokens
+# User root is required to stick with an hardcoded user when trying to determine user id and allow unexisting system users
+# See https://github.com/google/google-authenticator/tree/master/libpam#secretpathtosecretfile--usersome-user
+auth required pam_google_authenticator.so secret=/etc/openvpn/otp/${USER}.google_authenticator user=root
+
+# Accept any user since we're dealing with virtual users there's no need to have a system account (pam_unix.so)
+account sufficient pam_permit.so

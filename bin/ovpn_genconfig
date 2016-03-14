@@ -50,6 +50,7 @@ usage() {
     echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)."
     echo " -a    Authenticate  packets with HMAC using the given message digest algorithm (auth)."
     echo " -z    Enable comp-lzo compression."
+    echo " -2    Enable two factor authentication using Google Authenticator."
 }
 
 if [ "$DEBUG" == "1" ]; then
@@ -79,7 +80,7 @@ OVPN_AUTH=''
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:C:T:r:s:du:cp:n:DNm:tz" opt; do
+while getopts ":a:C:T:r:s:du:cp:n:DNm:tz2" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -125,6 +126,9 @@ while getopts ":a:C:T:r:s:du:cp:n:DNm:tz" opt; do
             ;;
         z)
             OVPN_COMP_LZO=1
+            ;;
+        2)
+            OVPN_OTP_AUTH=1
             ;;
         \?)
             set +x
@@ -172,6 +176,7 @@ export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
 export OVPN_CLIENT_TO_CLIENT OVPN_PUSH OVPN_NAT OVPN_DNS OVPN_MTU OVPN_DEVICE
 export OVPN_TLS_CIPHER OVPN_CIPHER OVPN_AUTH
 export OVPN_COMP_LZO
+export OVPN_OTP_AUTH
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
@@ -232,6 +237,12 @@ done
 for i in "${OVPN_PUSH[@]}"; do
     echo push \"$i\" >> "$conf"
 done
+
+# Optional OTP authentication support
+if [ -n "$OVPN_OTP_AUTH" ]; then
+    echo -e "\n\n# Enable OTP+PAM for user authentication" >> "$conf"
+    echo "plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn" >> "$conf"
+fi
 
 set +e
 

@@ -85,6 +85,11 @@ $OVPN_ADDITIONAL_CLIENT_CONFIG
         echo "auth $OVPN_AUTH"
     fi
 
+    if [ -n "$OVPN_OTP_AUTH" ]; then
+        echo "auth-user-pass"
+        echo "auth-nocache"
+    fi
+
     if [ -n "$OVPN_COMP_LZO" ]; then
         echo "comp-lzo"
     fi
