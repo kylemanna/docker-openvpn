@@ -3,7 +3,6 @@
 OVPN_DATA=opvn-data
 
 IMG=kylemanna/openvpn
-IMG=rudijs/docker-openvpne:1.0.0
 
 # Function to fail
 abort() { cat <<< "$@" 1>&2; exit 1; }
