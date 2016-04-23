@@ -49,9 +49,21 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
         docker run --volumes-from $OVPN_DATA --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
+## Debugging Tips
+
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
 
-        docker run --volumes-from $OVPN_DATA -d -p 1194:1194/udp --privileged -e DEBUG=1 kylemanna/openvpn
+        docker run --volumes-from $OVPN_DATA -p 1194:1194/udp --privileged -e DEBUG=1 kylemanna/openvpn
+
+* Test using a client that has openvpn installed correctly 
+
+        $ openvpn --config CLIENTNAME.ovpn
+
+* Run through a barrage of debugging checks on the client if things don't just work
+
+        $ ping 8.8.8.8    # checks connectivity without touching name resolution
+        $ dig google.com  # won't use the search directives in resolv.conf
+        $ nslookup google.com # will use search
 
 ## How Does It Work?
 
