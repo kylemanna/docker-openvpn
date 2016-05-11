@@ -20,6 +20,8 @@ docker run --volumes-from $OVPN_DATA --rm -it $IMG easyrsa build-client-full $CL
 
 docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT | tee client/config.ovpn
 
+docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_listclients | grep $CLIENT
+
 #
 # Fire up the server
 #
