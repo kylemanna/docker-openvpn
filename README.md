@@ -85,7 +85,7 @@ The volume also holds the PKI keys and certs so that it could be backed up.
 
 To generate a client certificate, `kylemanna/openvpn` uses EasyRSA via the
 `easyrsa` command in the container's path.  The `EASYRSA_*` environmental
-variables place the PKI CA under `/etc/opevpn/pki`.
+variables place the PKI CA under `/etc/openvpn/pki`.
 
 Conveniently, `kylemanna/openvpn` comes with a script called `ovpn_getclient`,
 which dumps an inline OpenVPN client configuration file.  This single file can
