@@ -10,6 +10,8 @@ fi
 
 set -e
 
+cd $OPENVPN
+
 # Build runtime arguments array based on environment
 ARGS=("--config" "$OPENVPN/openvpn.conf")
 
