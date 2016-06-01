@@ -54,7 +54,7 @@ docker run --rm --net=host --privileged --volume $PWD/client:/client $IMG /clien
 #
 # Client either connected or timed out, kill server
 #
-kill %1
+kill %1 %2
 
 #
 # Celebrate
