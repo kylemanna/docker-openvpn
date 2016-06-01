@@ -18,4 +18,4 @@ before_install:
     - docker run kylemanna/openvpn openssl version
 
 script:
-    - pushd tests && for i in *.sh; do "./$i"; done && popd
+    - pushd tests && for i in *.sh; do echo -e "\n\n>> Running test $i\n\n"; "./$i"; done && popd
