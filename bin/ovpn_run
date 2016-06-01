@@ -10,8 +10,32 @@ fi
 
 set -e
 
+cd $OPENVPN
+
 # Build runtime arguments array based on environment
-ARGS=("--config" "$OPENVPN/openvpn.conf")
+USER_ARGS=("${@}")
+ARGS=()
+
+# Checks if ARGS already contains the given value
+function hasArg {
+    local element
+    for element in "${@:2}"; do
+        [ "${element}" == "${1}" ] && return 0
+    done
+    return 1
+}
+
+# Adds the given argument if it's not already specified.
+function addArg {
+    local arg="${1}"
+    [ $# -ge 1 ] && local val="${2}"
+    if ! hasArg "${arg}" "${USER_ARGS[@]}"; then
+        ARGS+=("${arg}")
+        [ $# -ge 1 ] && ARGS+=("${val}")
+    fi
+}
+
+addArg "--config" "$OPENVPN/openvpn.conf"
 
 source "$OPENVPN/ovpn_env.sh"
 
@@ -21,7 +45,7 @@ if [ ! -c /dev/net/tun ]; then
 fi
 
 if [ -d "$OPENVPN/ccd" ]; then
-    ARGS+=("--client-config-dir" "$OPENVPN/ccd")
+    addArg "--client-config-dir" "$OPENVPN/ccd"
 fi
 
 # When using --net=host, use this to specify nat device.
@@ -46,7 +70,7 @@ if [ -r "$EASYRSA_PKI/crl.pem" ]; then
         ln "$EASYRSA_PKI/crl.pem" "$OPENVPN/crl.pem"
         chmod 644 "$OPENVPN/crl.pem"
     fi
-    ARGS+=("--crl-verify" "$OPENVPN/crl.pem")
+    addArg "--crl-verify" "$OPENVPN/crl.pem"
 fi
 
 ip -6 route show default 2>/dev/null
@@ -59,8 +83,6 @@ if [ $? = 0 ]; then
     sysctl -w net.ipv6.conf.all.forwarding=1 || echo "Failed to enable IPv6 Forwarding"
 fi
 
-if [ "$#" -gt 0 ]; then
-    exec openvpn "$@"
-else
-    exec openvpn ${ARGS[@]}
-fi
+echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"
+exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
+
