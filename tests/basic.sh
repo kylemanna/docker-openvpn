@@ -25,8 +25,8 @@ docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_listclients | grep $CLIENT
 #
 # Fire up the server
 #
-sudo iptables -N DOCKER
-sudo iptables -I FORWARD -j DOCKER
+sudo iptables -N DOCKER || echo 'Firewall already configured'
+sudo iptables -I FORWARD -j DOCKER || echo 'Forward already configured'
 # run in shell bg to get logs
 docker run --name "ovpn-test" --volumes-from $OVPN_DATA --rm -p 1194:1194/udp --privileged $IMG &
 
