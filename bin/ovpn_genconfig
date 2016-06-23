@@ -154,6 +154,9 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
     esac
 done
 
+# Create ccd directory for static routes
+[ ! -d "$OPENVPN/ccd" ] && mkdir -p $OPENVPN/ccd
+
 # if new routes were not defined with -r, use default
 [ ${#TMP_ROUTES[@]} -gt 0 ] && OVPN_ROUTES=("${TMP_ROUTES[@]}")
 
