@@ -24,7 +24,7 @@ easyrsa init-pki
 easyrsa build-ca $nopass
 
 easyrsa gen-dh
-openvpn --genkey --secret $OPENVPN/pki/ta.key
+openvpn --genkey --secret $EASYRSA_PKI/ta.key
 
 # Was nice to autoset, but probably a bad idea in practice, users should
 # have to explicitly specify the common name of their server
