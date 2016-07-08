@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OVPN_DATA=opvn-data
+OVPN_DATA=options-data
 
 IMG=kylemanna/openvpn
 
