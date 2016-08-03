@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/kylemanna/docker-openvpn.svg)](https://travis-ci.org/kylemanna/docker-openvpn)
 [![Docker Stars](https://img.shields.io/docker/stars/kylemanna/openvpn.svg)](https://hub.docker.com/r/kylemanna/openvpn/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/kylemanna/openvpn.svg)](https://hub.docker.com/r/kylemanna/openvpn/)
-[![ImageLayers](https://imagelayers.io/badge/kylemanna/openvpn:latest.svg)](https://hub.docker.com/r/kylemanna/openvpn/)
+[![ImageLayers](https://images.microbadger.com/badges/image/kylemanna/openvpn.svg)](https://microbadger.com/#/images/kylemanna/openvpn)
 
 
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
