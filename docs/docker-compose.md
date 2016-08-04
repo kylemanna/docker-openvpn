@@ -25,11 +25,11 @@
 
 * Start OpenVPN server process
 
-        docker-compose start openvpn
+        docker-compose up -d openvpn
 
 * Generate a client certificate without a passphrase
 
-        docker-compose run --rm -openvpn easyrsa build-client-full CLIENTNAME nopass
+        docker-compose run --rm openvpn easyrsa build-client-full CLIENTNAME nopass
 
 * Retrieve the client configuration with embedded certificates
 
