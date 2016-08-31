@@ -5,11 +5,21 @@ FROM alpine:3.4
 
 MAINTAINER Kyle Manna <kyle@kylemanna.com>
 
-RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community/" >> /etc/apk/repositories && \
-    echo "http://dl-4.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories && \
-    apk add --update openvpn iptables bash easy-rsa openvpn-auth-pam google-authenticator pamtester && \
+RUN echo "http://dl-4.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories && \
+    apk add --update openvpn iptables bash easy-rsa openvpn-auth-pam pamtester && \
     ln -s /usr/share/easy-rsa/easyrsa /usr/local/bin && \
-    rm -rf /tmp/* /var/tmp/* /var/cache/apk/*
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*
+
+COPY alpine /tmp/local
+RUN adduser -D -G abuild abuild && \
+    chown -R abuild:abuild /tmp/local && \
+    apk add --update alpine-sdk && \
+    su -s /bin/bash -c 'cd /tmp/local/google-authenticator && abuild-keygen -a && abuild -Fr' abuild && \
+    cp /home/abuild/.abuild/abuild*.pub /etc/apk/keys/ && \
+    apk add /home/abuild/packages/local/x86_64/google-authenticator-20160207-r1.apk && \
+    apk del --purge --rdepends alpine-sdk && rm -rf /home/abuild && \
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*
+
 
 # Needed by scripts
 ENV OPENVPN /etc/openvpn
