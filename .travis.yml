@@ -14,8 +14,8 @@ before_install:
     - docker --version
     - docker build -t kylemanna/openvpn .
     - docker inspect kylemanna/openvpn
-    - docker run kylemanna/openvpn openvpn --version || true # why does it returns 1?
-    - docker run kylemanna/openvpn openssl version
+    - docker run --rm kylemanna/openvpn openvpn --version || true # why does it returns 1?
+    - docker run --rm kylemanna/openvpn openssl version
 
 script:
     - ./test-ci.sh
