@@ -18,7 +18,7 @@ If you have a special feature, you're likely to try but it will likely be reject
 
 ## Tests
 
-In an effort to not repeat bugs (and break less popular features), unit tests are run on [Travis CI](https://travis-ci.org/kylemanna/docker-openvpn).  The goal of the tests are to be simple and to be placed in the `tests` directory where it will be automatically run.  Review existing tests for an example.
+In an effort to not repeat bugs (and break less popular features), unit tests are run on [Travis CI](https://travis-ci.org/kylemanna/docker-openvpn).  The goal of the tests are to be simple and to be placed in the `test/tests` directory where it will be automatically run.  Review existing tests for an example.
 
 ## Style
 
