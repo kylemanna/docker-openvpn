@@ -16,6 +16,8 @@ before_install:
 install:
     - git clone https://github.com/docker-library/official-images.git official-images
 
+# Assist with ci test debugging:
+#   - DEBUG=1
 before_script:
     - image="kylemanna/openvpn"
     - docker build -t "$image" .
@@ -26,7 +28,6 @@ before_script:
 script:
     - official-images/test/run.sh "$image"
     - test/run.sh "$image"
-    - ./test-ci.sh
 
 after_script:
     - docker images

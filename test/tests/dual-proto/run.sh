@@ -1,10 +1,13 @@
 #!/bin/bash
-set -ex
+set -e
+
+[ -n "${DEBUG+x}" ] && set -x
 
 OVPN_DATA=dual-data
 CLIENT_UDP=travis-client
 CLIENT_TCP=travis-client-tcp
 IMG=kylemanna/openvpn
+CLIENT_DIR="$(readlink -f "$(dirname "$BASH_SOURCE")/../../client")"
 
 #
 # Create a docker container with the config data
@@ -22,12 +25,12 @@ docker run --volumes-from $OVPN_DATA --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_R
 
 # gen TCP client
 docker run --volumes-from $OVPN_DATA --rm -it $IMG easyrsa build-client-full $CLIENT_TCP nopass
-docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT_TCP | tee client/config-tcp.ovpn
+docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT_TCP | tee $CLIENT_DIR/config-tcp.ovpn
 
 # switch to UDP config and gen UDP client
 docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_genconfig -u udp://$SERV_IP
 docker run --volumes-from $OVPN_DATA --rm -it $IMG easyrsa build-client-full $CLIENT_UDP nopass
-docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT_UDP | tee client/config.ovpn
+docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT_UDP | tee $CLIENT_DIR/config.ovpn
 
 #Verify client configs
 docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_listclients | grep $CLIENT_TCP
@@ -48,8 +51,8 @@ docker run --name "ovpn-test-tcp" --volumes-from $OVPN_DATA --rm -p 443:1194/tcp
 # the host as it confuses itself:
 # "Incoming packet rejected from [AF_INET]172.17.42.1:1194[2], expected peer address: [AF_INET]10.240.118.86:1194"
 #
-docker run --rm --net=host --privileged --volume $PWD/client:/client $IMG /client/wait-for-connect.sh
-docker run --rm --net=host --privileged --volume $PWD/client:/client $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
+docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh
+docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
 
 #
 # Client either connected or timed out, kill server

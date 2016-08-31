@@ -1,5 +1,8 @@
 #!/bin/bash
-set -ex
+set -e
+
+[ -n "${DEBUG+x}" ] && set -x
+
 OPENVPN_CONFIG=${1:-/client/config.ovpn}
 
 # Run in background, rely on bash for job management

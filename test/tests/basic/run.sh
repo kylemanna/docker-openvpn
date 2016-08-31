@@ -1,8 +1,12 @@
 #!/bin/bash
-set -ex
+set -e
+
+[ -n "${DEBUG+x}" ] && set -x
+
 OVPN_DATA=basic-data
 CLIENT=travis-client
 IMG=kylemanna/openvpn
+CLIENT_DIR="$(readlink -f "$(dirname "$BASH_SOURCE")/../../client")"
 
 #
 # Create a docker container with the config data
@@ -18,7 +22,7 @@ docker run --volumes-from $OVPN_DATA --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_R
 
 docker run --volumes-from $OVPN_DATA --rm -it $IMG easyrsa build-client-full $CLIENT nopass
 
-docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT | tee client/config.ovpn
+docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT | tee $CLIENT_DIR/config.ovpn
 
 docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_listclients | grep $CLIENT
 
@@ -34,14 +38,14 @@ docker run --name "ovpn-test" --volumes-from $OVPN_DATA --rm -p 1194:1194/udp --
 #    SERV_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}')
 #    test -n "$SERV_IP" && break
 #done
-#sed -ie s:SERV_IP:$SERV_IP:g client/config.ovpn
+#sed -ie s:SERV_IP:$SERV_IP:g config.ovpn
 
 #
 # Fire up a client in a container since openvpn is disallowed by Travis-CI, don't NAT
 # the host as it confuses itself:
 # "Incoming packet rejected from [AF_INET]172.17.42.1:1194[2], expected peer address: [AF_INET]10.240.118.86:1194"
 #
-docker run --rm --net=host --privileged --volume $PWD/client:/client $IMG /client/wait-for-connect.sh
+docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh
 
 #
 # Client either connected or timed out, kill server
