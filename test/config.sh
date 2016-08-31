@@ -8,5 +8,6 @@ testAlias+=(
 imageTests+=(
 	[openvpn]='
 		paranoid
+        conf_options
 	'
 )
