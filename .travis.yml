@@ -12,10 +12,20 @@ services:
 
 before_install:
     - docker --version
-    - docker build -t kylemanna/openvpn .
-    - docker inspect kylemanna/openvpn
-    - docker run --rm kylemanna/openvpn openvpn --version || true # why does it returns 1?
-    - docker run --rm kylemanna/openvpn openssl version
+
+install:
+    - git clone https://github.com/docker-library/official-images.git official-images
+
+before_script:
+    - image="kylemanna/openvpn"
+    - docker build -t "$image" .
+    - docker inspect "$image"
+    - docker run --rm "$image" openvpn --version || true # why does it return 1?
+    - docker run --rm "$image" openssl version
 
 script:
+    - official-images/test/run.sh "$image"
     - ./test-ci.sh
+
+after_script:
+    - docker images
