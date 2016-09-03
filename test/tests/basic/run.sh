@@ -8,23 +8,18 @@ CLIENT=travis-client
 IMG=kylemanna/openvpn
 CLIENT_DIR="$(readlink -f "$(dirname "$BASH_SOURCE")/../../client")"
 
-#
-# Create a docker container with the config data
-#
-docker run --name $OVPN_DATA -v /etc/openvpn busybox
-
 ip addr ls
 SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
-docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_genconfig -u udp://$SERV_IP
+docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_genconfig -u udp://$SERV_IP
 
 # nopass is insecure
-docker run --volumes-from $OVPN_DATA --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_REQ_CN=Travis-CI Test CA" $IMG ovpn_initpki nopass
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_REQ_CN=Travis-CI Test CA" $IMG ovpn_initpki nopass
 
-docker run --volumes-from $OVPN_DATA --rm -it $IMG easyrsa build-client-full $CLIENT nopass
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG easyrsa build-client-full $CLIENT nopass
 
-docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT | tee $CLIENT_DIR/config.ovpn
+docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_getclient $CLIENT | tee $CLIENT_DIR/config.ovpn
 
-docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_listclients | grep $CLIENT
+docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_listclients | grep $CLIENT
 
 #
 # Fire up the server
@@ -32,7 +27,7 @@ docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_listclients | grep $CLIENT
 sudo iptables -N DOCKER || echo 'Firewall already configured'
 sudo iptables -I FORWARD -j DOCKER || echo 'Forward already configured'
 # run in shell bg to get logs
-docker run --name "ovpn-test" --volumes-from $OVPN_DATA --rm -p 1194:1194/udp --privileged $IMG &
+docker run --name "ovpn-test" -v $OVPN_DATA:/etc/openvpn --rm -p 1194:1194/udp --privileged $IMG &
 
 #for i in $(seq 10); do
 #    SERV_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}')

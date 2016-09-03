@@ -12,23 +12,18 @@ CLIENT_DIR="$(readlink -f "$(dirname "$BASH_SOURCE")/../../client")"
 # Function to fail
 abort() { cat <<< "$@" 1>&2; exit 1; }
 
-#
-# Create a docker container with the config data
-#
-docker run --name $OVPN_DATA -v /etc/openvpn busybox
-
 ip addr ls
 SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
 # Configure server with two factor authentication
-docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_genconfig -u udp://$SERV_IP -2
+docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_genconfig -u udp://$SERV_IP -2
 
 # nopass is insecure
-docker run --volumes-from $OVPN_DATA --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_REQ_CN=Travis-CI Test CA" $IMG ovpn_initpki nopass
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_REQ_CN=Travis-CI Test CA" $IMG ovpn_initpki nopass
 
-docker run --volumes-from $OVPN_DATA --rm -it $IMG easyrsa build-client-full $CLIENT nopass
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG easyrsa build-client-full $CLIENT nopass
 
 # Generate OTP credentials for user named test, should return QR code for test user
-docker run --volumes-from $OVPN_DATA --rm -it $IMG ovpn_otp_user $OTP_USER | tee $CLIENT_DIR/qrcode.txt
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG ovpn_otp_user $OTP_USER | tee $CLIENT_DIR/qrcode.txt
 # Ensure a chart link is printed in client OTP configuration
 grep 'https://www.google.com/chart' $CLIENT_DIR/qrcode.txt || abort 'Link to chart not generated'
 grep 'Your new secret key is:' $CLIENT_DIR/qrcode.txt || abort 'Secret key is missing'
@@ -43,7 +38,7 @@ fi
 echo -e "$OTP_USER\n$OTP_TOKEN" > $CLIENT_DIR/credentials.txt
 
 # Override the auth-user-pass directive to use a credentials file
-docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT | sed 's/auth-user-pass/auth-user-pass \/client\/credentials.txt/' | tee $CLIENT_DIR/config.ovpn
+docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_getclient $CLIENT | sed 's/auth-user-pass/auth-user-pass \/client\/credentials.txt/' | tee $CLIENT_DIR/config.ovpn
 
 #
 # Fire up the server
@@ -51,7 +46,7 @@ docker run --volumes-from $OVPN_DATA --rm $IMG ovpn_getclient $CLIENT | sed 's/a
 sudo iptables -N DOCKER || echo 'Firewall already configured'
 sudo iptables -I FORWARD -j DOCKER || echo 'Forward already configured'
 # run in shell bg to get logs
-docker run --name "ovpn-test" --volumes-from $OVPN_DATA --rm -p 1194:1194/udp --privileged $IMG &
+docker run --name "ovpn-test" -v $OVPN_DATA:/etc/openvpn --rm -p 1194:1194/udp --privileged $IMG &
 
 #for i in $(seq 10); do
 #    SERV_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}')

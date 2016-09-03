@@ -4,7 +4,7 @@
 
 Use a Docker image with a text editor pre-installed (i.e. Ubuntu) and connect the volume container:
 
-    docker run --volumes-from $OVPN_DATA --rm -it ubuntu vi /etc/openvpn/openvpn.conf
+    docker run -v $OVPN_DATA:/etc/openvpn --rm -it ubuntu vi /etc/openvpn/openvpn.conf
 
 
 ## Why not keep everything in one image?

@@ -4,7 +4,7 @@ The [`ovpn_genconfig`](/bin/ovpn_genconfig) script is intended for simple config
 
 ## Create host volume mounts rather than data volumes
 
-* Refer to the Quick Start document, and substitute `--volumes-from $OVPN_DATA` with `-v /path/on/host/openvpn0:/etc/openvpn`
+* Refer to the Quick Start document, and substitute `-v $OVPN_DATA:/etc/openvpn` with `-v /path/on/host/openvpn0:/etc/openvpn`
 * Quick example that is likely to be out of date, but here's how to get started:
 
         mkdir openvpn0

@@ -22,7 +22,7 @@ If you want to select the cyphers used by OpenVPN the following parameters of th
 
 The following options have been tested successfully:
 
-    docker run --volumes-from $OVPN_DATA --net=none --rm kylemanna/openvpn ovpn_genconfig -C 'AES-256-CBC' -a 'SHA384'
+    docker run -v $OVPN_DATA:/etc/openvpn --net=none --rm kylemanna/openvpn ovpn_genconfig -C 'AES-256-CBC' -a 'SHA384'
 
 Changing the `tls-cipher` option seems to be more complicated because some clients (namely NetworkManager in Debian Jessie) seem to have trouble with this. Running `openvpn` manually also did not solve the issue:
 
