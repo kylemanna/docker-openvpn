@@ -29,13 +29,15 @@ FILES=(
     "pki/dh.pem"
     "pki/ta.key"
     "pki/ca.crt"
+    "ccd"
 )
+
+# Ensure the ccd directory exists, even if empty
+mkdir -p "ccd"
 
 # rsync isn't available to keep size down
 # cp --parents isn't in busybox version
 # hack the directory structure with tar
 tar cf - -C "${OPENVPN}" "${FILES[@]}" | tar xvf - -C "${TARGET}"
-
-mkdir -p "$TARGET/ccd"
 
 echo "Created the openvpn configuration for the server: $TARGET"
