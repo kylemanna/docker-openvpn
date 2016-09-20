@@ -21,5 +21,6 @@ Split tunnels are configurations where only some of the traffic from a client go
 
 ## I need to add some extra configurations to openvpn.conf, How can I do that ?
 
-You can pass multiple '-e' options to ovpn_genconfig. For example, if you need to add 'duplicate-cn' and 'topology subnet' to the server configuration you could do something like this:
+You can pass multiple (**-e**) options to `ovpn_genconfig`. For example, if you need to add _'duplicate-cn'_ and _'topology subnet'_ to the server configuration you could do something like this:
+
     ovpn_genconfig -e 'duplicate-cn' -e 'topology subnet' -u udp://VPN.SERVERNAME.COM
