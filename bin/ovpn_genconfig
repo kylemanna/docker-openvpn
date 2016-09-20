@@ -4,6 +4,50 @@
 # Generate OpenVPN configs
 #
 
+TMP_EXTRA_CONFIGFILE=$(mktemp -t vpn_extra.XXXXXXX)
+
+#Traceback on Error and Exit come from https://docwhat.org/tracebacks-in-bash/
+set -eu
+
+_showed_traceback=f
+
+traceback() {
+	# Hide the traceback() call.
+	local -i start=$(( ${1:-0} + 1 ))
+	local -i end=${#BASH_SOURCE[@]}
+	local -i i=0
+	local -i j=0
+
+	echo "Traceback (last called is first):" 1>&2
+	for ((i=${start}; i < ${end}; i++)); do
+		j=$(( $i - 1 ))
+		local function="${FUNCNAME[$i]}"
+		local file="${BASH_SOURCE[$i]}"
+		local line="${BASH_LINENO[$j]}"
+		echo "     ${function}() in ${file}:${line}" 1>&2
+	done
+}
+
+on_error() {
+  local _ec="$?"
+  local _cmd="${BASH_COMMAND:-unknown}"
+  traceback 1
+  _showed_traceback=t
+  echo "The command ${_cmd} exited with exit code ${_ec}." 1>&2
+}
+trap on_error ERR
+
+
+on_exit() {
+  echo "Cleaning up before Exit ..."
+  rm -f $TMP_EXTRA_CONFIGFILE
+  local _ec="$?"
+  if [[ $_ec != 0 && "${_showed_traceback}" != t ]]; then
+    traceback 1
+  fi
+}
+trap on_exit EXIT
+
 # Convert 1.2.3.4/24 -> 255.255.255.0
 cidr2mask()
 {
@@ -55,13 +99,28 @@ usage() {
     echo " -z    Enable comp-lzo compression."
 }
 
-if [ "$DEBUG" == "1" ]; then
+process_extra_config() {
+  local ovpn_extra_config=''
+  ovpn_extra_config="$1"
+  echo "Processing Extra Config: '${ovpn_extra_config}'"
+  [ -n "$ovpn_extra_config" ] && echo "$ovpn_extra_config" >> "$TMP_EXTRA_CONFIGFILE"
+
+}
+
+if [ "${DEBUG:-}" == "1" ]; then
   set -x
 fi
 
 set -e
 
-OVPN_ENV=$OPENVPN/ovpn_env.sh
+if [ -z "${OPENVPN:-}" ]; then
+  export OPENVPN="$PWD"
+fi
+if [ -z "${EASYRSA_PKI:-}" ]; then
+    export EASYRSA_PKI="$OPENVPN/pki"
+fi
+
+OVPN_ENV=${OPENVPN}/ovpn_env.sh
 OVPN_SERVER=192.168.255.0/24
 OVPN_DEFROUTE=1
 OVPN_NAT=0
@@ -89,7 +148,7 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
             OVPN_AUTH="$OPTARG"
             ;;
         e)
-            OVPN_EXTRA_CONFIG="$OPTARG"
+            process_extra_config "$OPTARG"
             ;;
         C)
             OVPN_CIPHER="$OPTARG"
@@ -155,7 +214,7 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
 done
 
 # Create ccd directory for static routes
-[ ! -d "$OPENVPN/ccd" ] && mkdir -p $OPENVPN/ccd
+[ ! -d "${OPENVPN:-}/ccd" ] && mkdir -p ${OPENVPN:-}/ccd
 
 # if new routes were not defined with -r, use default
 [ ${#TMP_ROUTES[@]} -gt 0 ] && OVPN_ROUTES=("${TMP_ROUTES[@]}")
@@ -199,7 +258,7 @@ if [ -f "$OVPN_ENV" ]; then
 fi
 export | grep OVPN_ > "$OVPN_ENV"
 
-conf=$OPENVPN/openvpn.conf
+conf=${OPENVPN:-}/openvpn.conf
 if [ -f "$conf" ]; then
     bak=$conf.$(date +%s).bak
     echo "Backing up $conf -> $bak"
@@ -234,12 +293,10 @@ EOF
 [ -n "$OVPN_CIPHER" ] && echo "cipher $OVPN_CIPHER" >> "$conf"
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
-[ -n "$OVPN_CLIENT_TO_CLIENT" ] && echo "client-to-client" >> "$conf"
-[ -n "$OVPN_COMP_LZO" ] && echo "comp-lzo" >> "$conf"
+[ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
+[ -n "${OVPN_COMP_LZO:-}" ] && echo "comp-lzo" >> "$conf"
 
-[ -n "$OVPN_FRAGMENT" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
-
-[ -n "$OVPN_EXTRA_CONFIG" ] && echo "$OVPN_EXTRA_CONFIG" >> "$conf"
+[ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
 [ "$OVPN_DNS" == "1" ] && for i in "${OVPN_DNS_SERVERS[@]}"; do
   echo "push dhcp-option DNS $i" >> "$conf"
@@ -252,24 +309,29 @@ for i in "${OVPN_ROUTES[@]}"; do
 done
 
 # Append push commands
-for i in "${OVPN_PUSH[@]}"; do
+if [ ! -z ${OVPN_PUSH[@]:-} ];then
+  echo "${OVPN_PUSH}"
+  for i in "${OVPN_PUSH[@]}"; do
     echo push \"$i\" >> "$conf"
-done
-
+  done
+fi
 # Optional OTP authentication support
-if [ -n "$OVPN_OTP_AUTH" ]; then
+if [ -n "${OVPN_OTP_AUTH:-}" ]; then
     echo -e "\n\n# Enable OTP+PAM for user authentication" >> "$conf"
     echo "plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn" >> "$conf"
 fi
 
+echo -e "\n### Extra Configurations Below" >> "$conf"
+cat $TMP_EXTRA_CONFIGFILE >> "$conf"
+
 set +e
 
 # Clean-up duplicate configs
-if diff -q "$bak_env" "$OVPN_ENV" 2>/dev/null; then
+if diff -q "${bak_env:-}" "$OVPN_ENV" 2>/dev/null; then
     echo "Removing duplicate back-up: $bak_env"
     rm -fv "$bak_env"
 fi
-if diff -q "$bak" "$conf" 2>/dev/null; then
+if diff -q "${bak:-}" "$conf" 2>/dev/null; then
     echo "Removing duplicate back-up: $bak"
     rm -fv "$bak"
 fi
