@@ -15,6 +15,11 @@ If it was all in one container, an upgrade would require a few steps to extract 
 
 ## How do I set up a split tunnel?
 
-Split tunnels are configurations where only some of the traffic from a client goes to the VPN, with the remainder routed through the normal non-VPN interfaces. You'll want to disable a default route (-d) when you generate the configuration, but still use NAT (-N) to keep network address translation enabled. 
+Split tunnels are configurations where only some of the traffic from a client goes to the VPN, with the remainder routed through the normal non-VPN interfaces. You'll want to disable a default route (-d) when you generate the configuration, but still use NAT (-N) to keep network address translation enabled.
 
     ovpn_genconfig -N -d ...
+
+## I need to add some extra configurations to openvpn.conf, How can I do that ?
+
+You can pass multiple '-e' options to ovpn_genconfig. For example, if you need to add 'duplicate-cn' and 'topology subnet' to the server configuration you could do something like this:
+    ovpn_genconfig -e 'duplicate-cn' -e 'topology subnet' -u udp://VPN.SERVERNAME.COM
