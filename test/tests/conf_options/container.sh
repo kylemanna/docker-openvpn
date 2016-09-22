@@ -13,7 +13,7 @@ max-clients 10
 EOF
 
 SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
-ovpn_genconfig -u udp://$SERV_IP -f 1400 -e "$MULTILINE_EXTRA_SERVER_CONF" -e "duplicate-cn" -e "topology subnet"
+ovpn_genconfig -u udp://$SERV_IP -f 1400 -e "$MULTILINE_EXTRA_SERVER_CONF" -e 'duplicate-cn' -e 'topology subnet' -p 'route 172.22.22.0 255.255.255.0'
 
 #
 # grep for config lines from openvpn.conf
@@ -44,6 +44,21 @@ CONFIG_MATCH_DUPCN=$(busybox grep duplicate-cn /etc/openvpn/openvpn.conf)
 # 6. topology config
 CONFIG_REQUIRED_TOPOLOGY="^topology subnet"
 CONFIG_MATCH_TOPOLOGY=$(busybox grep 'topology subnet' /etc/openvpn/openvpn.conf)
+
+## Tests for push config
+# 7. push route
+CONFIG_REQUIRED_PUSH_ROUTE="^push route 172.22.22.0 255.255.255.0"
+CONFIG_MATCH_PUSH_ROUTE=$(busybox grep 'push route 172.22.22.0 255.255.255.0' /etc/openvpn/openvpn.conf)
+
+## Test for default
+# 8. Should see default route if none provided
+CONFIG_REQUIRED_DEFAULT_ROUTE="^route 192.168.254.0 255.255.255.0"
+CONFIG_MATCH_DEFAULT_ROUTE=$(busybox grep 'route 192.168.254.0 255.255.255.0' /etc/openvpn/openvpn.conf)
+
+# 9. Should see a push of 'block-outside-dns' by default
+CONFIG_REQUIRED_DEFAULT_ROUTE="^push block-outside-dns"
+CONFIG_MATCH_DEFAULT_ROUTE=$(busybox grep 'push block-outside-dns' /etc/openvpn/openvpn.conf)
+
 
 #
 # Tests
@@ -90,4 +105,42 @@ then
   echo "==> Config match found: $CONFIG_REQUIRED_TOPOLOGY == $CONFIG_MATCH_TOPOLOGY"
 else
   abort "==> Config match not found: $CONFIG_REQUIRED_TOPOLOGY != $CONFIG_MATCH_TOPOLOGY"
+fi
+
+if [[ $CONFIG_MATCH_PUSH_ROUTE =~ $CONFIG_REQUIRED_PUSH_ROUTE ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_PUSH_ROUTE == $CONFIG_MATCH_PUSH_ROUTE"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_PUSH_ROUTE != $CONFIG_MATCH_PUSH_ROUTE"
+fi
+
+if [[ $CONFIG_MATCH_DEFAULT_ROUTE =~ $CONFIG_REQUIRED_DEFAULT_ROUTE ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_DEFAULT_ROUTE == $CONFIG_MATCH_DEFAULT_ROUTE"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_DEFAULT_ROUTE != $CONFIG_MATCH_DEFAULT_ROUTE"
+fi
+
+
+SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
+ovpn_genconfig -u udp://$SERV_IP -r "172.33.33.0/24" -r "172.34.34.0/24"
+
+CONFIG_REQUIRED_ROUTE_1="^route 172.33.33.0 255.255.255.0"
+CONFIG_MATCH_ROUTE_1=$(busybox grep 'route 172.33.33.0 255.255.255.0' /etc/openvpn/openvpn.conf)
+
+CONFIG_REQUIRED_ROUTE_2="^route 172.34.34.0 255.255.255.0"
+CONFIG_MATCH_ROUTE_2=$(busybox grep 'route 172.34.34.0 255.255.255.0' /etc/openvpn/openvpn.conf)
+
+if [[ $CONFIG_MATCH_ROUTE_1 =~ $CONFIG_REQUIRED_ROUTE_1 ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_ROUTE_1 == $CONFIG_MATCH_ROUTE_1"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_ROUTE_1 != $CONFIG_MATCH_ROUTE_1"
+fi
+
+if [[ $CONFIG_MATCH_ROUTE_2 =~ $CONFIG_REQUIRED_ROUTE_2 ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_ROUTE_2 == $CONFIG_MATCH_ROUTE_2"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_ROUTE_2 != $CONFIG_MATCH_ROUTE_2"
 fi
