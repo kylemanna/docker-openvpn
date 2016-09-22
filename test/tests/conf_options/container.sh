@@ -59,6 +59,12 @@ CONFIG_MATCH_DEFAULT_ROUTE=$(busybox grep 'route 192.168.254.0 255.255.255.0' /e
 CONFIG_REQUIRED_DEFAULT_ROUTE="^push block-outside-dns"
 CONFIG_MATCH_DEFAULT_ROUTE=$(busybox grep 'push block-outside-dns' /etc/openvpn/openvpn.conf)
 
+# 10. Should see a push of 'dhcp-option DNS' by default
+CONFIG_REQUIRED_DEFAULT_DNS_1="^push dhcp-option DNS 8.8.8.8"
+CONFIG_MATCH_DEFAULT_DNS_1=$(busybox grep 'push dhcp-option DNS 8.8.8.8' /etc/openvpn/openvpn.conf)
+CONFIG_REQUIRED_DEFAULT_DNS_2="^push dhcp-option DNS 8.8.4.4"
+CONFIG_MATCH_DEFAULT_DNS_2=$(busybox grep 'push dhcp-option DNS 8.8.4.4' /etc/openvpn/openvpn.conf)
+
 
 #
 # Tests
@@ -121,6 +127,19 @@ else
   abort "==> Config match not found: $CONFIG_REQUIRED_DEFAULT_ROUTE != $CONFIG_MATCH_DEFAULT_ROUTE"
 fi
 
+if [[ $CONFIG_MATCH_DEFAULT_DNS_1 =~ $CONFIG_REQUIRED_DEFAULT_DNS_1 ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_DEFAULT_DNS_1 == $CONFIG_MATCH_DEFAULT_DNS_1"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_DEFAULT_DNS_1 != $CONFIG_MATCH_DEFAULT_DNS_1"
+fi
+
+if [[ $CONFIG_MATCH_DEFAULT_DNS_2 =~ $CONFIG_REQUIRED_DEFAULT_DNS_2 ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_DEFAULT_DNS_2 == $CONFIG_MATCH_DEFAULT_DNS_2"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_DEFAULT_DNS_2 != $CONFIG_MATCH_DEFAULT_DNS_2"
+fi
 
 SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
 ovpn_genconfig -u udp://$SERV_IP -r "172.33.33.0/24" -r "172.34.34.0/24"
