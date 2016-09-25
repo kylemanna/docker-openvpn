@@ -4,6 +4,10 @@
 # Generate OpenVPN configs
 #
 
+USE_DEFAULT_ROUTE=true
+
+TMP_PUSH_CONFIGFILE=$(mktemp -t vpn_push.XXXXXXX)
+TMP_ROUTE_CONFIGFILE=$(mktemp -t vpn_route.XXXXXXX)
 TMP_EXTRA_CONFIGFILE=$(mktemp -t vpn_extra.XXXXXXX)
 
 #Traceback on Error and Exit come from https://docwhat.org/tracebacks-in-bash/
@@ -40,6 +44,8 @@ trap on_error ERR
 
 on_exit() {
   echo "Cleaning up before Exit ..."
+  rm -f $TMP_PUSH_CONFIGFILE
+  rm -f $TMP_ROUTE_CONFIGFILE
   rm -f $TMP_EXTRA_CONFIGFILE
   local _ec="$?"
   if [[ $_ec != 0 && "${_showed_traceback}" != t ]]; then
@@ -99,11 +105,27 @@ usage() {
     echo " -z    Enable comp-lzo compression."
 }
 
+process_route_config() {
+  local ovpn_route_config=''
+  ovpn_route_config="$1"
+  # If user passed "0" skip this, assume no extra routes
+  [[ "$ovpn_route_config" == "0" ]] && break;
+  echo "Processing Route Config: '${ovpn_route_config}'"
+  [[ -n "$ovpn_route_config" ]] && echo "route $(getroute $ovpn_route_config)" >> "$TMP_ROUTE_CONFIGFILE"
+}
+
+process_push_config() {
+  local ovpn_push_config=''
+  ovpn_push_config="$1"
+  echo "Processing PUSH Config: '${ovpn_push_config}'"
+  [[ -n "$ovpn_push_config" ]] && echo "push $ovpn_push_config" >> "$TMP_PUSH_CONFIGFILE"
+}
+
 process_extra_config() {
   local ovpn_extra_config=''
   ovpn_extra_config="$1"
   echo "Processing Extra Config: '${ovpn_extra_config}'"
-  [ -n "$ovpn_extra_config" ] && echo "$ovpn_extra_config" >> "$TMP_EXTRA_CONFIGFILE"
+  [[ -n "$ovpn_extra_config" ]] && echo "$ovpn_extra_config" >> "$TMP_EXTRA_CONFIGFILE"
 
 }
 
@@ -127,10 +149,6 @@ OVPN_NAT=0
 OVPN_DNS=1
 OVPN_DEVICE="tun"
 OVPN_DEVICEN=0
-OVPN_ROUTES=()
-TMP_ROUTES=()
-OVPN_PUSH=()
-TMP_PUSH=()
 OVPN_DNS_SERVERS=("8.8.8.8" "8.8.4.4")
 TMP_DNS_SERVERS=()
 OVPN_TLS_CIPHER=''
@@ -157,7 +175,8 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
             OVPN_TLS_CIPHER="$OPTARG"
             ;;
         r)
-            TMP_ROUTES+=("$OPTARG")
+            USE_DEFAULT_ROUTE=false
+            process_route_config "$OPTARG"
             ;;
         s)
             OVPN_SERVER=$OPTARG
@@ -172,7 +191,7 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
             OVPN_CLIENT_TO_CLIENT=1
             ;;
         p)
-            TMP_PUSH+=("$OPTARG")
+            process_push_config "$OPTARG"
             ;;
         n)
             TMP_DNS_SERVERS+=("$OPTARG")
@@ -216,12 +235,6 @@ done
 # Create ccd directory for static routes
 [ ! -d "${OPENVPN:-}/ccd" ] && mkdir -p ${OPENVPN:-}/ccd
 
-# if new routes were not defined with -r, use default
-[ ${#TMP_ROUTES[@]} -gt 0 ] && OVPN_ROUTES=("${TMP_ROUTES[@]}")
-
-# if new push directives were not defined with -p, use default
-[ ${#TMP_PUSH[@]} -gt 0 ] && OVPN_PUSH=("${TMP_PUSH[@]}")
-
 # if dns servers were not defined with -n, use google nameservers
 [ ${#TMP_DNS_SERVERS[@]} -gt 0 ] && OVPN_DNS_SERVERS=("${TMP_DNS_SERVERS[@]}")
 
@@ -240,7 +253,7 @@ fi
 # Apply defaults
 [ -z "$OVPN_PROTO" ] && OVPN_PROTO=udp
 [ -z "$OVPN_PORT" ] && OVPN_PORT=1194
-[ ${#OVPN_ROUTES[@]} -eq 0 ] && OVPN_ROUTES=("192.168.254.0/24")
+[ $USE_DEFAULT_ROUTE ] && process_route_config "192.168.254.0/24"
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
@@ -277,7 +290,6 @@ key-direction 0
 keepalive 10 60
 persist-key
 persist-tun
-push block-outside-dns
 
 proto $OVPN_PROTO
 # Rely on Docker to do port mapping, internally always 1194
@@ -289,6 +301,9 @@ user nobody
 group nogroup
 EOF
 
+#This was in the heredoc, we use the new function instead
+process_push_config "block-outside-dns"
+
 [ -n "$OVPN_TLS_CIPHER" ] && echo "tls-cipher $OVPN_TLS_CIPHER" >> "$conf"
 [ -n "$OVPN_CIPHER" ] && echo "cipher $OVPN_CIPHER" >> "$conf"
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
@@ -299,22 +314,17 @@ EOF
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
 [ "$OVPN_DNS" == "1" ] && for i in "${OVPN_DNS_SERVERS[@]}"; do
-  echo "push dhcp-option DNS $i" >> "$conf"
-done
-# Append Routes
-for i in "${OVPN_ROUTES[@]}"; do
-    # If user passed "0" skip this, assume no extra routes
-    [ "$i" = "0" ] && break;
-    echo route $(getroute "$i") >> "$conf"
+  process_push_config "dhcp-option DNS $i"
 done
 
+# Append route commands
+echo -e "\n### Route Configurations Below" >> "$conf"
+cat $TMP_ROUTE_CONFIGFILE >> "$conf"
+
 # Append push commands
-if [ ! -z ${OVPN_PUSH[@]:-} ];then
-  echo "${OVPN_PUSH}"
-  for i in "${OVPN_PUSH[@]}"; do
-    echo push \"$i\" >> "$conf"
-  done
-fi
+echo -e "\n### Push Configurations Below" >> "$conf"
+cat $TMP_PUSH_CONFIGFILE >> "$conf"
+
 # Optional OTP authentication support
 if [ -n "${OVPN_OTP_AUTH:-}" ]; then
     echo -e "\n\n# Enable OTP+PAM for user authentication" >> "$conf"
