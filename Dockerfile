@@ -2,7 +2,7 @@
 # Forked from https://github.com/kylemanna/docker-openvpn
 
 # Smallest base image
-FROM hypriot/rpi-alpine-scratch
+FROM hypriot/rpi-alpine-scratch:v3.4
 
 MAINTAINER Domse https://github.com/domse/
 
