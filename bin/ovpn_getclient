@@ -40,6 +40,10 @@ remote-cert-tls server
 
 remote $OVPN_CN $OVPN_PORT $OVPN_PROTO
 "
+    if [ "$OVPN_TCP_FALLBACK" == '1' ]; then
+      echo "remote $OVPN_CN 443 tcp"
+    fi
+
     if [ "$mode" == "combined" ]; then
         echo "
 <key>
