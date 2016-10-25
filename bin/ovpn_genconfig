@@ -125,7 +125,7 @@ process_extra_config() {
   local ovpn_extra_config=''
   ovpn_extra_config="$1"
   echo "Processing Extra Config: '${ovpn_extra_config}'"
-  [[ -n "$ovpn_extra_config" ]] && echo "$ovpn_extra_config" >> "$TMP_EXTRA_CONFIGFILE"
+  [[ -n "$ovpn_extra_config" ]] && echo -e "$ovpn_extra_config" >> "$TMP_EXTRA_CONFIGFILE"
 
 }
 
