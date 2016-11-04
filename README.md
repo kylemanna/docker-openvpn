@@ -16,10 +16,6 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 * Docker Registry @ [kylemanna/openvpn](https://hub.docker.com/r/kylemanna/openvpn/)
 * GitHub @ [kylemanna/docker-openvpn](https://github.com/kylemanna/docker-openvpn)
 
-#### Example Service
-
-* [backroad.io](http://beta.backroad.io?utm_source=kylemanna/openvpn&utm_medium=readme&utm_campaign=20150621) - powered by *kylemanna/openvpn*
-
 ## Quick Start
 
 * Pick a name for the `$OVPN_DATA` data volume container, it will be created automatically.
