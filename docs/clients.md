@@ -11,7 +11,7 @@ Note that some client software might be picky about which configuration format i
 
 ## Client List
 
-See an overview of the configured clients, including revokation status:
+See an overview of the configured clients, including revocation status:
 
     docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_listclients
 
