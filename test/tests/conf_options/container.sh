@@ -163,3 +163,22 @@ then
 else
   abort "==> Config match not found: $CONFIG_REQUIRED_ROUTE_2 != $CONFIG_MATCH_ROUTE_2"
 fi
+
+# Test generated client config
+
+# gen udp client with tcp fallback
+ovpn_genconfig -u udp://$SERV_IP -F
+# nopass is insecure
+EASYRSA_BATCH=1 EASYRSA_REQ_CN="Travis-CI Test CA" ovpn_initpki nopass
+easyrsa build-client-full client-fallback nopass
+ovpn_getclient client-fallback | tee /etc/openvpn/config-fallback.ovpn
+
+CONFIG_REQUIRED_TCP_REMOTE="^remote $SERV_IP 443 tcp"
+CONFIG_MATCH_TCP_REMOTE=$(busybox grep "remote $SERV_IP 443 tcp" /etc/openvpn/config-fallback.ovpn)
+
+if [[ $CONFIG_MATCH_TCP_REMOTE =~ $CONFIG_REQUIRED_TCP_REMOTE ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_TCP_REMOTE == $CONFIG_MATCH_TCP_REMOTE"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_TCP_REMOTE != $CONFIG_MATCH_TCP_REMOTE"
+fi
