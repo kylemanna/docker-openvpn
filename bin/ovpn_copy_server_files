@@ -32,6 +32,10 @@ FILES=(
     "ccd"
 )
 
+if [ -f "${OPENVPN}/pki/crl.pem" ]; then
+    FILES+=("pki/crl.pem")
+fi
+
 # Ensure the ccd directory exists, even if empty
 mkdir -p "ccd"
 
