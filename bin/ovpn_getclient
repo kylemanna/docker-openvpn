@@ -110,6 +110,7 @@ case "$parm" in
         get_client_config "combined"
         ;;
     "combined-save")
+        mkdir -p "$dir"
         get_client_config "combined" > "$dir/${cn}-combined.ovpn"
         ;;
     *)
