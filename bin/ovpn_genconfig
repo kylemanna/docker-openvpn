@@ -119,7 +119,14 @@ process_push_config() {
   local ovpn_push_config=''
   ovpn_push_config="$1"
   echo "Processing PUSH Config: '${ovpn_push_config}'"
-  [[ -n "$ovpn_push_config" ]] && echo "push $(getroute $ovpn_push_config)" >> "$TMP_PUSH_CONFIGFILE"
+  [[ -n "$ovpn_push_config" ]] && echo "push $ovpn_push_config" >> "$TMP_PUSH_CONFIGFILE"
+}
+
+process_push_route_config() {
+  local ovpn_push_route=''
+  ovpn_push_route="$1"
+  echo "Processing PUSH route Config: '${ovpn_push_route}'"
+  [[ -n "$ovpn_push_route" ]] && echo "push \"route $(getroute $ovpn_push_route)\"" >> "$TMP_PUSH_CONFIGFILE"
 }
 
 process_extra_config() {
@@ -192,7 +199,7 @@ while getopts ":a:e:C:T:r:s:du:cUp:n:DNmf:tz2" opt; do
             OVPN_CLIENT_TO_CLIENT=1
             ;;
         p)
-            process_push_config "$OPTARG"
+            process_push_route_config "$OPTARG"
             ;;
         n)
             TMP_DNS_SERVERS+=("$OPTARG")
