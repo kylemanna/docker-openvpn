@@ -103,6 +103,7 @@ usage() {
     echo " -t    Use TAP device (instead of TUN device)"
     echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
     echo " -z    Enable comp-lzo compression."
+    echo " -U    Enable duplicate-cn"
 }
 
 process_route_config() {
@@ -118,7 +119,7 @@ process_push_config() {
   local ovpn_push_config=''
   ovpn_push_config="$1"
   echo "Processing PUSH Config: '${ovpn_push_config}'"
-  [[ -n "$ovpn_push_config" ]] && echo "push $ovpn_push_config" >> "$TMP_PUSH_CONFIGFILE"
+  [[ -n "$ovpn_push_config" ]] && echo "push $(getroute $ovpn_push_config)" >> "$TMP_PUSH_CONFIGFILE"
 }
 
 process_extra_config() {
@@ -160,7 +161,7 @@ OVPN_EXTRA_CONFIG=''
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
+while getopts ":a:e:C:T:r:s:du:cUp:n:DNmf:tz2" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -217,6 +218,9 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
         f)
             OVPN_FRAGMENT=$OPTARG
             ;;
+        U)
+            OVPN_DUPLICATE_CN=1
+            ;;
         \?)
             set +x
             echo "Invalid option: -$OPTARG" >&2
@@ -257,7 +261,7 @@ fi
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
-export OVPN_CLIENT_TO_CLIENT OVPN_PUSH OVPN_NAT OVPN_DNS OVPN_MTU OVPN_DEVICE
+export OVPN_CLIENT_TO_CLIENT OVPN_PUSH OVPN_NAT OVPN_DNS OVPN_MTU OVPN_DEVICE OVPN_DUPLICATE_CN
 export OVPN_TLS_CIPHER OVPN_CIPHER OVPN_AUTH
 export OVPN_COMP_LZO
 export OVPN_OTP_AUTH
@@ -309,6 +313,7 @@ process_push_config "block-outside-dns"
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
 [ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
+[ -n "${OVPN_DUPLICATE_CN:-}" ] && echo "duplicate-cn" >> "$conf"
 [ -n "${OVPN_COMP_LZO:-}" ] && echo "comp-lzo" >> "$conf"
 
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
