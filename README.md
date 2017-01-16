@@ -166,7 +166,7 @@ of a guarantee in the future.
   volume for re-use across containers
 * Addition of tls-auth for HMAC security
 
-## Tested On
+## Originally Tested On
 
 * Docker hosts:
   * server a [Digital Ocean](https://www.digitalocean.com/?refcode=d19f7fe88c94) Droplet with 512 MB RAM running Ubuntu 14.04
@@ -175,8 +175,3 @@ of a guarantee in the future.
      * OpenVPN core 3.0 android armv7a thumb2 32-bit
   * OS X Mavericks with Tunnelblick 3.4beta26 (build 3828) using openvpn-2.3.4
   * ArchLinux OpenVPN pkg 2.3.4-1
-  * 
-
-## Having permissions issues with Selinux enabled?
-
-See [this](docs/selinux.md)
