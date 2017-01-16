@@ -56,6 +56,10 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
         $ dig google.com  # won't use the search directives in resolv.conf
         $ nslookup google.com # will use search
 
+* Consider setting up a [systemd service](/docs/systemd.md) for automatic
+  start-up at boot time and restart in the event the OpenVPN daemon or Docker
+  crashes.
+
 ## How Does It Work?
 
 Initialize the volume container using the `kylemanna/openvpn` image with the
