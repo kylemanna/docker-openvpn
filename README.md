@@ -91,9 +91,6 @@ To enable Two Factor Authentication for clients (a.k.a. OTP) see [this document]
 ## OpenVPN Details
 
 We use `tun` mode, because it works on the widest range of devices.
-`tap` mode, for instance, does not work on Android, except if the device
-is rooted.
-
 The topology used is `net30`, because it works on the widest range of OS.
 `p2p`, for instance, does not work on Windows.
 
