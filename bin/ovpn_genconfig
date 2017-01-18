@@ -98,6 +98,7 @@ usage() {
     echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)."
     echo " -d    Disable NAT routing and default route"
     echo " -D    Do not push dns servers"
+    echo " -F    Enable TCP fallback client configuration"
     echo " -m    Set client MTU"
     echo " -N    Configure NAT to access external server network"
     echo " -t    Use TAP device (instead of TUN device)"
@@ -155,12 +156,13 @@ OVPN_TLS_CIPHER=''
 OVPN_CIPHER=''
 OVPN_AUTH=''
 OVPN_EXTRA_CONFIG=''
+OVPN_TCP_FALLBACK=0
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
+while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2F" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -217,6 +219,9 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
         f)
             OVPN_FRAGMENT=$OPTARG
             ;;
+        F)
+            OVPN_TCP_FALLBACK=1
+            ;;
         \?)
             set +x
             echo "Invalid option: -$OPTARG" >&2
@@ -262,6 +267,7 @@ export OVPN_TLS_CIPHER OVPN_CIPHER OVPN_AUTH
 export OVPN_COMP_LZO
 export OVPN_OTP_AUTH
 export OVPN_FRAGMENT
+export OVPN_TCP_FALLBACK
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
