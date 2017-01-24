@@ -15,7 +15,7 @@ In order to enable two factor authentication the following steps are required.
 
 * Generate server configuration with `-2` and `-C $CIPHER` options
 
-        docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://vpn.example.com -2
+        docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://vpn.example.com -2 -C $CIPHER
 
 * Generate your client certificate (possibly without a password since you're using OTP)
 
