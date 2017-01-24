@@ -161,7 +161,6 @@ OVPN_EXTRA_CONFIG=''
 
 # Parse arguments
 while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
-    echo $opt
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
