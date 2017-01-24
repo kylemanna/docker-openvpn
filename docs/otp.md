@@ -11,7 +11,9 @@ and use this image to generate user configuration.
 
 In order to enable two factor authentication the following steps are required.
 
-* Generate server configuration with `-2` option
+* Choose a more secure [cipher](https://community.openvpn.net/openvpn/wiki/SWEET32) to use because since [OpenVPN 2.3.13](https://community.openvpn.net/openvpn/wiki/ChangesInOpenvpn23#OpenVPN2.3.13) the default openvpn cipher BF-CBC will cause a renegotiated connection every 64 MB of data
+
+* Generate server configuration with `-2` and `-C $CIPHER` options
 
         docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://vpn.example.com -2
 
