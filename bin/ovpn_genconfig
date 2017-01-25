@@ -4,8 +4,6 @@
 # Generate OpenVPN configs
 #
 
-USE_DEFAULT_ROUTE=true
-
 TMP_PUSH_CONFIGFILE=$(mktemp -t vpn_push.XXXXXXX)
 TMP_ROUTE_CONFIGFILE=$(mktemp -t vpn_route.XXXXXXX)
 TMP_EXTRA_CONFIGFILE=$(mktemp -t vpn_extra.XXXXXXX)
@@ -155,6 +153,7 @@ OVPN_TLS_CIPHER=''
 OVPN_CIPHER=''
 OVPN_AUTH=''
 OVPN_EXTRA_CONFIG=''
+CUSTOM_ROUTE_CONFIG=''
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
@@ -175,7 +174,7 @@ while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
             OVPN_TLS_CIPHER="$OPTARG"
             ;;
         r)
-            USE_DEFAULT_ROUTE=false
+            CUSTOM_ROUTE_CONFIG=1
             process_route_config "$OPTARG"
             ;;
         s)
@@ -253,7 +252,7 @@ fi
 # Apply defaults
 [ -z "$OVPN_PROTO" ] && OVPN_PROTO=udp
 [ -z "$OVPN_PORT" ] && OVPN_PORT=1194
-[ $USE_DEFAULT_ROUTE ] && process_route_config "192.168.254.0/24"
+[ -z "$CUSTOM_ROUTE_CONFIG" ] && process_route_config "192.168.254.0/24"
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
