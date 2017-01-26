@@ -95,7 +95,7 @@ $OVPN_ADDITIONAL_CLIENT_CONFIG
         echo "comp-lzo"
     fi
 
-    if [ "$OVPN_OTP_AUTH" = "1" ]; then
+    if [ -n "$OVPN_OTP_AUTH" ]; then
 	echo reneg-sec 0
     fi
 }
