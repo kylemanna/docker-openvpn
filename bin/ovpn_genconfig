@@ -328,6 +328,7 @@ cat $TMP_PUSH_CONFIGFILE >> "$conf"
 if [ -n "${OVPN_OTP_AUTH:-}" ]; then
     echo -e "\n\n# Enable OTP+PAM for user authentication" >> "$conf"
     echo "plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn" >> "$conf"
+    echo "reneg-sec 0" >> "$conf"
 fi
 
 echo -e "\n### Extra Configurations Below" >> "$conf"

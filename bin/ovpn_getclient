@@ -94,6 +94,10 @@ $OVPN_ADDITIONAL_CLIENT_CONFIG
     if [ -n "$OVPN_COMP_LZO" ]; then
         echo "comp-lzo"
     fi
+
+    if [ -n "$OVPN_OTP_AUTH" ]; then
+	echo reneg-sec 0
+    fi
 }
 
 dir="$OPENVPN/clients/$cn"
