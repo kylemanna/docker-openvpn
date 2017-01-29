@@ -40,13 +40,17 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
         docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
+## `docker-compose`
+
+If you prefer to use `docker-compose` please refer to the [documentation](docs/docker-compose.md).
+
 ## Debugging Tips
 
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
 
         docker run -v $OVPN_DATA:/etc/openvpn -p 1194:1194/udp --privileged -e DEBUG=1 kylemanna/openvpn
 
-* Test using a client that has openvpn installed correctly 
+* Test using a client that has openvpn installed correctly
 
         $ openvpn --config CLIENTNAME.ovpn
 
