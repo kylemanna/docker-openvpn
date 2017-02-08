@@ -37,8 +37,15 @@ nobind
 dev $OVPN_DEVICE
 key-direction 1
 remote-cert-tls server
-remote $OVPN_CN $OVPN_PORT $OVPN_PROTO
-$OVPN_ADDITIONAL_CLIENT_CONFIG
+
+remote $OVPN_CN $OVPN_PORT $OVPN_PROTO"
+    if [ "$OVPN_PROTO" == "udp6" ]; then
+        echo "remote $OVPN_CN $OVPN_PORT udp"
+    fi
+    if [ "$OVPN_PROTO" == "tcp6" ]; then
+        echo "remote $OVPN_CN $OVPN_PORT tcp"
+    fi
+    echo "$OVPN_ADDITIONAL_CLIENT_CONFIG
 "
     if [ "$mode" == "combined" ]; then
         echo "

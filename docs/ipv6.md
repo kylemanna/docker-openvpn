@@ -91,4 +91,11 @@ Fire up a web browser and attempt to navigate to [https://ipv6.google.com](https
 
 ## Connect to the OpenVPN Server Over IPv6
 
-Not implemented, yet.
+This feature requires a docker daemon with working IPv6 support.
+
+This will allow connections over IPv4 and IPv6.
+
+Generate server configuration with the udp6 or tcp6 protocol:
+
+    docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp6://VPN.SERVERNAME.COM
+    docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u tcp6://VPN.SERVERNAME.COM
