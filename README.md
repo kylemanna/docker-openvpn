@@ -1,9 +1,9 @@
 # OpenVPN for Docker
 
 [![Build Status](https://travis-ci.org/r0p0s3c/docker-openvpn.svg)](https://travis-ci.org/r0p0s3c/docker-openvpn)
-[![Docker Stars](https://img.shields.io/docker/stars/r0p0s3c/openvpn.svg)](https://hub.docker.com/r/r0p0s3c/openvpn/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/r0p0s3c/openvpn.svg)](https://hub.docker.com/r/r0p0s3c/openvpn/)
-[![ImageLayers](https://images.microbadger.com/badges/image/r0p0s3c/openvpn.svg)](https://microbadger.com/#/images/r0p0s3c/openvpn)
+[![Docker Stars](https://img.shields.io/docker/stars/n4n0m4c/openvpn.svg)](https://hub.docker.com/r/r0p0s3c/openvpn/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/n4n0m4c/openvpn.svg)](https://hub.docker.com/r/r0p0s3c/openvpn/)
+[![ImageLayers](https://images.microbadger.com/badges/image/n4n0m4c/openvpn.svg)](https://microbadger.com/#/images/r0p0s3c/openvpn)
 
 
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
