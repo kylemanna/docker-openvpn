@@ -1,9 +1,9 @@
 # OpenVPN for Docker
 
 [![Build Status](https://travis-ci.org/r0p0s3c/docker-openvpn.svg)](https://travis-ci.org/r0p0s3c/docker-openvpn)
-[![Docker Stars](https://img.shields.io/docker/stars/n4n0m4c/openvpn.svg)](https://hub.docker.com/r/r0p0s3c/openvpn/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/n4n0m4c/openvpn.svg)](https://hub.docker.com/r/r0p0s3c/openvpn/)
-[![ImageLayers](https://images.microbadger.com/badges/image/n4n0m4c/openvpn.svg)](https://microbadger.com/#/images/r0p0s3c/openvpn)
+[![Docker Stars](https://img.shields.io/docker/stars/n4n0m4c/openvpn.svg)](https://hub.docker.com/r/n4n0m4c/openvpn/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/n4n0m4c/openvpn.svg)](https://hub.docker.com/r/n4n0m4c/openvpn/)
+[![ImageLayers](https://images.microbadger.com/badges/image/n4n0m4c/openvpn.svg)](https://microbadger.com/#/images/n4n0m4c/openvpn)
 
 
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
@@ -13,7 +13,7 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
 #### Upstream Links
 
-* Docker Registry @ [r0p0s3c/openvpn](https://hub.docker.com/r/r0p0s3c/openvpn/)
+* Docker Registry @ [n4n0m4c/openvpn](https://hub.docker.com/r/n4n0m4c/openvpn/)
 * GitHub @ [r0p0s3c/docker-openvpn](https://github.com/r0p0s3c/docker-openvpn)
 
 ## Quick Start
@@ -25,20 +25,20 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 * Initialize the `$OVPN_DATA` container that will hold the configuration files and certificates
 
         docker volume create --name $OVPN_DATA
-        docker run -v $OVPN_DATA:/etc/openvpn --rm r0p0s3c/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
-        docker run -v $OVPN_DATA:/etc/openvpn --rm -it r0p0s3c/openvpn ovpn_initpki
+        docker run -v $OVPN_DATA:/etc/openvpn --rm n4n0m4c/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
+        docker run -v $OVPN_DATA:/etc/openvpn --rm -it n4n0m4c/openvpn ovpn_initpki
 
 * Start OpenVPN server process
 
-        docker run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN r0p0s3c/openvpn
+        docker run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN n4n0m4c/openvpn
 
 * Generate a client certificate without a passphrase
 
-        docker run -v $OVPN_DATA:/etc/openvpn --rm -it r0p0s3c/openvpn easyrsa build-client-full CLIENTNAME nopass
+        docker run -v $OVPN_DATA:/etc/openvpn --rm -it n4n0m4c/openvpn easyrsa build-client-full CLIENTNAME nopass
 
 * Retrieve the client configuration with embedded certificates
 
-        docker run -v $OVPN_DATA:/etc/openvpn --rm r0p0s3c/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
+        docker run -v $OVPN_DATA:/etc/openvpn --rm n4n0m4c/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
 ## `docker-compose`
 
@@ -48,7 +48,7 @@ If you prefer to use `docker-compose` please refer to the [documentation](docs/d
 
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
 
-        docker run -v $OVPN_DATA:/etc/openvpn -p 1194:1194/udp --privileged -e DEBUG=1 r0p0s3c/openvpn
+        docker run -v $OVPN_DATA:/etc/openvpn -p 1194:1194/udp --privileged -e DEBUG=1 n4n0m4c/openvpn
 
 * Test using a client that has openvpn installed correctly
 
@@ -66,7 +66,7 @@ If you prefer to use `docker-compose` please refer to the [documentation](docs/d
 
 ## How Does It Work?
 
-Initialize the volume container using the `r0p0s3c/openvpn` image with the
+Initialize the volume container using the `n4n0m4c/openvpn` image with the
 included scripts to automatically generate:
 
 - Diffie-Hellman parameters
@@ -82,11 +82,11 @@ declares that directory as a volume. It means that you can start another
 container with the `-v` argument, and access the configuration.
 The volume also holds the PKI keys and certs so that it could be backed up.
 
-To generate a client certificate, `r0p0s3c/openvpn` uses EasyRSA via the
+To generate a client certificate, `n4n0m4c/openvpn` uses EasyRSA via the
 `easyrsa` command in the container's path.  The `EASYRSA_*` environmental
 variables place the PKI CA under `/etc/openvpn/pki`.
 
-Conveniently, `r0p0s3c/openvpn` comes with a script called `ovpn_getclient`,
+Conveniently, `n4n0m4c/openvpn` comes with a script called `ovpn_getclient`,
 which dumps an inline OpenVPN client configuration file.  This single file can
 then be given to a client for access to the VPN.
 
@@ -152,7 +152,7 @@ OpenVPN with latest OpenSSL on Ubuntu 12.04 LTS).
 ### It Doesn't Stomp All Over the Server's Filesystem
 
 Everything for the Docker container is contained in two images: the ephemeral
-run time image (r0p0s3c/openvpn) and the `$OVPN_DATA` data volume. To remove
+run time image (n4n0m4c/openvpn) and the `$OVPN_DATA` data volume. To remove
 it, remove the corresponding containers, `$OVPN_DATA` data volume and Docker
 image and it's completely removed.  This also makes it easier to run multiple
 servers since each lives in the bubble of the container (of course multiple IPs
