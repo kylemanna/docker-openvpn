@@ -35,6 +35,21 @@ function addArg {
     fi
 }
 
+# set up iptables rules and routing
+# this allows rules/routing to be altered by supplying this function
+# in an included file, such as ovpn_env.sh
+function setupIptablesAndRouting {
+    iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE || {
+      iptables -t nat -A POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE
+    }
+    for i in "${OVPN_ROUTES[@]}"; do
+        iptables -t nat -C POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE || {
+          iptables -t nat -A POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE
+        }
+    done
+}
+
+
 addArg "--config" "$OPENVPN/openvpn.conf"
 
 source "$OPENVPN/ovpn_env.sh"
@@ -53,14 +68,10 @@ fi
 
 # Setup NAT forwarding if requested
 if [ "$OVPN_DEFROUTE" != "0" ] || [ "$OVPN_NAT" == "1" ] ; then
-    iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE || {
-      iptables -t nat -A POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE
-    }
-    for i in "${OVPN_ROUTES[@]}"; do
-        iptables -t nat -C POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE || {
-          iptables -t nat -A POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE
-        }
-    done
+	# call function to setup iptables rules and routing
+	# this allows rules to be customized by supplying
+	# a replacement function in, for example, ovpn_env.sh
+	setupIptablesAndRouting
 fi
 
 # Use a hacky hardlink as the CRL Needs to be readable by the user/group
@@ -85,4 +96,3 @@ fi
 
 echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"
 exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
-
