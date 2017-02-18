@@ -18,4 +18,4 @@ I'd recommend encrypting the archive with something strong (e.g. gpg or openssl 
 Creates an volume container named `$OVPN_DATA` to extract the data to.
 
     docker volume create --name $OVPN_DATA
-    xzcat openvpn-backup.tar.xz | docker run $OVPN_DATA:/etc/openvpn -i kylemanna/openvpn tar -xvf - -C /etc
+    xzcat openvpn-backup.tar.xz | docker run -v $OVPN_DATA:/etc/openvpn -i kylemanna/openvpn tar -xvf - -C /etc
