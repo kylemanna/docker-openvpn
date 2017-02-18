@@ -7,6 +7,7 @@
 TMP_PUSH_CONFIGFILE=$(mktemp -t vpn_push.XXXXXXX)
 TMP_ROUTE_CONFIGFILE=$(mktemp -t vpn_route.XXXXXXX)
 TMP_EXTRA_CONFIGFILE=$(mktemp -t vpn_extra.XXXXXXX)
+TMP_EXTRA_CLIENT_CONFIGFILE=$(mktemp -t vpn_extra_client.XXXXXXX)
 
 #Traceback on Error and Exit come from https://docwhat.org/tracebacks-in-bash/
 set -eu
@@ -45,6 +46,7 @@ on_exit() {
   rm -f $TMP_PUSH_CONFIGFILE
   rm -f $TMP_ROUTE_CONFIGFILE
   rm -f $TMP_EXTRA_CONFIGFILE
+  rm -f $TMP_EXTRA_CLIENT_CONFIGFILE
   local _ec="$?"
   if [[ $_ec != 0 && "${_showed_traceback}" != t ]]; then
     traceback 1
@@ -83,6 +85,7 @@ usage() {
     echo "usage: $0 [-d]"
     echo "                  -u SERVER_PUBLIC_URL"
     echo "                 [-e EXTRA_SERVER_CONFIG ]"
+    echo "                 [-E EXTRA_CLIENT_CONFIG ]"
     echo "                 [-f FRAGMENT ]"
     echo "                 [-n DNS_SERVER ...]"
     echo "                 [-p PUSH ...]"
@@ -127,6 +130,13 @@ process_extra_config() {
 
 }
 
+process_extra_client_config() {
+  local ovpn_extra_config=''
+  ovpn_extra_config="$1"
+  echo "Processing Extra Client Config: '${ovpn_extra_config}'"
+  [[ -n "$ovpn_extra_config" ]] && echo "$ovpn_extra_config" >> "$TMP_EXTRA_CLIENT_CONFIGFILE"
+}
+
 if [ "${DEBUG:-}" == "1" ]; then
   set -x
 fi
@@ -159,13 +169,16 @@ CUSTOM_ROUTE_CONFIG=''
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
+while getopts ":a:e:E:C:T:r:s:du:cp:n:DNmf:tz2" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
             ;;
         e)
             process_extra_config "$OPTARG"
+            ;;
+        E)
+            process_extra_client_config "$OPTARG"
             ;;
         C)
             OVPN_CIPHER="$OPTARG"
@@ -254,6 +267,9 @@ fi
 [ -z "$OVPN_PORT" ] && OVPN_PORT=1194
 [ -z "$CUSTOM_ROUTE_CONFIG" ] && process_route_config "192.168.254.0/24"
 
+# Save extra client config
+OVPN_ADDITIONAL_CLIENT_CONFIG=$(cat $TMP_EXTRA_CLIENT_CONFIGFILE)
+
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
 export OVPN_CLIENT_TO_CLIENT OVPN_PUSH OVPN_NAT OVPN_DNS OVPN_MTU OVPN_DEVICE
@@ -261,6 +277,7 @@ export OVPN_TLS_CIPHER OVPN_CIPHER OVPN_AUTH
 export OVPN_COMP_LZO
 export OVPN_OTP_AUTH
 export OVPN_FRAGMENT
+export OVPN_ADDITIONAL_CLIENT_CONFIG
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
@@ -268,7 +285,18 @@ if [ -f "$OVPN_ENV" ]; then
     echo "Backing up $OVPN_ENV -> $bak_env"
     mv "$OVPN_ENV" "$bak_env"
 fi
-export | grep OVPN_ > "$OVPN_ENV"
+
+# Like `export | grep OVPN_ > "$OVPN_ENV"` but handles multiline variables
+set +u
+while read var ; do
+  eval value=\$$var
+  if [ -n "$value" ]; then
+    echo "declare -x $var=\"$value\"" >> "$OVPN_ENV"
+  else
+    echo "declare -x $var" >> "$OVPN_ENV"
+  fi
+done < <(export | egrep -o '(OVPN_[^=]+)')
+set -u
 
 conf=${OPENVPN:-}/openvpn.conf
 if [ -f "$conf" ]; then
