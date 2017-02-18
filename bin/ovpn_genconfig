@@ -267,8 +267,10 @@ fi
 [ -z "$OVPN_PORT" ] && OVPN_PORT=1194
 [ -z "$CUSTOM_ROUTE_CONFIG" ] && process_route_config "192.168.254.0/24"
 
-# Save extra client config
-OVPN_ADDITIONAL_CLIENT_CONFIG=$(cat $TMP_EXTRA_CLIENT_CONFIGFILE)
+# Save extra client config from temp file only if temp file is not empty
+if [ -s "$TMP_EXTRA_CLIENT_CONFIGFILE" ]; then
+  OVPN_ADDITIONAL_CLIENT_CONFIG=$(cat $TMP_EXTRA_CLIENT_CONFIGFILE)
+fi
 
 export OVPN_SERVER OVPN_ROUTES OVPN_DEFROUTE
 export OVPN_SERVER_URL OVPN_ENV OVPN_PROTO OVPN_CN OVPN_PORT
