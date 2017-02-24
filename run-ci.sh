@@ -1,7 +1,8 @@
 #!/bin/bash
 set -ev
 
-if [ "$DOCKERFILE" = 'Dockerfile.armhf' ]; then
+# Provide support for Dockerfile.armhf, Dockerfile.aarch64, etc
+if [ "$DOCKERFILE" != 'Dockerfile' ]; then
   docker run --rm --privileged multiarch/qemu-user-static:register --reset
 fi
 
