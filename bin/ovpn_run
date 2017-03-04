@@ -12,6 +12,12 @@ set -e
 
 cd $OPENVPN
 
+# Create YubiKey mapping file
+if [ ! -z "$YUBIKEY_MAP" ]; then
+    echo $YUBIKEY_MAP | sed 's/,/\n/g' > /etc/yubikey_mappings
+    echo $YUBIKEY_MAP | sed 's/:[^,],*/ /g' | xargs -n 1 adduser -D
+fi
+
 # Build runtime arguments array based on environment
 USER_ARGS=("${@}")
 ARGS=()
