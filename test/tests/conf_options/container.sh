@@ -199,3 +199,32 @@ then
 else
   abort "==> Config match not found: $CONFIG_REQUIRED_TCP_REMOTE_2 != $CONFIG_MATCH_TCP_REMOTE_2"
 fi
+
+# Test non-defroute config
+
+SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
+ovpn_genconfig -d -u udp://$SERV_IP -r "172.33.33.0/24" -r "172.34.34.0/24"
+# nopass is insecure
+EASYRSA_BATCH=1 EASYRSA_REQ_CN="Travis-CI Test CA" ovpn_initpki nopass
+easyrsa build-client-full client-fallback nopass
+ovpn_getclient client-fallback | tee /etc/openvpn/config-fallback.ovpn
+
+CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS=""
+CONFIG_MATCH_BLOCK_OUTSIDE_DNS=$(busybox grep 'push block-outside-dns' /etc/openvpn/openvpn.conf)
+
+if [[ $CONFIG_MATCH_BLOCK_OUTSIDE_DNS =~ $CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS == $CONFIG_MATCH_BLOCK_OUTSIDE_DNS"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS != $CONFIG_MATCH_BLOCK_OUTSIDE_DNS"
+fi
+
+CONFIG_REQUIRED_REDIRECT_GATEWAY=""
+CONFIG_MATCH_REDIRECT_GATEWAY=$(busybox grep "redirect-gateway def1" /etc/openvpn/config-fallback.ovpn)
+
+if [[ $CONFIG_MATCH_REDIRECT_GATEWAY =~ $CONFIG_REQUIRED_REDIRECT_GATEWAY ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_REDIRECT_GATEWAY == $CONFIG_MATCH_REDIRECT_GATEWAY"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_REDIRECT_GATEWAY != $CONFIG_MATCH_REDIRECT_GATEWAY"
+fi

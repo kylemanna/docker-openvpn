@@ -330,8 +330,8 @@ user nobody
 group nogroup
 EOF
 
-#This was in the heredoc, we use the new function instead
-process_push_config "block-outside-dns"
+# only block outside dns when we take the default route
+[ "$OVPN_DEFROUTE" == "1" ] && process_push_config "block-outside-dns"
 
 [ -n "$OVPN_TLS_CIPHER" ] && echo "tls-cipher $OVPN_TLS_CIPHER" >> "$conf"
 [ -n "$OVPN_CIPHER" ] && echo "cipher $OVPN_CIPHER" >> "$conf"
