@@ -56,8 +56,8 @@ CONFIG_REQUIRED_DEFAULT_ROUTE="^route 192.168.254.0 255.255.255.0"
 CONFIG_MATCH_DEFAULT_ROUTE=$(busybox grep 'route 192.168.254.0 255.255.255.0' /etc/openvpn/openvpn.conf)
 
 # 9. Should see a push of 'block-outside-dns' by default
-CONFIG_REQUIRED_DEFAULT_ROUTE="^push block-outside-dns"
-CONFIG_MATCH_DEFAULT_ROUTE=$(busybox grep 'push block-outside-dns' /etc/openvpn/openvpn.conf)
+CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS="^push block-outside-dns"
+CONFIG_MATCH_BLOCK_OUTSIDE_DNS=$(busybox grep 'push block-outside-dns' /etc/openvpn/openvpn.conf)
 
 # 10. Should see a push of 'dhcp-option DNS' by default
 CONFIG_REQUIRED_DEFAULT_DNS_1="^push dhcp-option DNS 8.8.8.8"
@@ -125,6 +125,13 @@ then
   echo "==> Config match found: $CONFIG_REQUIRED_DEFAULT_ROUTE == $CONFIG_MATCH_DEFAULT_ROUTE"
 else
   abort "==> Config match not found: $CONFIG_REQUIRED_DEFAULT_ROUTE != $CONFIG_MATCH_DEFAULT_ROUTE"
+fi
+
+if [[ $CONFIG_MATCH_BLOCK_OUTSIDE_DNS =~ $CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS == $CONFIG_MATCH_BLOCK_OUTSIDE_DNS"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS != $CONFIG_MATCH_BLOCK_OUTSIDE_DNS"
 fi
 
 if [[ $CONFIG_MATCH_DEFAULT_DNS_1 =~ $CONFIG_REQUIRED_DEFAULT_DNS_1 ]]
