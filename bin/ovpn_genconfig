@@ -164,6 +164,7 @@ OVPN_CIPHER=''
 OVPN_AUTH=''
 OVPN_EXTRA_CONFIG=''
 CUSTOM_ROUTE_CONFIG=''
+OVPN_PRIVATENET="192.168.0.0/16,10.0.0.0/8"
 
 # Import defaults if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
@@ -280,6 +281,7 @@ export OVPN_COMP_LZO
 export OVPN_OTP_AUTH
 export OVPN_FRAGMENT
 export OVPN_ADDITIONAL_CLIENT_CONFIG
+export OVPN_PRIVATENET
 
 # Preserve config
 if [ -f "$OVPN_ENV" ]; then
