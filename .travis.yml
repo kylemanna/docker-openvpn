@@ -12,6 +12,9 @@ language: bash
 env:
   - DOCKERFILE=Dockerfile
   - DOCKERFILE=Dockerfile.armhf
+matrix:
+  allow_failures:
+    - env: DOCKERFILE=Dockerfile.armhf
 
 services:
     - docker
