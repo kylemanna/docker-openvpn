@@ -97,12 +97,12 @@ tls-auth ta.key 1
         echo "auth-nocache"
     fi
 
-    if [ -n "$OVPN_COMP_LZO" ]; then
+    if [ "$OVPN_COMP_LZO" == "1" ]; then
         echo "comp-lzo"
     fi
 
     if [ -n "$OVPN_OTP_AUTH" ]; then
-	echo reneg-sec 0
+        echo reneg-sec 0
     fi
 }
 
@@ -124,9 +124,9 @@ case "$parm" in
         get_client_config "combined" > "$dir/${cn}-combined.ovpn"
         ;;
     *)
-        echo "This script can produce the client configuration in to formats:" >&2
+        echo "This script can produce the client configuration in two formats:" >&2
         echo "    1. combined (default): All needed configuration and cryptographic material is in one file (Use \"combined-save\" to write the configuration file in the same path as the separated parameter does)." >&2
         echo "    2. separated: Separated files." >&2
-        echo "Please specific one of those options as second parameter." >&2
+        echo "Please specify one of those options as second parameter." >&2
         ;;
 esac

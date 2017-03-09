@@ -171,6 +171,17 @@ else
   abort "==> Config match not found: $CONFIG_REQUIRED_ROUTE_2 != $CONFIG_MATCH_ROUTE_2"
 fi
 
+SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
+ovpn_genconfig -u udp://$SERV_IP -b
+
+if busybox grep -v 'block-outside-dns' /etc/openvpn/openvpn.conf
+then
+  echo "==> Config '-b' Succesfully remove the 'block-outside-dns' option"
+else
+  abort "==> Config '-b' given, but 'block-outside-dns' option is still present in configuration"
+fi
+
+
 # Test generated client config
 
 # gen udp client with tcp fallback
