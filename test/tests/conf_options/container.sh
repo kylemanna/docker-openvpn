@@ -13,7 +13,7 @@ max-clients 10
 EOF
 
 SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
-ovpn_genconfig -u udp://$SERV_IP -f 1400 -e "$MULTILINE_EXTRA_SERVER_CONF" -e 'duplicate-cn' -e 'topology subnet' -p 'route 172.22.22.0 255.255.255.0'
+ovpn_genconfig -u udp://$SERV_IP -f 1400 -k '60 300' -e "$MULTILINE_EXTRA_SERVER_CONF" -e 'duplicate-cn' -e 'topology subnet' -p 'route 172.22.22.0 255.255.255.0'
 
 #
 # grep for config lines from openvpn.conf
@@ -64,6 +64,11 @@ CONFIG_REQUIRED_DEFAULT_DNS_1="^push dhcp-option DNS 8.8.8.8"
 CONFIG_MATCH_DEFAULT_DNS_1=$(busybox grep 'push dhcp-option DNS 8.8.8.8' /etc/openvpn/openvpn.conf)
 CONFIG_REQUIRED_DEFAULT_DNS_2="^push dhcp-option DNS 8.8.4.4"
 CONFIG_MATCH_DEFAULT_DNS_2=$(busybox grep 'push dhcp-option DNS 8.8.4.4' /etc/openvpn/openvpn.conf)
+
+## Test for keepalive
+# 11. keepalive config
+CONFIG_REQUIRED_KEEPALIVE="^keepalive 60 300"
+CONFIG_MATCH_KEEPALIVE=$(busybox grep keepalive /etc/openvpn/openvpn.conf)
 
 
 #
@@ -146,6 +151,13 @@ then
   echo "==> Config match found: $CONFIG_REQUIRED_DEFAULT_DNS_2 == $CONFIG_MATCH_DEFAULT_DNS_2"
 else
   abort "==> Config match not found: $CONFIG_REQUIRED_DEFAULT_DNS_2 != $CONFIG_MATCH_DEFAULT_DNS_2"
+fi
+
+if [[ $CONFIG_MATCH_KEEPALIVE =~ $CONFIG_REQUIRED_KEEPALIVE ]]
+then
+  echo "==> Config match found: $CONFIG_REQUIRED_KEEPALIVE == $CONFIG_MATCH_KEEPALIVE"
+else
+  abort "==> Config match not found: $CONFIG_REQUIRED_KEEPALIVE != $CONFIG_MATCH_KEEPALIVE"
 fi
 
 SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
