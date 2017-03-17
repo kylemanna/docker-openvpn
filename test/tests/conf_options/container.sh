@@ -13,7 +13,7 @@ max-clients 10
 EOF
 
 SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
-ovpn_genconfig -u udp://$SERV_IP -f 1400 -k '60 300' -e "$MULTILINE_EXTRA_SERVER_CONF" -e 'duplicate-cn' -e 'topology subnet' -p 'route 172.22.22.0 255.255.255.0'
+ovpn_genconfig -u udp://$SERV_IP -f 1400 -k '60 300' -e "$MULTILINE_EXTRA_SERVER_CONF" -e 'duplicate-cn' -e 'topology subnet' -p 'route 172.22.22.0 255.255.255.0' -n 8.8.8.8 -n 8.8.4.4
 
 #
 # grep for config lines from openvpn.conf
