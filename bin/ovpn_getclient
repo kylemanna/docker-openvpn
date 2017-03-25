@@ -35,7 +35,6 @@ get_client_config() {
 client
 nobind
 dev $OVPN_DEVICE
-key-direction 1
 remote-cert-tls server
 
 remote $OVPN_CN $OVPN_PORT $OVPN_PROTO"
