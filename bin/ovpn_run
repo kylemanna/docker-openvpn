@@ -74,13 +74,14 @@ if [ "$OVPN_DEFROUTE" != "0" ] || [ "$OVPN_NAT" == "1" ] ; then
 	setupIptablesAndRouting
 fi
 
-# Use a hacky hardlink as the CRL Needs to be readable by the user/group
+# Use a copy of crl.pem as the CRL Needs to be readable by the user/group
 # OpenVPN is running as.  Only pass arguments to OpenVPN if it's found.
-if [ -r "$EASYRSA_PKI/crl.pem" ]; then
-    if [ ! -r "$OPENVPN/crl.pem" ]; then
-        ln "$EASYRSA_PKI/crl.pem" "$OPENVPN/crl.pem"
-        chmod 644 "$OPENVPN/crl.pem"
-    fi
+if [ "$EASYRSA_PKI/crl.pem" -nt "$OPENVPN/crl.pem" ]; then
+    cp -f "$EASYRSA_PKI/crl.pem" "$OPENVPN/crl.pem"
+    chmod 644 "$OPENVPN/crl.pem"
+fi
+
+if [ -r "$OPENVPN/crl.pem" ]; then
     addArg "--crl-verify" "$OPENVPN/crl.pem"
 fi
 
