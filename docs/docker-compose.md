@@ -59,6 +59,15 @@ docker-compose run --rm openvpn easyrsa build-client-full $CLIENTNAME nopass
 docker-compose run --rm openvpn ovpn_getclient $CLIENTNAME > $CLIENTNAME.ovpn
 ```
 
+* Revoke a client certificate
+
+```bash
+# Keep the corresponding crt, key and req files.
+docker-compose run --rm openvpn ovpn_revokeclient $CLIENTNAME
+# Remove the corresponding crt, key and req files.
+docker-compose run --rm openvpn ovpn_revokeclient $CLIENTNAME remove
+```
+
 ## Debugging Tips
 
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").

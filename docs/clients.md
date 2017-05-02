@@ -34,9 +34,12 @@ After doing so, you will find the following files in each of the `$cn` directori
 
 ## Revoking Client Certificates
 
-Revoke `client1`'s certificate and generate the certificate revocation list (CRL):
+Revoke `client1`'s certificate and generate the certificate revocation list (CRL) using [`ovpn_revokeclient`](/bin/ovpn_revokeclient) script :
 
-    docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn easyrsa revoke client1
-    docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn easyrsa gen-crl
+    docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_revokeclient client1
 
 The OpenVPN server will read this change every time a client connects (no need to restart server) and deny clients access using revoked certificates.
+
+You can optionally pass `remove` as second parameter to ovpn_revokeclient to remove the corresponding crt, key and req files :
+
+    docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_revokeclient client1 remove
