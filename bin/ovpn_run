@@ -90,6 +90,7 @@ if [ $? = 0 ]; then
     # If this fails, ensure the docker container is run with --privileged
     # Could be side stepped with `ip netns` madness to drop privileged flag
 
+    sysctl -w net.ipv6.conf.all.disable_ipv6=0 || echo "Failed to enable IPv6 support"
     sysctl -w net.ipv6.conf.default.forwarding=1 || echo "Failed to enable IPv6 Forwarding default"
     sysctl -w net.ipv6.conf.all.forwarding=1 || echo "Failed to enable IPv6 Forwarding"
 fi
