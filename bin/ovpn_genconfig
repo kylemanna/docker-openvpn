@@ -121,7 +121,7 @@ process_push_config() {
   local ovpn_push_config=''
   ovpn_push_config="$1"
   echo "Processing PUSH Config: '${ovpn_push_config}'"
-  [[ -n "$ovpn_push_config" ]] && echo "push $ovpn_push_config" >> "$TMP_PUSH_CONFIGFILE"
+  [[ -n "$ovpn_push_config" ]] && echo "push \"$ovpn_push_config\"" >> "$TMP_PUSH_CONFIGFILE"
 }
 
 process_extra_config() {
