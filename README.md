@@ -18,9 +18,12 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
 ## Quick Start
 
-* Pick a name for the `$OVPN_DATA` data volume container, it will be created automatically.
+* Pick a name for the `$OVPN_DATA` data volume container. It's recommended to
+  use the `ovpn-data-` prefix to operate seamlessly with the reference systemd
+  service.  Users are encourage to replace `example` with a descriptive name of
+  their choosing.
 
-        OVPN_DATA="ovpn-data"
+        OVPN_DATA="ovpn-data-example"
 
 * Initialize the `$OVPN_DATA` container that will hold the configuration files and certificates
 
