@@ -7,11 +7,12 @@ testAlias+=(
 
 imageTests+=(
 	[openvpn]='
-		paranoid
+	paranoid
         conf_options
         basic
         dual-proto
         otp
 	iptables
+	revocation
 	'
 )
