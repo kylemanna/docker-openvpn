@@ -47,23 +47,23 @@ CONFIG_MATCH_TOPOLOGY=$(busybox grep 'topology subnet' /etc/openvpn/openvpn.conf
 
 ## Tests for push config
 # 7. push route
-CONFIG_REQUIRED_PUSH_ROUTE="^push route 172.22.22.0 255.255.255.0"
-CONFIG_MATCH_PUSH_ROUTE=$(busybox grep 'push route 172.22.22.0 255.255.255.0' /etc/openvpn/openvpn.conf)
+CONFIG_REQUIRED_PUSH_ROUTE='^push "route 172.22.22.0 255.255.255.0"'
+CONFIG_MATCH_PUSH_ROUTE=$(busybox grep 'push "route 172.22.22.0 255.255.255.0"' /etc/openvpn/openvpn.conf)
 
 ## Test for default
 # 8. Should see default route if none provided
-CONFIG_REQUIRED_DEFAULT_ROUTE="^route 192.168.254.0 255.255.255.0"
+CONFIG_REQUIRED_DEFAULT_ROUTE='^route 192.168.254.0 255.255.255.0'
 CONFIG_MATCH_DEFAULT_ROUTE=$(busybox grep 'route 192.168.254.0 255.255.255.0' /etc/openvpn/openvpn.conf)
 
 # 9. Should see a push of 'block-outside-dns' by default
-CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS="^push block-outside-dns"
-CONFIG_MATCH_BLOCK_OUTSIDE_DNS=$(busybox grep 'push block-outside-dns' /etc/openvpn/openvpn.conf)
+CONFIG_REQUIRED_BLOCK_OUTSIDE_DNS='^push "block-outside-dns"'
+CONFIG_MATCH_BLOCK_OUTSIDE_DNS=$(busybox grep 'push "block-outside-dns"' /etc/openvpn/openvpn.conf)
 
 # 10. Should see a push of 'dhcp-option DNS' by default
-CONFIG_REQUIRED_DEFAULT_DNS_1="^push dhcp-option DNS 8.8.8.8"
-CONFIG_MATCH_DEFAULT_DNS_1=$(busybox grep 'push dhcp-option DNS 8.8.8.8' /etc/openvpn/openvpn.conf)
-CONFIG_REQUIRED_DEFAULT_DNS_2="^push dhcp-option DNS 8.8.4.4"
-CONFIG_MATCH_DEFAULT_DNS_2=$(busybox grep 'push dhcp-option DNS 8.8.4.4' /etc/openvpn/openvpn.conf)
+CONFIG_REQUIRED_DEFAULT_DNS_1='^push "dhcp-option DNS 8.8.8.8"'
+CONFIG_MATCH_DEFAULT_DNS_1=$(busybox grep 'push "dhcp-option DNS 8.8.8.8"' /etc/openvpn/openvpn.conf)
+CONFIG_REQUIRED_DEFAULT_DNS_2='^push "dhcp-option DNS 8.8.4.4"'
+CONFIG_MATCH_DEFAULT_DNS_2=$(busybox grep 'push "dhcp-option DNS 8.8.4.4"' /etc/openvpn/openvpn.conf)
 
 ## Test for keepalive
 # 11. keepalive config
