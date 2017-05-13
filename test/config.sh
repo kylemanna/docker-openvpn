@@ -9,6 +9,7 @@ imageTests+=(
 	[openvpn]='
 	paranoid
         conf_options
+        client
         basic
         dual-proto
         otp
