@@ -174,7 +174,7 @@ OVPN_DISABLE_PUSH_BLOCK_DNS=0
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNmf:tz2" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
