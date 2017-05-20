@@ -25,7 +25,9 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
         OVPN_DATA="ovpn-data-example"
 
-* Initialize the `$OVPN_DATA` container that will hold the configuration files and certificates
+* Initialize the `$OVPN_DATA` container that will hold the configuration files
+  and certificates.  The container will prompt for a passphrase to protect the
+  private key used by the newly generated certificate authority.
 
         docker volume create --name $OVPN_DATA
         docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
@@ -43,7 +45,22 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
         docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
-## Docker Compose
+## Next Steps
+
+### More Reading
+
+Miscellaneous write-ups for advanced configurations are available in the
+[docs](docs) folder.
+
+### Systemd Init Scripts
+
+A `systemd` init script is available to manage the OpenVPN container.  It will
+start the container on system boot, restart the container if it exits
+unexpectedly, and pull updates from Docker Hub to keep itself up to date.
+
+Please refer to the [systemd documentation](docs/systemd.md) to learn more.
+
+### Docker Compose
 
 If you prefer to use `docker-compose` please refer to the [documentation](docs/docker-compose.md).
 
