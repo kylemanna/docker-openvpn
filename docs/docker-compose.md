@@ -22,6 +22,10 @@ services:
 
 ```bash
 docker-compose run --rm openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
+# with custom chiper for discard warning and more security like AES-128-GCM
+export CIPHERNAME="your_cipher_name"
+docker-compose run --rm openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM --cipther=$CIPHERNAME
+
 docker-compose run --rm openvpn ovpn_initpki
 ```
 
