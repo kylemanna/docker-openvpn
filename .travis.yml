@@ -7,6 +7,15 @@
 #        packages:
 #            - openvpn
 
+sudo: required
+language: bash
+env:
+  - DOCKERFILE=Dockerfile
+  - DOCKERFILE=Dockerfile.armhf
+matrix:
+  allow_failures:
+    - env: DOCKERFILE=Dockerfile.armhf
+
 services:
     - docker
 
@@ -16,18 +25,8 @@ before_install:
 install:
     - git clone https://github.com/docker-library/official-images.git official-images
 
-# Assist with ci test debugging:
-#   - DEBUG=1
-before_script:
-    - image="kylemanna/openvpn"
-    - docker build -t "$image" .
-    - docker inspect "$image"
-    - docker run --rm "$image" openvpn --version || true # why does it return 1?
-    - docker run --rm "$image" openssl version
-
 script:
-    - official-images/test/run.sh "$image"
-    - test/run.sh "$image"
+    - ./run-ci.sh
 
 after_script:
     - docker images
