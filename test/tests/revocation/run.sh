@@ -25,6 +25,20 @@ sudo iptables -N DOCKER || echo 'Firewall already configured'
 sudo iptables -I FORWARD 1 -j DOCKER
 docker run -d -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN --privileged -p 1194:1194/udp --name $NAME $IMG
 
+
+#
+# Test that easy_rsa generate CRLs with 'next publish' set to 3650 days.
+#
+crl_next_update="$(docker exec $NAME openssl crl -nextupdate -noout -in /etc/openvpn/crl.pem | cut -d'=' -f2 | tr -d 'GMT')"
+crl_next_update="$(date -u -d "$crl_next_update" "+%s")"
+now="$(docker exec $NAME date "+%s")"
+crl_remain="$(( $crl_next_update - $now ))"
+crl_remain="$(( $crl_remain / 86400 ))"
+if (( $crl_remain < 3649 )); then
+    echo "easy_rsa CRL next publish set to less than 3650 days." >&2
+    exit 2
+fi
+
 #
 # Generate a first client certificate and configuration using $CLIENT1 as CN then revoke it.
 #
