@@ -44,8 +44,9 @@ remote $OVPN_CN $OVPN_PORT $OVPN_PROTO"
     if [ "$OVPN_PROTO" == "tcp6" ]; then
         echo "remote $OVPN_CN $OVPN_PORT tcp"
     fi
-    echo "$OVPN_ADDITIONAL_CLIENT_CONFIG
-"
+    for i in "${OVPN_EXTRA_CLIENT_CONFIG[@]}"; do
+      echo "$i"
+    done
     if [ "$mode" == "combined" ]; then
         echo "
 <key>

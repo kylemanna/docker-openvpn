@@ -50,6 +50,8 @@ ovpn_genconfig \
     -e 'topology subnet' \
     -p 'route 172.22.22.0 255.255.255.0' \
 
+# Run ovpn_genconfig a second time with no arguments to test its repeatability.
+ovpn_genconfig
 
 #
 # Simple test cases
