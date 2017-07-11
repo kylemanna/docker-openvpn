@@ -64,7 +64,7 @@ ExecStartPre=-/usr/bin/docker pull $IMG
 ExecStartPre=/bin/sh -c 'test -z "$IP6_PREFIX" && exit 0; sysctl net.ipv6.conf.all.forwarding=1'
 
 # Main process
-ExecStart=/usr/bin/docker run --rm --privileged -v ${DATA_VOL}:/etc/openvpn --name ${NAME} -p ${PORT} ${IMG} ovpn_run $ARGS
+ExecStart=/usr/bin/docker run --rm --cap-add=NET_ADMIN -v ${DATA_VOL}:/etc/openvpn --name ${NAME} -p ${PORT} ${IMG} ovpn_run $ARGS
 
 # IPv6: Add static route for IPv6 after it starts up
 ExecStartPost=/bin/sh -c 'test -z "${IP6_PREFIX}" && exit 0; sleep 1; ip route replace ${IP6_PREFIX} via $(docker inspect -f "{{ .NetworkSettings.GlobalIPv6Address }}" $NAME ) dev docker0'
