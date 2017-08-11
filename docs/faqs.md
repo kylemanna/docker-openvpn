@@ -2,9 +2,9 @@
 
 ## How do I edit `openvpn.conf`?
 
-Use a Docker image with a text editor pre-installed (i.e. Ubuntu) and connect the volume container:
+Use a Docker image with an editor and connect the volume container:
 
-    docker run -v $OVPN_DATA:/etc/openvpn --rm -it ubuntu vi /etc/openvpn/openvpn.conf
+    docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn vi /etc/openvpn/openvpn.conf
 
 
 ## Why not keep everything in one image?
