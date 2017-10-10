@@ -10,7 +10,7 @@ sudo: required
 
 env:
   global:
-    - BASEIMAGE=project31/docker-openvpn
+    - BASEIMAGE=kylemanna/docker-openvpn
     - VERSION=latest
   matrix:
     - ARCH=amd64 FROM=multiarch/alpine:amd64-latest-stable IMAGE=$BASEIMAGE:amd64-$VERSION
