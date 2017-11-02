@@ -92,6 +92,7 @@ usage() {
     echo
     echo "optional arguments:"
     echo " -2    Enable two factor authentication using Google Authenticator."
+    echo " -3    Enable LDAP authentication."
     echo " -a    Authenticate  packets with HMAC using the given message digest algorithm (auth)."
     echo " -b    Disable 'push block-outside-dns'"
     echo " -c    Enable client-to-client option"
@@ -250,6 +251,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
         2)
             OVPN_OTP_AUTH=1
             ;;
+        3)
+            OVPN_LDAP_AUTH=1
+            ;;
         f)
             OVPN_FRAGMENT="$OPTARG"
             ;;
@@ -380,6 +384,15 @@ cat $TMP_PUSH_CONFIGFILE >> "$conf"
 if [ -n "${OVPN_OTP_AUTH:-}" ]; then
     echo -e "\n\n# Enable OTP+PAM for user authentication" >> "$conf"
     echo "plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn" >> "$conf"
+    echo "reneg-sec 0" >> "$conf"
+fi
+
+# Append optional LDAP authentication support
+if [ -n "${OVPN_LDAP_AUTH:-}" ]; then
+    echo -e "\n\n# Enable LDAP for user authentication" >> "$conf"
+    echo "client-cert-not-required" >> "$conf"
+    echo "username-as-common-name" >> "$conf"
+    echo "plugin /usr/lib/openvpn/openvpn-auth-ldap.so /etc/openvpn/auth/auth-ldap.conf" >> "$conf"
     echo "reneg-sec 0" >> "$conf"
 fi
 

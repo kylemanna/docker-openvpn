@@ -1,0 +1,142 @@
+#!/bin/bash
+
+#
+# Generate OpenVPN configs
+#
+
+TMP_OPENLDAP_CONFIGFILE=$(mktemp -t vpn_openldap.XXXXXXX)
+
+#Traceback on Error and Exit come from https://docwhat.org/tracebacks-in-bash/
+set -eu
+
+_showed_traceback=f
+
+traceback() {
+	# Hide the traceback() call.
+	local -i start=$(( ${1:-0} + 1 ))
+	local -i end=${#BASH_SOURCE[@]}
+	local -i i=0
+	local -i j=0
+
+	echo "Traceback (last called is first):" 1>&2
+	for ((i=${start}; i < ${end}; i++)); do
+		j=$(( $i - 1 ))
+		local function="${FUNCNAME[$i]}"
+		local file="${BASH_SOURCE[$i]}"
+		local line="${BASH_LINENO[$j]}"
+		echo "     ${function}() in ${file}:${line}" 1>&2
+	done
+}
+
+on_error() {
+  local _ec="$?"
+  local _cmd="${BASH_COMMAND:-unknown}"
+  traceback 1
+  _showed_traceback=t
+  echo "The command ${_cmd} exited with exit code ${_ec}." 1>&2
+}
+trap on_error ERR
+
+
+on_exit() {
+  echo "Cleaning up before Exit ..."
+  rm -f $TMP_OPENLDAP_CONFIGFILE
+  local _ec="$?"
+  if [[ $_ec != 0 && "${_showed_traceback}" != t ]]; then
+    traceback 1
+  fi
+}
+trap on_exit EXIT
+
+usage() {
+    echo "usage: $0 [-d]"
+    echo "                  -u LDAP server URL"
+    echo "                  -B BaseDN"
+    echo "                  -U User Search Filter"
+    echo
+    echo "optional arguments:"
+    echo " -b    Bind DN (If your LDAP server doesn't support anonymous binds)."
+    echo " -p    Bind Password."
+}
+
+if [ "${DEBUG:-}" == "1" ]; then
+  set -x
+fi
+
+set -e
+
+if [ -z "${OPENVPN:-}" ]; then
+  export OPENVPN="$PWD"
+fi
+
+OVPN_LDAP_URL=''
+OVPN_LDAP_BASE_DN=''
+OVPN_LDAP_USER_SEARCH_FILTER=''
+OVPN_LDAP_BIND_DN=''
+OVPN_LDAP_BIND_PASSWORD=''
+
+DEFAULT_LDAP_USER_SEARCH_FILTER="(&(objectclass=inetorgperson)(cn=%u))"
+
+while getopts ":u:B:U:b:p" opt; do
+    case $opt in
+        u)
+            OVPN_LDAP_URL="$OPTARG"
+            ;;
+        B)
+            OVPN_LDAP_BASE_DN="$OPTARG"
+            ;;
+        U)
+            OVPN_LDAP_USER_SEARCH_FILTER="${OPTARG:-${DEFAULT_LDAP_USER_SEARCH_FILTER}}"
+            ;;
+        b)
+            OVPN_LDAP_BIND_DN="$OPTARG"
+            ;;
+        p)
+            OVPN_LDAP_BIND_PASSWORD="$OPTARG"
+            ;;
+        \?)
+            set +x
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            exit 1
+            ;;
+        :)
+            set +x
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+conf=${OPENVPN:-}/auth/auth-ldap.conf
+if [ -f "$conf" ]; then
+    bak=$conf.$(date +%s).bak
+    echo "Backing up $conf -> $bak"
+    mv "$conf" "$bak"
+fi
+
+cat > "$conf" <<EOF
+<LDAP>
+	URL		                "${OVPN_LDAP_URL}"
+	BindDN	                "${OVPN_LDAP_BIND_DN}"
+	Password	            "${OVPN_LDAP_BIND_PASSWORD}"
+	Timeout		            15
+</LDAP>
+
+<Authorization>
+	BaseDN		            "${OVPN_LDAP_BASE_DN}"
+	SearchFilter	        "${OVPN_LDAP_USER_SEARCH_FILTER}"
+	RequireGroup	        false
+</Authorization>
+EOF
+
+set +e
+
+# Clean-up duplicate configs
+if diff -q "${bak:-}" "$conf" 2>/dev/null; then
+    echo "Removing duplicate back-up: $bak"
+    rm -fv "$bak"
+fi
+
+echo "Successfully generated openldap config"

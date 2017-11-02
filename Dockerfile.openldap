@@ -13,6 +13,10 @@ RUN mkdir -p /usr/local/share/easy-rsa && \
     curl -L https://github.com/OpenVPN/easy-rsa/archive/v3.0.0.tar.gz | tar xzf - --strip=1 -C /usr/local/share/easy-rsa easy-rsa-3.0.0/easyrsa3 && \
     ln -s /usr/local/share/easy-rsa/easyrsa3/easyrsa /usr/local/bin
 
+RUN apt-get update && \
+    apt-get install -y openvpn-auth-ldap && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # Needed by scripts
 ENV OPENVPN /etc/openvpn
 ENV EASYRSA /usr/share/easy-rsa
@@ -32,5 +36,5 @@ CMD ["ovpn_run"]
 ADD ./bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
 
-# Add support for OTP authentication using a PAM module
-ADD ./otp/openvpn /etc/pam.d/
+# Add support for LDAP authentication
+ADD ./openldap/openvpn /etc/openvpn/auth/auth-ldap.conf
