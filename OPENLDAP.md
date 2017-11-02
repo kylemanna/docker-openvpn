@@ -10,6 +10,7 @@ docker run \
     -v $OVPN_DATA:/etc/openvpn \
     --rm ${IMAGE_NAME} \
     ovpn_genconfig \
+    -e 'duplicate-cn' \
     -3 \
     -b \
     -c \
