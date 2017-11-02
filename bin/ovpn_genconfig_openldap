@@ -4,8 +4,6 @@
 # Generate OpenVPN configs
 #
 
-TMP_OPENLDAP_CONFIGFILE=$(mktemp -t vpn_openldap.XXXXXXX)
-
 #Traceback on Error and Exit come from https://docwhat.org/tracebacks-in-bash/
 set -eu
 
@@ -40,7 +38,6 @@ trap on_error ERR
 
 on_exit() {
   echo "Cleaning up before Exit ..."
-  rm -f $TMP_OPENLDAP_CONFIGFILE
   local _ec="$?"
   if [[ $_ec != 0 && "${_showed_traceback}" != t ]]; then
     traceback 1
