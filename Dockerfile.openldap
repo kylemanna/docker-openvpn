@@ -31,6 +31,3 @@ CMD ["ovpn_run"]
 
 ADD ./bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
-
-# Add support for LDAP authentication
-ADD ./openldap/openvpn /etc/openvpn/auth/auth-ldap.conf
