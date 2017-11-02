@@ -106,6 +106,9 @@ while getopts "u:B:U:b:p:" opt; do
     esac
 done
 
+# Create auth directory for authentication
+[ ! -d "${OPENVPN:-}/auth" ] && mkdir -p ${OPENVPN:-}/auth
+
 # Apply defaults.
 set +u
 [ -z "$OVPN_LDAP_USER_SEARCH_FILTER" ] && OVPN_LDAP_USER_SEARCH_FILTER="${DEFAULT_LDAP_USER_SEARCH_FILTER}"
