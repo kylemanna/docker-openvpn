@@ -4,7 +4,9 @@
 
 Use a Docker image with an editor and connect the volume container:
 
-    docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn vi /etc/openvpn/openvpn.conf
+```
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn vi /etc/openvpn/openvpn.conf
+```
 
 
 ## Why not keep everything in one image?
@@ -17,10 +19,15 @@ If it was all in one container, an upgrade would require a few steps to extract 
 
 Split tunnels are configurations where only some of the traffic from a client goes to the VPN, with the remainder routed through the normal non-VPN interfaces. You'll want to disable a default route (-d) when you generate the configuration, but still use NAT (-N) to keep network address translation enabled.
 
-    ovpn_genconfig -N -d ...
+```
+ovpn_genconfig -N -d ...
+```
 
 ## I need to add some extra configurations to openvpn.conf, How can I do that ?
 
 You can pass multiple (**-e**) options to `ovpn_genconfig`. For example, if you need to add _'duplicate-cn'_ and _'topology subnet'_ to the server configuration you could do something like this:
 
-    ovpn_genconfig -e 'duplicate-cn' -e 'topology subnet' -u udp://VPN.SERVERNAME.COM
+```
+ovpn_genconfig -e 'duplicate-cn' -e 'topology subnet' -u udp://VPN.SERVERNAME.COM
+```
+

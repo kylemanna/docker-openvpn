@@ -13,7 +13,9 @@ Note that some client software might be picky about which configuration format i
 
 See an overview of the configured clients, including revocation status:
 
-    docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_listclients
+```
+docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_listclients
+```
 
 ## Batch Mode
 
@@ -21,25 +23,34 @@ If you have more than a few clients, you will want to generate and update your c
 
 Execute the following to generate the configuration for all clients:
 
-    docker run --rm -it -v $OVPN_DATA:/etc/openvpn --volume /tmp/openvpn_clients:/etc/openvpn/clients kylemanna/openvpn ovpn_getclient_all
+```
+docker run --rm -it -v $OVPN_DATA:/etc/openvpn --volume /tmp/openvpn_clients:/etc/openvpn/clients kylemanna/openvpn ovpn_getclient_all
+```
 
 After doing so, you will find the following files in each of the `$cn` directories:
 
-    ca.crt
-    $cn-combined.ovpn # Combined configuration file format. If your client recognices this file then only this file is needed.
-    $cn.ovpn          # Separated configuration. This configuration file requires the other files ca.crt dh.pem $cn.crt $cn.key ta.key
-    $cn.crt
-    $cn.key
-    ta.key
+```
+ca.crt
+$cn-combined.ovpn # Combined configuration file format. If your client recognices this file then only this file is needed.
+$cn.ovpn          # Separated configuration. This configuration file requires the other files ca.crt dh.pem $cn.crt $cn.key ta.key
+$cn.crt
+$cn.key
+ta.key
+```
 
 ## Revoking Client Certificates
 
 Revoke `client1`'s certificate and generate the certificate revocation list (CRL) using [`ovpn_revokeclient`](/bin/ovpn_revokeclient) script :
 
-    docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_revokeclient client1
+```
+docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_revokeclient client1
+```
 
 The OpenVPN server will read this change every time a client connects (no need to restart server) and deny clients access using revoked certificates.
 
 You can optionally pass `remove` as second parameter to ovpn_revokeclient to remove the corresponding crt, key and req files :
 
-    docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_revokeclient client1 remove
+```
+docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_revokeclient client1 remove
+```
+
