@@ -15,15 +15,21 @@ In order to enable two factor authentication the following steps are required.
 
 * Generate server configuration with `-2` and `-C $CIPHER` options
 
-        docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://vpn.example.com -2 -C $CIPHER
+```
+docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://vpn.example.com -2 -C $CIPHER
+```
 
 * Generate your client certificate (possibly without a password since you're using OTP)
 
-        docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full <user> nopass
+```
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full <user> nopass
+```
 
 * Generate authentication configuration for your client. -t is needed to show QR code, -i is optional for interactive usage
 
-        docker run -v $OVPN_DATA:/etc/openvpn --rm -t kylemanna/openvpn ovpn_otp_user <user>
+```
+docker run -v $OVPN_DATA:/etc/openvpn --rm -t kylemanna/openvpn ovpn_otp_user <user>
+```
 
 The last step will generate OTP configuration for the provided user with the following options
 

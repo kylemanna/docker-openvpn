@@ -6,8 +6,10 @@ The docker image is setup for static client configuration on the 192.168.254.0/2
 
 1. Create a client specific configuration:
 
-        $ echo "ifconfig-push 192.168.254.1 192.168.254.2" | docker run -v $OVPN_DATA:/etc/openvpn -i --rm kylemanna/openvpn tee /etc/openvpn/ccd/CERT_COMMON_NAME
-        ifconfig-push 192.168.254.1 192.168.254.2
+```
+$ echo "ifconfig-push 192.168.254.1 192.168.254.2" | docker run -v $OVPN_DATA:/etc/openvpn -i --rm kylemanna/openvpn tee /etc/openvpn/ccd/CERT_COMMON_NAME
+ifconfig-push 192.168.254.1 192.168.254.2
+```
 
 2. Wait for client to reconnect if necessary
 
@@ -15,10 +17,15 @@ The docker image is setup for static client configuration on the 192.168.254.0/2
 
 Login to the data volume with a `bash` container, note only changes in /etc/openvpn will persist:
 
-    docker run -v $OVPN_DATA:/etc/openvpn -it --rm kylemanna/openvpn bash -l
+```
+docker run -v $OVPN_DATA:/etc/openvpn -it --rm kylemanna/openvpn bash -l
+```
 
 ## Upgrading from Old OpenVPN Configurations
 
 If you're running an old configuration and need to upgrade it to pull in the ccd directory run the following:
 
-    docker run  -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig
+```
+docker run  -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig
+```
+
