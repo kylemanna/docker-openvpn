@@ -13,8 +13,8 @@ env:
     - BASEIMAGE=kylemanna/docker-openvpn
     - VERSION=latest
   matrix:
-    - ARCH=amd64 FROM=multiarch/alpine:amd64-latest-stable IMAGE=$BASEIMAGE:amd64-$VERSION
-    - ARCH=arm64 FROM=multiarch/alpine:arm64-latest-stable IMAGE=$BASEIMAGE:arm64-$VERSION
+    - ARCH=amd64 FROM=multiarch/alpine:amd64-v3.7 IMAGE=$BASEIMAGE:amd64-$VERSION
+    - ARCH=arm64 FROM=multiarch/alpine:arm64-v3.7 IMAGE=$BASEIMAGE:arm64-$VERSION
 
 services:
     - docker
