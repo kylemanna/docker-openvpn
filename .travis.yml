@@ -19,6 +19,7 @@ install:
 # Assist with ci test debugging:
 #   - DEBUG=1
 before_script:
+    - docker run --rm --privileged multiarch/qemu-user-static:register --reset
     - image="kylemanna/openvpn"
     - image_arm="kylemanna/openvpn-arm"
     - docker build -t "$image" .
