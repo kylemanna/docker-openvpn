@@ -129,6 +129,31 @@ process_extra_config() {
   [[ -n "$ovpn_extra_config" ]] && echo "$ovpn_extra_config" >> "$TMP_EXTRA_CONFIGFILE"
 }
 
+mkconfig() {
+cat > "$conf" <<EOF
+server $(getroute $OVPN_SERVER)
+verb 3
+key $EASYRSA_PKI/private/${OVPN_CN}.key
+ca $EASYRSA_PKI/ca.crt
+cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
+dh $EASYRSA_PKI/dh.pem
+tls-auth $EASYRSA_PKI/ta.key
+key-direction 0
+keepalive $OVPN_KEEPALIVE
+persist-key
+persist-tun
+
+proto $OVPN_PROTO
+# Rely on Docker to do port mapping, internally always 1194
+port 1194
+dev $OVPN_DEVICE$OVPN_DEVICEN
+status /tmp/openvpn-status.log
+
+user nobody
+group nogroup
+EOF
+}
+
 if [ "${DEBUG:-}" == "1" ]; then
   set -x
 fi
@@ -272,7 +297,7 @@ done
 [ ! -d "${OPENVPN:-}/ccd" ] && mkdir -p ${OPENVPN:-}/ccd
 
 # Server name is in the form "udp://vpn.example.com:1194"
-if [[ "${OVPN_SERVER_URL:-}" =~ ^((udp|tcp|udp6|tcp6)://)?([0-9a-zA-Z\.\-]+)(:([0-9]+))?$ ]]; then
+if [[ "${OVPN_SERVER_URL:-}" =~ ^((udp|tcpudp|tcp|udp6|tcp6)://)?([0-9a-zA-Z\.\-]+)(:([0-9]+))?$ ]]; then
     OVPN_PROTO=${BASH_REMATCH[2]};
     OVPN_CN=${BASH_REMATCH[3]};
     OVPN_PORT=${BASH_REMATCH[5]};
@@ -317,28 +342,15 @@ if [ ${#OVPN_EXTRA_CLIENT_CONFIG[@]} -gt 0 ]; then
   done
 fi
 
-cat > "$conf" <<EOF
-server $(getroute $OVPN_SERVER)
-verb 3
-key $EASYRSA_PKI/private/${OVPN_CN}.key
-ca $EASYRSA_PKI/ca.crt
-cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
-dh $EASYRSA_PKI/dh.pem
-tls-auth $EASYRSA_PKI/ta.key
-key-direction 0
-keepalive $OVPN_KEEPALIVE
-persist-key
-persist-tun
-
-proto $OVPN_PROTO
-# Rely on Docker to do port mapping, internally always 1194
-port 1194
-dev $OVPN_DEVICE$OVPN_DEVICEN
-status /tmp/openvpn-status.log
-
-user nobody
-group nogroup
-EOF
+case $OVPN_PROTO in
+  "tcpudp")
+    OVPN_PROTO=udp conf=${OPENVPN:-}/openvpn-udp.conf OVPN_DEVICEN=0 mkconfig
+    OVPN_PROTO=tcp conf=${OPENVPN:-}/openvpn-tcp.conf OVPN_DEVICEN=1 mkconfig
+    ;;
+  *)
+    mkconfig
+    ;;
+esac
 
 if [ "${OVPN_DISABLE_PUSH_BLOCK_DNS}" == "1" ]; then
   echo "Disable default push of 'block-outside-dns'"
@@ -346,22 +358,41 @@ else
   process_push_config "block-outside-dns"
 fi
 
-[ -n "$OVPN_TLS_CIPHER" ] && echo "tls-cipher $OVPN_TLS_CIPHER" >> "$conf"
-[ -n "$OVPN_CIPHER" ] && echo "cipher $OVPN_CIPHER" >> "$conf"
-[ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
+# Append optional OTP authentication support
+if [ -n "${OVPN_OTP_AUTH:-}" ]; then
+    process_extra_config $(echo -e "\n\n# Enable OTP+PAM for user authentication")
+    process_extra_config "plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn"
+    process_extra_config "reneg-sec 0"
+fi
 
-[ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
-[ "$OVPN_COMP_LZO" == "1" ] && echo "comp-lzo" >> "$conf"
+process_extra_config $(echo -e "\n### Extra Configurations Below")
+[ -n "$OVPN_TLS_CIPHER" ] && process_extra_config "tls-cipher $OVPN_TLS_CIPHER"
+[ -n "$OVPN_CIPHER" ] && process_extra_config "cipher $OVPN_CIPHER"
+[ -n "$OVPN_AUTH" ] && process_extra_config "auth $OVPN_AUTH"
 
-[ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
+[ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && process_extra_config "client-to-client"
+[ "$OVPN_COMP_LZO" == "1" ] && process_extra_config "comp-lzo"
+
+[ -n "${OVPN_FRAGMENT:-}" ] && process_extra_config "fragment $OVPN_FRAGMENT"
 
 # Append route commands
 if [ ${#OVPN_ROUTES[@]} -gt 0 ]; then
   for i in "${OVPN_ROUTES[@]}"; do
     process_route_config "$i"
   done
-  echo -e "\n### Route Configurations Below" >> "$conf"
-  cat $TMP_ROUTE_CONFIGFILE >> "$conf"
+  case $OVPN_PROTO in
+    "tcpudp")
+      for proto in udp tcp; do
+        conf=${OPENVPN:-}/openvpn-$proto.conf
+        echo -e "\n### Route Configurations Below" >> "$conf"
+        cat $TMP_ROUTE_CONFIGFILE >> "$conf"
+      done
+      ;;
+    *)
+      echo -e "\n### Route Configurations Below" >> "$conf"
+      cat $TMP_ROUTE_CONFIGFILE >> "$conf"
+      ;;
+  esac
 fi
 
 # Append push commands
@@ -373,23 +404,40 @@ done
   process_push_config "$i"
 done
 
-echo -e "\n### Push Configurations Below" >> "$conf"
-cat $TMP_PUSH_CONFIGFILE >> "$conf"
-
-# Append optional OTP authentication support
-if [ -n "${OVPN_OTP_AUTH:-}" ]; then
-    echo -e "\n\n# Enable OTP+PAM for user authentication" >> "$conf"
-    echo "plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn" >> "$conf"
-    echo "reneg-sec 0" >> "$conf"
-fi
+case $OVPN_PROTO in
+  "tcpudp")
+    for proto in udp tcp; do
+      conf=${OPENVPN:-}/openvpn-$proto.conf
+      echo -e "\n### Push Configurations Below" >> "$conf"
+      cat $TMP_PUSH_CONFIGFILE >> "$conf"
+    done
+    ;;
+  *)
+    echo -e "\n### Push Configurations Below" >> "$conf"
+    cat $TMP_PUSH_CONFIGFILE >> "$conf"
+    ;;
+esac
 
 # Append extra server configurations
 if [ ${#OVPN_EXTRA_SERVER_CONFIG[@]} -gt 0 ]; then
   for i in "${OVPN_EXTRA_SERVER_CONFIG[@]}"; do
     process_extra_config "$i"
   done
-  echo -e "\n### Extra Configurations Below" >> "$conf"
-  cat $TMP_EXTRA_CONFIGFILE >> "$conf"
+fi
+
+if [ -n "${OVPN_OTP_AUTH:-}" ] || [ ${#OVPN_EXTRA_SERVER_CONFIG[@]} -gt 0 ]; then
+  case $OVPN_PROTO in
+    "tcpudp")
+#      process_extra_config "learn-address /usr/local/bin/ovpn_learnip"
+      for proto in udp tcp; do
+        conf=${OPENVPN:-}/openvpn-$proto.conf
+        cat $TMP_EXTRA_CONFIGFILE >> "$conf"
+      done
+      ;;
+    *)
+      cat $TMP_EXTRA_CONFIGFILE >> "$conf"
+      ;;
+  esac
 fi
 
 set +e
