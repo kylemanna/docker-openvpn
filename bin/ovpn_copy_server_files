@@ -23,6 +23,8 @@ rm -rf "$TARGET/pki/private" "$TARGET/pki/issued"
 
 FILES=(
     "openvpn.conf"
+    "openvpn-tcp.conf"
+    "openvpn-udp.conf"
     "ovpn_env.sh"
     "pki/private/${OVPN_CN}.key"
     "pki/issued/${OVPN_CN}.crt"
