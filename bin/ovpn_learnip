@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# adapted from https://unix.stackexchange.com/questions/269967/how-to-make-openvpn-to-listen-both-tcp-and-udp-ports
+
+# This script allows an openvpn server with several openvpn instances that
+# use tun interfaces to share client IP space by adjusting the routing table
+# to create entries towards specific clients as needed
+
+action="$1"
+addr="$2"
+cn="$3" # not used, but it's there; you could e.g. log it
+
+case "$action" in
+        add)
+                echo "ip route add $addr/32 dev $dev # $cn" >&2
+                exec ip route add $addr/32 dev $dev
+                exit 0
+                ;;
+        delete)
+                echo "ip route del $addr/32 dev $dev # $cn" >&2
+                ip route del $addr/32
+                exit 0 # ignore errors
+                ;;
+        update)
+                echo "ip route change $addr/32 dev $dev # $cn" >&2
+                exec ip route change $addr/32 dev $dev
+                exit 0
+                ;;
+esac

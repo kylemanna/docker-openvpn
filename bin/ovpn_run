@@ -50,9 +50,10 @@ function setupIptablesAndRouting {
 }
 
 
-addArg "--config" "$OPENVPN/openvpn.conf"
-
 source "$OPENVPN/ovpn_env.sh"
+if [ "$OVPN_PROTO" != "tcpudp" ]; then
+  addArg "--config" "$OPENVPN/openvpn.conf"
+fi
 
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
@@ -97,4 +98,10 @@ if [ $? = 0 ]; then
 fi
 
 echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"
-exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
+if [ "$OVPN_PROTO" != "tcpudp" ]; then
+  exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
+else
+  export OVPNTCPARGS="${ARGS[@]} --config $OPENVPN/openvpn-tcp.conf"
+  export OVPNUDPARGS="${ARGS[@]} --config $OPENVPN/openvpn-udp.conf"
+  exec supervisord -c /etc/supervisord.conf
+fi

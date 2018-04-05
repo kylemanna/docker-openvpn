@@ -36,8 +36,13 @@ client
 nobind
 dev $OVPN_DEVICE
 remote-cert-tls server
-
-remote $OVPN_CN $OVPN_PORT $OVPN_PROTO"
+"
+    if [ "$OVPN_PROTO" == "tcpudp" ]; then
+      echo "remote $OVPN_CN $OVPN_PORT udp"
+      echo "remote $OVPN_CN $OVPN_PORT tcp"
+    else
+      echo "remote $OVPN_CN $OVPN_PORT $OVPN_PROTO"
+    fi
     if [ "$OVPN_PROTO" == "udp6" ]; then
         echo "remote $OVPN_CN $OVPN_PORT udp"
     fi
