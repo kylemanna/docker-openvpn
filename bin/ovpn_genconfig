@@ -369,6 +369,12 @@ fi
   process_push_config "dhcp-option DNS $i"
 done
 
+if [ "$OVPN_COMP_LZO" == "0"]; then
+    process_push_config "comp-lzo no"
+  else
+    process_push_config "comp-lzo"
+fi
+
 [ ${#OVPN_PUSH[@]} -gt 0 ] && for i in "${OVPN_PUSH[@]}"; do
   process_push_config "$i"
 done
