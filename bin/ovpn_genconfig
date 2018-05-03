@@ -352,6 +352,7 @@ fi
 
 [ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
 [ "$OVPN_COMP_LZO" == "1" ] && echo "comp-lzo" >> "$conf"
+[ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
 
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
