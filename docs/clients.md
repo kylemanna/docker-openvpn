@@ -9,12 +9,19 @@ The [`ovpn_getclient`](/bin/ovpn_getclient) can produce two different versions o
 
 Note that some client software might be picky about which configuration format it accepts.
 
-## Client List
+## Configured Clients
 
 See an overview of the configured clients, including revocation status:
 
     docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_listclients
 
+## Show all connected clients
+
+To get a list of all *currently* connected clients use the following command:
+
+    docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_status
+
+The openvpn status log has no history and is only meant for basic auditing. 
 ## Batch Mode
 
 If you have more than a few clients, you will want to generate and update your client configuration in batch. For this task the script [`ovpn_getclient_all`](/bin/ovpn_getclient_all) was written, which writes out the configuration for each client to a separate directory called `clients/$cn`.
