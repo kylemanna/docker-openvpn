@@ -146,7 +146,6 @@ OVPN_AUTH=''
 OVPN_CIPHER=''
 OVPN_CLIENT_TO_CLIENT=''
 OVPN_CN=''
-OVPN_COMP_LZO=0
 OVPN_DEFROUTE=1
 OVPN_DEVICE="tun"
 OVPN_DEVICEN=0
@@ -243,9 +242,6 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             ;;
         t)
             OVPN_DEVICE="tap"
-            ;;
-        z)
-            OVPN_COMP_LZO=1
             ;;
         2)
             OVPN_OTP_AUTH=1
@@ -351,8 +347,6 @@ fi
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
 [ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
-[ "$OVPN_COMP_LZO" == "1" ] && echo "comp-lzo" >> "$conf"
-[ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
 
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
@@ -369,10 +363,6 @@ fi
 [ "$OVPN_DNS" == "1" ] && for i in "${OVPN_DNS_SERVERS[@]}"; do
   process_push_config "dhcp-option DNS $i"
 done
-
-if [ "$OVPN_COMP_LZO" == "0" ]; then
-    process_push_config "comp-lzo no"
-fi
 
 [ ${#OVPN_PUSH[@]} -gt 0 ] && for i in "${OVPN_PUSH[@]}"; do
   process_push_config "$i"
