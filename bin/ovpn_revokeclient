@@ -24,8 +24,8 @@ fi
 cn="$1"
 parm="$2"
 
-if [ ! -f "$EASYRSA_PKI/private/${cn}.key" ]; then
-    echo "Unable to find \"${cn}\", please try again or generate the key first" >&2
+if [ ! -f "$EASYRSA_PKI/issued/${cn}.crt" ]; then
+    echo "Unable to find \"${cn}\", please try again or generate the certificate first" >&2
     exit 1
 fi
 
@@ -39,8 +39,12 @@ revoke_client_certificate(){
 
 remove_files(){
     rm -v "$EASYRSA_PKI/issued/${1}.crt"
-    rm -v "$EASYRSA_PKI/private/${1}.key"
-    rm -v "$EASYRSA_PKI/reqs/${1}.req"
+    if [ -f "$EASYRSA_PKI/private/${1}.key" ]; then
+        rm -v "$EASYRSA_PKI/private/${1}.key"
+    fi
+    if [ -f "$EASYRSA_PKI/reqs/${1}.req" ]; then
+        rm -v "$EASYRSA_PKI/reqs/${1}.req"
+    fi
 }
 
 case "$parm" in
