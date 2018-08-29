@@ -39,6 +39,12 @@ function addArg {
 # this allows rules/routing to be altered by supplying this function
 # in an included file, such as ovpn_env.sh
 function setupIptablesAndRouting {
+    # this will forward DNS requests to the DNS server the container
+    # is using
+    if [ ! -z "${OVPN_DNS_IPTABLES_FORWARD}" ]; then
+      iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to ${OVPN_DNS_IPTABLES_FORWARD}
+    fi;
+
     iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE || {
       iptables -t nat -A POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE
     }
