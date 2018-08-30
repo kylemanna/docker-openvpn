@@ -46,10 +46,8 @@ for name in issued/*.crt; do
                     status="INVALID"
             esac
         fi
+        echo "$name,$begin,$end,$status"
     fi
-
-    echo "$name,$begin,$end,$status"
-
 done
 
 # Clean
