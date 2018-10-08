@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+import iptables
+
+ROUTES_ROOT = '/etc/openvpn/routes'
+
+
+def get_routes(common_name):
+    routes = []
+
+    user_routes_path = os.path.join(ROUTES_ROOT, common_name.lower())
+    if os.path.exists(user_routes_path):
+        with open(user_routes_path) as fh:
+            content = fh.read()
+
+        routes = content.splitlines()
+
+    return routes
+
+
+def main():
+    common_name = os.environ['common_name']
+    ip_address = os.environ['ifconfig_pool_remote_ip']
+
+    plan = iptables.Plan()
+
+    # this will delete an existing table and create it from scratch
+    user_chain = plan.add_chain('filter', 'FORWARD_OPENVPN_{}'.format(common_name).upper())
+
+    # accept packets that are related to rules that have been accepted
+    user_chain.add_rule(
+        iptables.Rule('-d {} -m state --state RELATED,ESTABLISHED -j ACCEPT'.format(ip_address), priority=100)
+    )
+
+    user_chain.add_rule(
+        iptables.Rule('-s {} -m state --state RELATED,ESTABLISHED -j ACCEPT'.format(ip_address), priority=100)
+    )
+
+    # rules are added with a default priority of 50
+    for route in get_routes(common_name):
+        user_chain.add_rule('-i tun0 -s {} -d {} -j ACCEPT'.format(ip_address, route))
+
+    # this will modify an existing chain and create it if it does not exist
+    openvpn_chain = plan.modify_chain('filter', 'FORWARD_OPENVPN')
+
+    # rules with higher number priority get added to the chain first
+    # when updating an existing chain, rules already in the chain get a priority of 70.
+    # being added is compared to existing rules and will be added if missing or left alone.
+    # openvpn_chain.add_rule(iptables.Rule('! -i tun0 -j RETURN', priority=100))
+    openvpn_chain.add_rule(user_chain.jump)
+    # openvpn_chain.add_rule(iptables.Rule('-j DROP', priority=10))
+
+    forward_chain = plan.modify_chain('filter', 'FORWARD')
+    forward_chain.add_rule(openvpn_chain.jump)
+
+    plan.execute()
+
+
+if __name__ == '__main__':
+    main()
