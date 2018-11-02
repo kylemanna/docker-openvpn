@@ -29,5 +29,5 @@ if [ "$2" == "interactive" ]; then
     google-authenticator --time-based --force -l "${1}@${OVPN_CN}" -s /etc/openvpn/otp/${1}.google_authenticator
 else
     google-authenticator --time-based --disallow-reuse --force --rate-limit=3 --rate-time=30 --window-size=3 \
-        -l "${1}@${OVPN_CN}" -s /etc/openvpn/otp/${1}.google_authenticator
+        -l "${1}@${OVPN_CN}" -s /etc/openvpn/otp/${1}.google_authenticator -i "${OVPN_CN}"
 fi
