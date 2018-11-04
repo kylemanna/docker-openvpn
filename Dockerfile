@@ -23,7 +23,7 @@ ENV EASYRSA_CRL_DAYS 3650
 VOLUME ["/etc/openvpn"]
 
 # Internally uses port 1194/udp, remap using `docker run -p 443:1194/tcp`
-EXPOSE 1194/udp
+EXPOSE 1194 1194/udp
 
 CMD ["ovpn_run"]
 
