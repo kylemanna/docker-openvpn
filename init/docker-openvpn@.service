@@ -33,8 +33,8 @@
 [Unit]
 Description=OpenVPN Docker Container
 Documentation=https://github.com/kylemanna/docker-openvpn
-After=network.target docker.socket
-Requires=docker.socket
+After=network.target docker.service
+Requires=docker.service
 
 [Service]
 RestartSec=10
