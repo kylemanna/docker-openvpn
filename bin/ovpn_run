@@ -35,6 +35,11 @@ function addArg {
     fi
 }
 
+# return the left hand side of a ":" delimited string
+function getLHS {
+    echo $1 | sed -e 's/:.*//'
+}
+
 # set up iptables rules and routing
 # this allows rules/routing to be altered by supplying this function
 # in an included file, such as ovpn_env.sh
@@ -42,7 +47,26 @@ function setupIptablesAndRouting {
     # this will forward DNS requests to the DNS server the container
     # is using
     if [ ! -z "${OVPN_DNS_IPTABLES_FORWARD}" ]; then
-      iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to ${OVPN_DNS_IPTABLES_FORWARD}
+        # iptables expects an IP address for the forward hostname, but when
+        # the DNS server can have a dynamic address like another container,
+        # using a hostname allows the code below to resolve the IP address at
+        # runtime
+        # the sed line below extracts the IP from between parens in the line:
+        # PING somehost (10.11.12.13): 56 data bytes
+        ip_address=$(ping -c 1 $(getLHS ${OVPN_DNS_IPTABLES_FORWARD}) | \
+          grep '^PING' | \
+          sed -e 's/.*(\([^)]*\)).*/\1/'
+        )
+
+        if [ "${ip_address}" = "" ]; then
+            ip_address=$(getLHS ${OVPN_DNS_IPTABLES_FORWARD})
+        fi;
+
+        forward_address=$(echo ${OVPN_DNS_IPTABLES_FORWARD} | sed -e "s/.*:/${ip_address}:/")
+
+        echo "translate OVPN_DNS_IPTABLES_FORWARD=${OVPN_DNS_IPTABLES_FORWARD} to forward_address=${forward_address}"
+
+        iptables -t nat -A PREROUTING -p udp --dport 53 -j DNAT --to ${forward_address}
     fi;
 
     iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE || {
