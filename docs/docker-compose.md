@@ -73,5 +73,5 @@ docker-compose run --rm openvpn ovpn_revokeclient $CLIENTNAME remove
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
 
 ```bash
-docker-compose run -e DEBUG=1 openvpn
+docker-compose run -e DEBUG=1 -p 1194:1194/udp openvpn
 ```
