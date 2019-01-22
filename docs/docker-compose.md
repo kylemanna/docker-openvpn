@@ -56,7 +56,7 @@ docker-compose run --rm openvpn easyrsa build-client-full $CLIENTNAME nopass
 * Retrieve the client configuration with embedded certificates
 
 ```bash
-docker-compose run --rm openvpn ovpn_getclient $CLIENTNAME > $CLIENTNAME.ovpn
+docker-compose exec openvpn ovpn_getclient $CLIENTNAME > $CLIENTNAME.ovpn
 ```
 
 * Revoke a client certificate
