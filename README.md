@@ -25,7 +25,7 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
   service.  Users are encourage to replace `example` with a descriptive name of
   their choosing.
 
-      export OVPN_DATA="ovpn-data-example"
+      OVPN_DATA="ovpn-data-example"
 
 * Initialize the `$OVPN_DATA` container that will hold the configuration files
   and certificates.  The container will prompt for a passphrase to protect the
