@@ -104,10 +104,11 @@ usage() {
     echo " -t    Use TAP device (instead of TUN device)"
     echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
     echo " -z    Enable comp-lzo compression."
-    echo " -S    Change status folder. Default '/tmp'"
+    echo " -S    Change status folder. Default '/tmp'."
     echo " -R    Disable the reduce the OpenVPN daemon's privileges after initialization."
-    echo " -K    Set a client config directory. Default Disable. Example: 'ccd'"
+    echo " -K    Set a client config directory. Default Disable. Example: 'ccd'."
     echo " -V    Enable the the record of client <-> virtual IP address (store in a config file)."
+    echo " -L    Configure log mode: 'disable', 'enable', 'append'. Default 'disable'."
 }
 
 process_route_config() {
@@ -175,12 +176,13 @@ OVPN_STATUS_PATH='/tmp'
 OVPN_DISABLE_REDUCE_DEAMON_S_PRIVILEGES=0
 OVPN_CLIENT_CONFIG_DIR=''
 OVPN_ENABLE_KEEP_CLIENT_VIRTUAL_IP=0
+OVPN_LOG_MODE="disable"
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:V" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:VL:" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -272,6 +274,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:V" opt; do
             ;;
         V)
             OVPN_ENABLE_KEEP_CLIENT_VIRTUAL_IP=1
+            ;;
+        L)
+            OVPN_LOG_MODE="$OPTARG"
             ;;
         \?)
             set +x
@@ -386,6 +391,16 @@ fi
 [ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
 
 [ "$OVPN_ENABLE_KEEP_CLIENT_VIRTUAL_IP" == "1" ] && echo "ifconfig-pool-persist /etc/openvpn/client_vitual_ip.txt" >> "$conf"
+
+if [ "${OVPN_LOG_MODE}" == "enable" ]; then
+  echo "log /var/log/openvpn/openvpn.log" >> "$conf"
+else
+  if [ "${OVPN_LOG_MODE}" == "append" ]; then
+    echo "log-append /var/log/openvpn/openvpn.log" >> "$conf"
+  else
+    echo "Log file mode is disable"
+  fi
+fi
 
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
