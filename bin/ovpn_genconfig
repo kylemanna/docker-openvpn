@@ -109,6 +109,7 @@ usage() {
     echo " -K    Set a client config directory. Default Disable. Example: 'ccd'."
     echo " -V    Enable the the record of client <-> virtual IP address (store in a config file)."
     echo " -L    Configure log mode: 'disable', 'enable', 'append'. Default 'disable'."
+    echo " -F    Enable the notification to the client that the server restarts."
 }
 
 process_route_config() {
@@ -177,12 +178,13 @@ OVPN_DISABLE_REDUCE_DEAMON_S_PRIVILEGES=0
 OVPN_CLIENT_CONFIG_DIR=''
 OVPN_ENABLE_KEEP_CLIENT_VIRTUAL_IP=0
 OVPN_LOG_MODE="disable"
+OVPN_ENABLE_NOTIFY_SERVER_RESTARTS=0
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:VL:" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:VL:F" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -277,6 +279,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:VL:" opt; do
             ;;
         L)
             OVPN_LOG_MODE="$OPTARG"
+            ;;
+        F)
+            OVPN_ENABLE_NOTIFY_SERVER_RESTARTS=1
             ;;
         \?)
             set +x
@@ -391,6 +396,8 @@ fi
 [ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
 
 [ "$OVPN_ENABLE_KEEP_CLIENT_VIRTUAL_IP" == "1" ] && echo "ifconfig-pool-persist /etc/openvpn/client_vitual_ip.txt" >> "$conf"
+
+[ "$OVPN_ENABLE_NOTIFY_SERVER_RESTARTS" == "1" ] && echo "explicit-exit-notify 1" >> "$conf"
 
 if [ "${OVPN_LOG_MODE}" == "enable" ]; then
   echo "log /var/log/openvpn/openvpn.log" >> "$conf"
