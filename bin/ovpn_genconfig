@@ -107,6 +107,7 @@ usage() {
     echo " -S    Change status folder. Default '/tmp'"
     echo " -R    Disable the reduce the OpenVPN daemon's privileges after initialization."
     echo " -K    Set a client config directory. Default Disable. Example: 'ccd'"
+    echo " -V    Enable the the record of client <-> virtual IP address (store in a config file)."
 }
 
 process_route_config() {
@@ -173,12 +174,13 @@ OVPN_TLS_CIPHER=''
 OVPN_STATUS_PATH='/tmp'
 OVPN_DISABLE_REDUCE_DEAMON_S_PRIVILEGES=0
 OVPN_CLIENT_CONFIG_DIR=''
+OVPN_ENABLE_KEEP_CLIENT_VIRTUAL_IP=0
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:V" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -267,6 +269,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:" opt; do
             ;;
         K)
             OVPN_CLIENT_CONFIG_DIR="$OPTARG"
+            ;;
+        V)
+            OVPN_ENABLE_KEEP_CLIENT_VIRTUAL_IP=1
             ;;
         \?)
             set +x
@@ -379,6 +384,8 @@ fi
 [ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
 [ "$OVPN_COMP_LZO" == "1" ] && echo "comp-lzo" >> "$conf"
 [ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
+
+[ "$OVPN_ENABLE_KEEP_CLIENT_VIRTUAL_IP" == "1" ] && echo "ifconfig-pool-persist /etc/openvpn/client_vitual_ip.txt" >> "$conf"
 
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
