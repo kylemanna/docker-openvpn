@@ -105,6 +105,7 @@ usage() {
     echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
     echo " -z    Enable comp-lzo compression."
     echo " -S    Change status folder. Default '/tmp'"
+    echo " -R    Disable the reduce the OpenVPN daemon's privileges after initialization."
 }
 
 process_route_config() {
@@ -169,12 +170,13 @@ OVPN_SERVER=192.168.255.0/24
 OVPN_SERVER_URL=''
 OVPN_TLS_CIPHER=''
 OVPN_STATUS_PATH='/tmp'
+OVPN_DISABLE_REDUCE_DEAMON_S_PRIVILEGES=0
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:R" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -257,6 +259,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:" opt; do
             ;;
         S)
             OVPN_STATUS_PATH="$OPTARG"
+            ;;
+        R)
+            OVPN_DISABLE_REDUCE_DEAMON_S_PRIVILEGES=1
             ;;
         \?)
             set +x
@@ -341,9 +346,14 @@ port 1194
 dev $OVPN_DEVICE$OVPN_DEVICEN
 status $OVPN_STATUS_PATH/openvpn-status.log
 
-user nobody
-group nogroup
 EOF
+
+if [ "${OVPN_DISABLE_REDUCE_DEAMON_S_PRIVILEGES}" == "1" ]; then
+  echo "Disable 'user' and 'group'"
+else
+  echo "user nobody" >> "$conf"
+  echo "group nogroup" >> "$conf"
+fi
 
 if [ "${OVPN_DISABLE_PUSH_BLOCK_DNS}" == "1" ]; then
   echo "Disable default push of 'block-outside-dns'"
