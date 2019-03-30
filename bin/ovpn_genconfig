@@ -106,6 +106,7 @@ usage() {
     echo " -z    Enable comp-lzo compression."
     echo " -S    Change status folder. Default '/tmp'"
     echo " -R    Disable the reduce the OpenVPN daemon's privileges after initialization."
+    echo " -K    Set a client config directory. Default Disable. Example: 'ccd'"
 }
 
 process_route_config() {
@@ -171,12 +172,13 @@ OVPN_SERVER_URL=''
 OVPN_TLS_CIPHER=''
 OVPN_STATUS_PATH='/tmp'
 OVPN_DISABLE_REDUCE_DEAMON_S_PRIVILEGES=0
+OVPN_CLIENT_CONFIG_DIR=''
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:R" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:RK:" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -262,6 +264,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2S:R" opt; do
             ;;
         R)
             OVPN_DISABLE_REDUCE_DEAMON_S_PRIVILEGES=1
+            ;;
+        K)
+            OVPN_CLIENT_CONFIG_DIR="$OPTARG"
             ;;
         \?)
             set +x
@@ -359,6 +364,12 @@ if [ "${OVPN_DISABLE_PUSH_BLOCK_DNS}" == "1" ]; then
   echo "Disable default push of 'block-outside-dns'"
 else
   process_push_config "block-outside-dns"
+fi
+
+if [ "${OVPN_CLIENT_CONFIG_DIR}" == "" ]; then
+  echo "Disable client config 'client-config-dir'"
+else
+  echo "client-config-dir ${OVPN_CLIENT_CONFIG_DIR}" >> "$conf"
 fi
 
 [ -n "$OVPN_TLS_CIPHER" ] && echo "tls-cipher $OVPN_TLS_CIPHER" >> "$conf"
