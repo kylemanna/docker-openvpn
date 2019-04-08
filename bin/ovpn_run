@@ -85,6 +85,13 @@ if [ -r "$OPENVPN/crl.pem" ]; then
     addArg "--crl-verify" "$OPENVPN/crl.pem"
 fi
 
+
+# If this fails, ensure the docker container is run with --privileged
+# Could be side stepped with `ip netns` madness to drop privileged flag
+echo "Enabling IPv4 Forwarding"
+sysctl -w net.ipv4.ip_forward=1 || echo "Failed to enable IPv4 forwarding"
+
+
 ip -6 route show default 2>/dev/null
 if [ $? = 0 ]; then
     echo "Enabling IPv6 Forwarding"

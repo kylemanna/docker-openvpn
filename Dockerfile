@@ -27,6 +27,9 @@ EXPOSE 1194/udp
 
 CMD ["ovpn_run"]
 
+#ADD ./11_route_enable.conf /etc/sysctl.d/11_route_enable.conf
+#RUN sysctl -p /etc/sysctl.d/*
+
 ADD ./bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
 

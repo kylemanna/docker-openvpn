@@ -1,6 +1,7 @@
 version: '2'
 services:
   openvpn:
+    privileged: true
     cap_add:
      - NET_ADMIN
     build: .
