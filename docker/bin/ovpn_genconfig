@@ -98,7 +98,7 @@ usage() {
     echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)."
     echo " -d    Disable default route"
     echo " -D    Do not push dns servers"
-    echo " -k    Set keepalive. Default: '10 60'"
+    echo " -k    Set keepalive. Default: '10 120'"
     echo " -m    Set client MTU"
     echo " -N    Configure NAT to access external server network"
     echo " -t    Use TAP device (instead of TUN device)"
@@ -163,14 +163,14 @@ OVPN_ENV=${OPENVPN}/ovpn_env.sh
 OVPN_EXTRA_CLIENT_CONFIG=()
 OVPN_EXTRA_SERVER_CONFIG=()
 OVPN_FRAGMENT=''
-OVPN_KEEPALIVE="10 60"
+OVPN_KEEPALIVE="10 120"
 OVPN_MTU=''
 OVPN_NAT=0
 OVPN_PORT=''
 OVPN_PROTO=''
 OVPN_PUSH=()
 OVPN_ROUTES=()
-OVPN_SERVER=192.168.255.0/24
+OVPN_SERVER=192.168.200.0/24
 OVPN_SERVER_URL=''
 OVPN_TLS_CIPHER=''
 OVPN_STATUS_PATH='/tmp'
