@@ -3,18 +3,41 @@ OpenVPN for Docker-compose
 
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
+Check if your port is availlable
+================================
+
+On your server:
+```{.sh}
+nc -ul -p 1194
+```
+
+On your computer
+```{.sh}
+nc -u __SERVER_IP__ 1194
+```
+
+
+Remove other VPN local:
+
+In case an other service is started :
+```
+sudo systemctl stop openvpn@server.service
+```
+
+
 Quick Start with docker-compose
 ================================
 
 ```{.sh}
-docker-compose run --rm openvpn ovpn_genconfig -u udp://____VPN.SERVERNAME.COM____
-docker-compose run --rm openvpn ovpn_initpki
+docker-compose run --rm openvpn_service ovpn_genconfig -u udp://____VPN.SERVERNAME.COM____
+docker-compose run --rm openvpn_service ovpn_initpki
 ```
 
 or
 
 ```{.sh}
-docker-compose run --rm openvpn ovpn_genconfig -u udp://____VPN.SERVERNAME.COM____ -b -d -D -C AES-256-CBC -p ____LOCAL_IP_SERVER____/32 -R -K ccd -V -L append -F
+docker-compose run --rm openvpn_service ovpn_genconfig -u udp://____VPN.SERVERNAME.COM____ -b -d -D -C AES-256-CBC -p ____LOCAL_IP_SERVER____/32 -R -K ccd -V -L append -F
+docker-compose run --rm openvpn_service ovpn_initpki
 ```
 
 Fix ownership (depending on how to handle your backups, this may not be needed)
@@ -28,7 +51,7 @@ Start OpenVPN server process
 ----------------------------
 
 ```{.sh}
-docker-compose up -d openvpn
+docker-compose up -d openvpn_service
 ```
 
 You can access the container logs with
@@ -42,11 +65,11 @@ Generate a client certificate
 -----------------------------
 
 ```{.sh}
-export CLIENTNAME="your_client_name"
+export CLIENT_NAME="your_client_name"
 # with a passphrase (recommended)
-docker-compose run --rm openvpn easyrsa build-client-full $CLIENTNAME
+docker-compose run --rm openvpn easyrsa build-client-full $CLIENT_NAME
 # without a passphrase (not recommended)
-docker-compose run --rm openvpn easyrsa build-client-full $CLIENTNAME nopass
+docker-compose run --rm openvpn easyrsa build-client-full $CLIENT_NAME nopass
 ```
 
 Retrieve the client configuration with embedded certificates
@@ -54,12 +77,12 @@ Retrieve the client configuration with embedded certificates
 
 In a single file:
 ```{.sh}
-docker-compose run --rm openvpn ovpn_getclient $CLIENTNAME > $CLIENTNAME.ovpn
+docker-compose run --rm openvpn_service ovpn_getclient $CLIENT_NAME > $CLIENT_NAME.ovpn
 ```
 
 In multiple files
 ```{.sh}
-docker-compose run --rm openvpn ovpn_getclient $CLIENTNAME > $CLIENTNAME.ovpn
+docker-compose run --rm openvpn_service ovpn_getclient_all $CLIENT_NAME
 ```
 
 Revoke a client certificate
@@ -67,9 +90,9 @@ Revoke a client certificate
 
 ```{.sh}
 # Keep the corresponding crt, key and req files.
-docker-compose run --rm openvpn ovpn_revokeclient $CLIENTNAME
+docker-compose run --rm openvpn_service ovpn_revokeclient $CLIENT_NAME
 # Remove the corresponding crt, key and req files.
-docker-compose run --rm openvpn ovpn_revokeclient $CLIENTNAME remove
+docker-compose run --rm openvpn_service ovpn_revokeclient $CLIENT_NAME remove
 ```
 
 Debugging Tips
@@ -78,5 +101,5 @@ Debugging Tips
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
 
 ```{.sh}
-docker-compose run -e DEBUG=1 -p 1194:1194/udp openvpn
+docker-compose run -e DEBUG=1 -p 1194:1194/udp openvpn_service
 ```
