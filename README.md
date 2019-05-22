@@ -75,6 +75,13 @@ docker-compose run --rm openvpn easyrsa build-client-full $CLIENT_NAME
 docker-compose run --rm openvpn easyrsa build-client-full $CLIENT_NAME nopass
 ```
 
+Add toute too the client:
+```
+echo "route 10.10.1.0 255.255.255.0" >> openvpn-data/conf/openvpn.conf
+echo "iroute 10.10.1.0 255.255.255.0" > openvpn-data/conf/ccd/$CLIENT_NAME
+```
+
+
 Retrieve the client configuration with embedded certificates
 ------------------------------------------------------------
 
