@@ -36,9 +36,12 @@ docker-compose run --rm openvpn_service ovpn_initpki
 or
 
 ```{.sh}
-docker-compose run --rm openvpn_service ovpn_genconfig -u udp://____VPN.SERVERNAME.COM____ -b -d -D -C AES-256-CBC -p ____LOCAL_IP_SERVER____/32 -R -K ccd -V -L append -F
+docker-compose run --rm openvpn_service ovpn_genconfig -u udp://____VPN.SERVERNAME.COM____ -b -D -C AES-256-CBC -p ____LOCAL_IP_SERVER____/32 -R -V -F
 docker-compose run --rm openvpn_service ovpn_initpki
 ```
+
+**Note:** the ```-d``` create some errors
+
 
 Fix ownership (depending on how to handle your backups, this may not be needed)
 ---------------------------------------------------------------------------------
