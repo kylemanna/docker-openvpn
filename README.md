@@ -113,3 +113,27 @@ Debugging Tips
 ```{.sh}
 docker-compose run -e DEBUG=1 -p 1194:1194/udp openvpn_service
 ```
+
+Test on the client:
+-------------------
+
+Run in root mode:
+```
+openvpn --config $CLIENT_NAME.ovpn
+```
+
+you can test the connection with the server:
+```
+ping ____LOCAL_IP_SERVER____
+```
+
+On server test the Connectionwith the client:
+```
+ping ____CLIENT_IP_SERVER____
+```
+
+If needed add the routing rules on the server:
+```
+ip route add 10.10.0.0/16 via 10.3.0.2
+```
+
