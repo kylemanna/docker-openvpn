@@ -43,6 +43,13 @@ docker-compose run --rm openvpn_service ovpn_initpki
 **Note:** the ```-d``` create some errors
 
 
+With a teltonika routeur, you need to add the interface of the docker:
+```
+-p "route 10.3.1.0 255.255.255.0"
+```
+
+
+
 Fix ownership (depending on how to handle your backups, this may not be needed)
 ---------------------------------------------------------------------------------
 
@@ -87,12 +94,18 @@ Retrieve the client configuration with embedded certificates
 
 In a single file:
 ```{.sh}
+# if the container is down
 docker-compose run --rm openvpn_service ovpn_getclient $CLIENT_NAME > $CLIENT_NAME.ovpn
+# if the container is up
+docker-compose exec openvpn_service ovpn_getclient $CLIENT_NAME > $CLIENT_NAME.ovpn
 ```
 
 In multiple files
 ```{.sh}
-docker-compose run --rm openvpn_service ovpn_getclient_all $CLIENT_NAME
+# if the container is down
+docker-compose run --rm openvpn_service ovpn_getclient $CLIENT_NAME separated
+# if the container is up
+docker-compose exec openvpn_service ovpn_getclient $CLIENT_NAME separated
 ```
 
 Revoke a client certificate
