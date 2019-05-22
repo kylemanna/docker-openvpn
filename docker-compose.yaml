@@ -11,3 +11,10 @@ services:
     restart: always
     volumes:
      - ./openvpn-data/conf:/etc/openvpn
+
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.3.1.0/30
