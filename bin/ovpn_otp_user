@@ -28,6 +28,6 @@ if [ "$2" == "interactive" ]; then
     # Always use time base OTP otherwise storage for counters must be configured somewhere in volume
     google-authenticator --time-based --force -l "${1}@${OVPN_CN}" -s /etc/openvpn/otp/${1}.google_authenticator
 else
-    google-authenticator --time-based --disallow-reuse --force --rate-limit=3 --rate-time=30 --window-size=3 \
+    google-authenticator --no-confirm --time-based --disallow-reuse --force --rate-limit=3 --rate-time=30 --window-size=3 \
         -l "${1}@${OVPN_CN}" -s /etc/openvpn/otp/${1}.google_authenticator
 fi
