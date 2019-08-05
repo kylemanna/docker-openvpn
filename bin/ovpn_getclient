@@ -59,16 +59,16 @@ $(openssl x509 -in $EASYRSA_PKI/issued/${cn}.crt)
 $(cat $EASYRSA_PKI/ca.crt)
 </ca>
 key-direction 1
-<tls-auth>
+<tls-crypt>
 $(cat $EASYRSA_PKI/ta.key)
-</tls-auth>
+</tls-crypt>
 "
     elif [ "$mode" == "separated" ]; then
         echo "
 key ${cn}.key
 ca ca.crt
 cert ${cn}.crt
-tls-auth ta.key 1
+tls-crypt ta.key 1
 "
     fi
 

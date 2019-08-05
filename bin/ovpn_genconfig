@@ -324,7 +324,7 @@ key $EASYRSA_PKI/private/${OVPN_CN}.key
 ca $EASYRSA_PKI/ca.crt
 cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
 dh $EASYRSA_PKI/dh.pem
-tls-auth $EASYRSA_PKI/ta.key
+tls-crypt $EASYRSA_PKI/ta.key
 key-direction 0
 keepalive $OVPN_KEEPALIVE
 persist-key
