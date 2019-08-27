@@ -15,6 +15,15 @@ source "$OPENVPN/ovpn_env.sh"
 # Specify "nopass" as arg[2] to make the CA insecure (not recommended!)
 nopass=$1
 
+# Workaround to remove unharmful error until easy-rsa 3.0.7
+# https://github.com/OpenVPN/easy-rsa/issues/261
+if [ -f "$EASYRSA_PKI/safessl-easyrsa.cnf" ]; then
+  sed -i 's/^RANDFILE/#RANDFILE/g' $EASYRSA_PKI/safessl-easyrsa.cnf
+fi
+if [ -f "$EASYRSA_PKI/openssl-easyrsa.cnf" ]; then
+  sed -i 's/^RANDFILE/#RANDFILE/g' $EASYRSA_PKI/openssl-easyrsa.cnf
+fi
+
 # Provides a sufficient warning before erasing pre-existing files
 easyrsa init-pki
 
