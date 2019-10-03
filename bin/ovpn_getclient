@@ -99,11 +99,21 @@ tls-auth ta.key 1
 
     if [ "$OVPN_COMP_LZO" == "1" ]; then
         echo "comp-lzo"
+    else
+	echo "comp-lzo no"
     fi
 
     if [ -n "$OVPN_OTP_AUTH" ]; then
         echo reneg-sec 0
     fi
+
+    if [ "$OVPN_DISABLE_PUSH_BLOCK_DNS" == "0" ];then
+	echo "block-outside-dns"
+    fi
+
+    for dnsserver in ${!OVPN_DNS_SERVERS[@]}; do
+	echo dhcp-option DNS ${OVPN_DNS_SERVERS[${dnsserver}]}
+    done
 }
 
 dir="$OPENVPN/clients/$cn"
