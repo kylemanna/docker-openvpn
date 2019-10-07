@@ -11,6 +11,8 @@ Systemd is used to setup a static route and Debian 8.1 or later is recommended a
 
 ### Step 1 — Setup IPv6 on the Host Machine
 
+*If you are using a Digital Ocean droplet with IPV6 enabled, you can skip this step*
+
 The tutorial uses a free tunnel from [tunnelbroker.net](https://tunnelbroker.net/) to get a /64 and /48 prefix allocated to me.  The tunnel endpoint is less then 3 ms away from Digital Ocean's San Francisco datacenter.
 
 Place the following in `/etc/network/interfaces`.  Replace `PUBLIC_IP` with your host's public IPv4 address and replace 2001:db8::2 and 2001:db8::1 with the corresponding tunnel endpoints:
