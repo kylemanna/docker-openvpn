@@ -37,17 +37,13 @@ If this doesn't work, figure it out.  It may be necessary to add an firewall rul
 
 ### Step 2 — Update Docker's Init To Enable IPv6 Support
 
-Add the `--ipv6` to the Docker daemon invocation.
-
-On **Ubuntu** and old versions of Debian Append the `--ipv6` argument to the `DOCKER_OPTS` variable in:
-
-    /etc/default/docker
-
-On modern **systemd** distributions copy the service file and modify it and reload the service:
-
-    sed -e 's:^\(ExecStart.*\):\1 --ipv6:' /lib/systemd/system/docker.service | tee /etc/systemd/system/docker.service
-    systemctl restart docker.service
-
+Create or update `daemon.json` in `/etc/docker/default` to include:
+```json
+{
+      "ipv6": true,
+      "fixed-cidr-v6": "fe80::42:e0ff:fe36:174c/64"
+}
+```
 
 ### Step 3 — Setup the systemd Unit File
 
