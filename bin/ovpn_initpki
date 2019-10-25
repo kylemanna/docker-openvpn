@@ -18,6 +18,10 @@ nopass=$1
 # Provides a sufficient warning before erasing pre-existing files
 easyrsa init-pki
 
+# Work around an issue in easyrsa which may generate insecure CA certs
+# https://github.com/OpenVPN/easy-rsa/issues/261
+sed -i '/^RANDFILE\s*=.*$/d' /etc/openvpn/pki/openssl-easyrsa.cnf
+
 # CA always has a password for protection in event server is compromised. The
 # password is only needed to sign client/server certificates.  No password is
 # needed for normal OpenVPN operation.
