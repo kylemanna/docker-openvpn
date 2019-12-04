@@ -3,7 +3,7 @@
 # Smallest base image
 FROM aarch64/alpine:3.5
 
-MAINTAINER Kyle Manna <kyle@kylemanna.com>
+LABEL maintainer="Kyle Manna <kyle@kylemanna.com>"
 
 RUN echo "http://dl-4.alpinelinux.org/alpine/edge/community/" >> /etc/apk/repositories && \
     echo "http://dl-4.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/repositories && \
@@ -16,6 +16,9 @@ ENV OPENVPN /etc/openvpn
 ENV EASYRSA /usr/share/easy-rsa
 ENV EASYRSA_PKI $OPENVPN/pki
 ENV EASYRSA_VARS_FILE $OPENVPN/vars
+
+# Prevents refused client connection because of an expired CRL
+ENV EASYRSA_CRL_DAYS 3650
 
 VOLUME ["/etc/openvpn"]
 

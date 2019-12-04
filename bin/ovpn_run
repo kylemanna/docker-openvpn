@@ -74,13 +74,14 @@ if [ "$OVPN_DEFROUTE" != "0" ] || [ "$OVPN_NAT" == "1" ] ; then
 	setupIptablesAndRouting
 fi
 
-# Use a hacky hardlink as the CRL Needs to be readable by the user/group
+# Use a copy of crl.pem as the CRL Needs to be readable by the user/group
 # OpenVPN is running as.  Only pass arguments to OpenVPN if it's found.
-if [ -r "$EASYRSA_PKI/crl.pem" ]; then
-    if [ ! -r "$OPENVPN/crl.pem" ]; then
-        ln "$EASYRSA_PKI/crl.pem" "$OPENVPN/crl.pem"
-        chmod 644 "$OPENVPN/crl.pem"
-    fi
+if [ "$EASYRSA_PKI/crl.pem" -nt "$OPENVPN/crl.pem" ]; then
+    cp -f "$EASYRSA_PKI/crl.pem" "$OPENVPN/crl.pem"
+    chmod 644 "$OPENVPN/crl.pem"
+fi
+
+if [ -r "$OPENVPN/crl.pem" ]; then
     addArg "--crl-verify" "$OPENVPN/crl.pem"
 fi
 
@@ -90,6 +91,7 @@ if [ $? = 0 ]; then
     # If this fails, ensure the docker container is run with --privileged
     # Could be side stepped with `ip netns` madness to drop privileged flag
 
+    sysctl -w net.ipv6.conf.all.disable_ipv6=0 || echo "Failed to enable IPv6 support"
     sysctl -w net.ipv6.conf.default.forwarding=1 || echo "Failed to enable IPv6 Forwarding default"
     sysctl -w net.ipv6.conf.all.forwarding=1 || echo "Failed to enable IPv6 Forwarding"
 fi

@@ -1,0 +1,61 @@
+#!/bin/bash
+
+#
+# Revoke a client certificate
+#
+
+if [ "$DEBUG" == "1" ]; then
+    set -x
+fi
+
+set -e
+
+if [ -z "$OPENVPN" ]; then
+    export OPENVPN="$PWD"
+fi
+if ! source "$OPENVPN/ovpn_env.sh"; then
+    echo "Could not source $OPENVPN/ovpn_env.sh."
+    exit 1
+fi
+if [ -z "$EASYRSA_PKI" ]; then
+    export EASYRSA_PKI="$OPENVPN/pki"
+fi
+
+cn="$1"
+parm="$2"
+
+if [ ! -f "$EASYRSA_PKI/private/${cn}.key" ]; then
+    echo "Unable to find \"${cn}\", please try again or generate the key first" >&2
+    exit 1
+fi
+
+revoke_client_certificate(){
+    easyrsa revoke "$1"
+    echo "Generating the Certificate Revocation List :"
+    easyrsa gen-crl
+    cp -f "$EASYRSA_PKI/crl.pem" "$OPENVPN/crl.pem"
+    chmod 644 "$OPENVPN/crl.pem"
+}
+
+remove_files(){
+    rm -v "$EASYRSA_PKI/issued/${1}.crt"
+    rm -v "$EASYRSA_PKI/private/${1}.key"
+    rm -v "$EASYRSA_PKI/reqs/${1}.req"
+}
+
+case "$parm" in
+    "remove")
+        revoke_client_certificate "$cn"
+        remove_files "$cn"
+        ;;
+    "" | "keep")
+        revoke_client_certificate "$cn"
+        ;;
+    *)
+        echo "When revoking a client certificate, this script let you choose if you want to remove the corresponding crt, key and req files." >&2
+        echo "Pease note that the removal of those files is required if you want to generate a new client certificate using the revoked certificate's CN." >&2
+        echo "    1. keep (default): Keep the files." >&2
+        echo "    2. remove: Remove the files." >&2
+        echo "Please specify one of those options as second parameter." >&2
+        ;;
+esac

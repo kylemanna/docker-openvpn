@@ -15,11 +15,17 @@ are harmless for those not using IPv6.
 To use and enable automatic start by systemd:
 
 1. Create a Docker volume container named `ovpn-data-NAME` where `NAME` is the
-   user's choice to describe the use of the container.  In the example
-   configuration given in the [README](/README.md) `NAME=data`.
-2. Initialize the data container according to the [docker-openvpn
-   README](/README.md), but don't start the container. Stop the Docker
-   container if started.
+   user's choice to describe the use of the container.  In this example
+   configuration, `NAME=example`.
+   
+        OVPN_DATA="ovpn-data-example"
+        docker volume create --name $OVPN_DATA
+   
+2. Initialize the data container, but don't start the container :
+   
+       docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
+       docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn ovpn_initpki
+   
 3. Download the [docker-openvpn@.service](https://raw.githubusercontent.com/kylemanna/docker-openvpn/master/init/docker-openvpn%40.service)
    file to `/etc/systemd/system`:
 
@@ -27,11 +33,11 @@ To use and enable automatic start by systemd:
 
 4. Enable and start the service with:
 
-        systemctl enable --now docker-openvpn@NAME.service
+        systemctl enable --now docker-openvpn@example.service
 
 5. Verify service start-up with:
 
-        systemctl status docker-openvpn@NAME.service
-        journalctl --unit docker-openvpn@NAME.service
+        systemctl status docker-openvpn@example.service
+        journalctl --unit docker-openvpn@example.service
 
 For more information, see the [systemd manual pages](https://www.freedesktop.org/software/systemd/man/index.html).

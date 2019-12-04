@@ -1,6 +1,6 @@
 # Advanced security
 
-## Keep the CA root key save
+## Keep the CA root key safe
 As mentioned in the [backup section](/docs/backup.md), there are good reasons to not generate the CA and/or leave it on the server. This document describes how you can generate the CA and all your certificates on a secure machine and then copy only the needed files (which never includes the CA root key obviously ;) ) to the server(s) and clients.
 
 Execute the following commands. Note that you might want to change the volume `$PWD` or use a data docker container for this.
@@ -13,7 +13,7 @@ The [`ovpn_copy_server_files`](/bin/ovpn_copy_server_files) script puts all the 
 
 ## Crypto Hardening
 
-If you want to select the cyphers used by OpenVPN the following parameters of the `ovpn_genconfig` might interest you:
+If you want to select the ciphers used by OpenVPN the following parameters of the `ovpn_genconfig` might interest you:
 
     -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher).
     -C    A list of allowable TLS ciphers delimited by a colon (cipher).
