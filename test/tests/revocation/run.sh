@@ -22,7 +22,7 @@ docker run --rm -v $OVPN_DATA:/etc/openvpn -it -e "EASYRSA_BATCH=1" -e "EASYRSA_
 # Fire up the server.
 #
 sudo iptables -N DOCKER || echo 'Firewall already configured'
-sudo iptables -I FORWARD 1 -j DOCKER
+sudo iptables -I FORWARD 1 -j DOCKER || echo 'Forward already configured'
 docker run -d -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN --privileged -p 1194:1194/udp --name $NAME $IMG
 
 
