@@ -18,6 +18,9 @@ nopass=$1
 # Provides a sufficient warning before erasing pre-existing files
 easyrsa init-pki
 
+# Create a random file for easyrsa rng
+dd if=/dev/urandom of=$EASYRSA_PKI/.rnd bs=256 count=1
+
 # CA always has a password for protection in event server is compromised. The
 # password is only needed to sign client/server certificates.  No password is
 # needed for normal OpenVPN operation.
