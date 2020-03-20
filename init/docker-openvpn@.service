@@ -5,7 +5,7 @@
 # Source: https://github.com/kylemanna/docker-openvpn
 #
 # This service aims to make the update and invocation of the docker-openvpn
-# container seemless.  It automatically downloads the latest docker-openvpn
+# container seamless.  It automatically downloads the latest docker-openvpn
 # image and instantiates a Docker container with that image.  At shutdown it
 # cleans-up the old container.
 #
@@ -59,7 +59,7 @@ ExecStartPre=-/usr/bin/docker rm -f $NAME
 ExecStartPre=-/usr/bin/docker pull $IMG
 
 # IPv6: Ensure forwarding is enabled on host's networking stack (hacky)
-# Would be nice to use systemd-network on the host, but this doens't work
+# Would be nice to use systemd-network on the host, but this doesn't work
 # http://lists.freedesktop.org/archives/systemd-devel/2015-June/032762.html
 ExecStartPre=/bin/sh -c 'test -z "$IP6_PREFIX" && exit 0; sysctl net.ipv6.conf.all.forwarding=1'
 
