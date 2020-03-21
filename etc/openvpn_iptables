@@ -1,0 +1,3 @@
+Defaults:nobody !requiretty
+
+nobody ALL = NOPASSWD: /sbin/iptables
