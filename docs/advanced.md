@@ -18,3 +18,34 @@ The [`ovpn_genconfig`](/bin/ovpn_genconfig) script is intended for simple config
 * Start the server with:
 
         docker run -v $PWD:/etc/openvpn -d -p 1194:1194/udp --privileged kylemanna/openvpn
+
+## Per-user routes
+
+In certain instances, it's desirable to only allow users limited access to hosts on the VPN.  For example, say user `alice` is allowed to access the entire network, while `bob` should only be able to access a system at `192.168.1.4`.
+
+To enable per-user routes, add the following to `/etc/openvpn/openvpn.conf`:
+
+```
+client-connect /usr/local/bin/client-connect
+```
+
+**NOTE**: Once this directive is added, the behavior is strict.  If there are no routes defined, users will not be able to access any hosts.
+
+Next, add a file with the routes for each user on the system.  The name of the file should match the name of the client, so the routes file for the client created with the command `easyrsa build-client-full alice` will be `/etc/openvpn/routes/alice`.  The file should contain one route per line.  For `alice` to access the entire network her file should be:
+
+```
+0.0.0.0/0
+```
+
+For bob to only access the machine `192.168.1.4`, the file `/etc/openvpn/routes/bob` should be:
+
+```
+192.168.1.4/32
+```
+
+If, later `bob` also needs access to `192.168.1.11`, the file should be updated to be:
+
+```
+192.168.1.4/32
+192.168.1.11/32
+```
