@@ -32,3 +32,5 @@ RUN chmod a+x /usr/local/bin/*
 
 # Add support for OTP authentication using a PAM module
 ADD ./otp/openvpn /etc/pam.d/
+
+HEALTHCHECK --start-period=60s --interval=15s --timeout=15s --retries=1 CMD healthcheck.sh
