@@ -1,0 +1,54 @@
+#!/bin/bash
+
+if [ -z "$OPENVPN" ]; then
+    export OPENVPN="$PWD"
+fi
+if ! source "$OPENVPN/ovpn_env.sh"; then
+    echo "Could not source $OPENVPN/ovpn_env.sh."
+    exit 1
+fi
+if [ -z "$EASYRSA_PKI" ]; then
+    export EASYRSA_PKI="$OPENVPN/pki"
+fi
+
+cd "$EASYRSA_PKI"
+
+if [ -e crl.pem ]; then
+    cat ca.crt crl.pem > cacheck.pem
+else
+    cat ca.crt > cacheck.pem
+fi
+
+echo "name,begin,end,status"
+for name in issued/*.crt; do
+    path=$name
+    begin=$(openssl x509 -noout -startdate -in $path | awk -F= '{ print $2 }')
+    end=$(openssl x509 -noout -enddate -in $path | awk -F= '{ print $2 }')
+
+    name=${name%.crt}
+    name=${name#issued/}
+    if [ "$name" != "$OVPN_CN" ]; then
+        # check for revocation or expiration
+        command="openssl verify -crl_check -CAfile cacheck.pem $path"
+        result=$($command)
+        if [ $(echo "$result" | wc -l) == 1 ] && [ "$(echo "$result" | grep ": OK")" ]; then
+            status="VALID"
+        else
+            result=$(echo "$result" | tail -n 1 | grep error | cut -d" " -f2)
+            case $result in
+                10)
+                    status="EXPIRED"
+                    ;;
+                23)
+                    status="REVOKED"
+                    ;;
+                *)
+                    status="INVALID"
+            esac
+        fi
+        echo "$name,$begin,$end,$status"
+    fi
+done
+
+# Clean
+rm cacheck.pem

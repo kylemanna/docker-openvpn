@@ -1,0 +1,412 @@
+#!/bin/bash
+
+#
+# Generate OpenVPN configs
+#
+
+TMP_PUSH_CONFIGFILE=$(mktemp -t vpn_push.XXXXXXX)
+TMP_ROUTE_CONFIGFILE=$(mktemp -t vpn_route.XXXXXXX)
+TMP_EXTRA_CONFIGFILE=$(mktemp -t vpn_extra.XXXXXXX)
+
+#Traceback on Error and Exit come from https://docwhat.org/tracebacks-in-bash/
+set -eu
+
+_showed_traceback=f
+
+traceback() {
+	# Hide the traceback() call.
+	local -i start=$(( ${1:-0} + 1 ))
+	local -i end=${#BASH_SOURCE[@]}
+	local -i i=0
+	local -i j=0
+
+	echo "Traceback (last called is first):" 1>&2
+	for ((i=${start}; i < ${end}; i++)); do
+		j=$(( $i - 1 ))
+		local function="${FUNCNAME[$i]}"
+		local file="${BASH_SOURCE[$i]}"
+		local line="${BASH_LINENO[$j]}"
+		echo "     ${function}() in ${file}:${line}" 1>&2
+	done
+}
+
+on_error() {
+  local _ec="$?"
+  local _cmd="${BASH_COMMAND:-unknown}"
+  traceback 1
+  _showed_traceback=t
+  echo "The command ${_cmd} exited with exit code ${_ec}." 1>&2
+}
+trap on_error ERR
+
+
+on_exit() {
+  echo "Cleaning up before Exit ..."
+  rm -f $TMP_PUSH_CONFIGFILE
+  rm -f $TMP_ROUTE_CONFIGFILE
+  rm -f $TMP_EXTRA_CONFIGFILE
+  local _ec="$?"
+  if [[ $_ec != 0 && "${_showed_traceback}" != t ]]; then
+    traceback 1
+  fi
+}
+trap on_exit EXIT
+
+# Convert 1.2.3.4/24 -> 255.255.255.0
+cidr2mask()
+{
+    local i
+    local subnetmask=""
+    local cidr=${1#*/}
+    local full_octets=$(($cidr/8))
+    local partial_octet=$(($cidr%8))
+
+    for ((i=0;i<4;i+=1)); do
+        if [ $i -lt $full_octets ]; then
+            subnetmask+=255
+        elif [ $i -eq $full_octets ]; then
+            subnetmask+=$((256 - 2**(8-$partial_octet)))
+        else
+            subnetmask+=0
+        fi
+        [ $i -lt 3 ] && subnetmask+=.
+    done
+    echo $subnetmask
+}
+
+# Used often enough to justify a function
+getroute() {
+    echo ${1%/*} $(cidr2mask $1)
+}
+
+usage() {
+    echo "usage: $0 [-d]"
+    echo "                  -u SERVER_PUBLIC_URL"
+    echo "                 [-e EXTRA_SERVER_CONFIG ]"
+    echo "                 [-E EXTRA_CLIENT_CONFIG ]"
+    echo "                 [-f FRAGMENT ]"
+    echo "                 [-n DNS_SERVER ...]"
+    echo "                 [-p PUSH ...]"
+    echo "                 [-r ROUTE ...]"
+    echo "                 [-s SERVER_SUBNET]"
+    echo
+    echo "optional arguments:"
+    echo " -2    Enable two factor authentication using Google Authenticator."
+    echo " -a    Authenticate  packets with HMAC using the given message digest algorithm (auth)."
+    echo " -b    Disable 'push block-outside-dns'"
+    echo " -c    Enable client-to-client option"
+    echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)."
+    echo " -d    Disable default route"
+    echo " -D    Do not push dns servers"
+    echo " -k    Set keepalive. Default: '10 60'"
+    echo " -m    Set client MTU"
+    echo " -N    Configure NAT to access external server network"
+    echo " -t    Use TAP device (instead of TUN device)"
+    echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
+    echo " -z    Enable comp-lzo compression."
+}
+
+process_route_config() {
+  local ovpn_route_config=''
+  ovpn_route_config="$1"
+  # If user passed "0" skip this, assume no extra routes
+  [[ "$ovpn_route_config" == "0" ]] && break;
+  echo "Processing Route Config: '${ovpn_route_config}'"
+  [[ -n "$ovpn_route_config" ]] && echo "route $(getroute $ovpn_route_config)" >> "$TMP_ROUTE_CONFIGFILE"
+}
+
+process_push_config() {
+  local ovpn_push_config=''
+  ovpn_push_config="$1"
+  echo "Processing PUSH Config: '${ovpn_push_config}'"
+  [[ -n "$ovpn_push_config" ]] && echo "push \"$ovpn_push_config\"" >> "$TMP_PUSH_CONFIGFILE"
+}
+
+process_extra_config() {
+  local ovpn_extra_config=''
+  ovpn_extra_config="$1"
+  echo "Processing Extra Config: '${ovpn_extra_config}'"
+  [[ -n "$ovpn_extra_config" ]] && echo "$ovpn_extra_config" >> "$TMP_EXTRA_CONFIGFILE"
+}
+
+if [ "${DEBUG:-}" == "1" ]; then
+  set -x
+fi
+
+set -e
+
+if [ -z "${OPENVPN:-}" ]; then
+  export OPENVPN="$PWD"
+fi
+if [ -z "${EASYRSA_PKI:-}" ]; then
+    export EASYRSA_PKI="$OPENVPN/pki"
+fi
+
+OVPN_AUTH=''
+OVPN_CIPHER=''
+OVPN_CLIENT_TO_CLIENT=''
+OVPN_CN=''
+OVPN_COMP_LZO=0
+OVPN_DEFROUTE=1
+OVPN_DEVICE="tun"
+OVPN_DEVICEN=0
+OVPN_DISABLE_PUSH_BLOCK_DNS=0
+OVPN_DNS=1
+OVPN_DNS_SERVERS=()
+OVPN_ENV=${OPENVPN}/ovpn_env.sh
+OVPN_EXTRA_CLIENT_CONFIG=()
+OVPN_EXTRA_SERVER_CONFIG=()
+OVPN_FRAGMENT=''
+OVPN_KEEPALIVE="10 60"
+OVPN_MTU=''
+OVPN_NAT=0
+OVPN_PORT=''
+OVPN_PROTO=''
+OVPN_PUSH=()
+OVPN_ROUTES=()
+OVPN_SERVER=192.168.255.0/24
+OVPN_SERVER_URL=''
+OVPN_TLS_CIPHER=''
+
+# Import existing configuration if present
+[ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
+
+# Parse arguments
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
+    case $opt in
+        a)
+            OVPN_AUTH="$OPTARG"
+            ;;
+        e)
+            mapfile -t TMP_EXTRA_SERVER_CONFIG <<< "$OPTARG"
+            for i in "${TMP_EXTRA_SERVER_CONFIG[@]}"; do
+              OVPN_EXTRA_SERVER_CONFIG+=("$i")
+            done
+            ;;
+        E)
+            mapfile -t TMP_EXTRA_CLIENT_CONFIG <<< "$OPTARG"
+            for i in "${TMP_EXTRA_CLIENT_CONFIG[@]}"; do
+              OVPN_EXTRA_CLIENT_CONFIG+=("$i")
+            done
+            ;;
+        C)
+            OVPN_CIPHER="$OPTARG"
+            ;;
+        T)
+            OVPN_TLS_CIPHER="$OPTARG"
+            ;;
+        r)
+            mapfile -t TMP_ROUTES <<< "$OPTARG"
+            for i in "${TMP_ROUTES[@]}"; do
+              OVPN_ROUTES+=("$i")
+            done
+            ;;
+        s)
+            OVPN_SERVER="$OPTARG"
+            ;;
+        d)
+            OVPN_DEFROUTE=0
+            OVPN_DISABLE_PUSH_BLOCK_DNS=1
+            ;;
+        u)
+            OVPN_SERVER_URL="$OPTARG"
+            ;;
+        b)
+            OVPN_DISABLE_PUSH_BLOCK_DNS=1
+            ;;
+        c)
+            OVPN_CLIENT_TO_CLIENT=1
+            ;;
+        p)
+            mapfile -t TMP_PUSH <<< "$OPTARG"
+            for i in "${TMP_PUSH[@]}"; do
+              OVPN_PUSH+=("$i")
+            done
+            ;;
+        n)
+            mapfile -t TMP_DNS_SERVERS <<< "$OPTARG"
+            for i in "${TMP_DNS_SERVERS[@]}"; do
+              OVPN_DNS_SERVERS+=("$i")
+            done
+            ;;
+        D)
+            OVPN_DNS=0
+            ;;
+        N)
+            OVPN_NAT=1
+            ;;
+        k)
+            OVPN_KEEPALIVE="$OPTARG"
+            ;;
+        m)
+            OVPN_MTU="$OPTARG"
+            ;;
+        t)
+            OVPN_DEVICE="tap"
+            ;;
+        z)
+            OVPN_COMP_LZO=1
+            ;;
+        2)
+            OVPN_OTP_AUTH=1
+            ;;
+        f)
+            OVPN_FRAGMENT="$OPTARG"
+            ;;
+        \?)
+            set +x
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            exit 1
+            ;;
+        :)
+            set +x
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+# Create ccd directory for static routes
+[ ! -d "${OPENVPN:-}/ccd" ] && mkdir -p ${OPENVPN:-}/ccd
+
+# Server name is in the form "udp://vpn.example.com:1194"
+if [[ "${OVPN_SERVER_URL:-}" =~ ^((udp|tcp|udp6|tcp6)://)?([0-9a-zA-Z\.\-]+)(:([0-9]+))?$ ]]; then
+    OVPN_PROTO=${BASH_REMATCH[2]};
+    OVPN_CN=${BASH_REMATCH[3]};
+    OVPN_PORT=${BASH_REMATCH[5]};
+else
+    set +x
+    echo "Common name not specified, see '-u'"
+    usage
+    exit 1
+fi
+
+# Apply defaults. If dns servers were not defined with -n, use google nameservers
+set +u
+[ -z "$OVPN_DNS_SERVERS" ] && OVPN_DNS_SERVERS=("8.8.8.8" "8.8.4.4")
+[ -z "$OVPN_PROTO" ] && OVPN_PROTO=udp
+[ -z "$OVPN_PORT" ] && OVPN_PORT=1194
+set -u
+[ "${#OVPN_ROUTES[@]}" == "0" ] && [ "$OVPN_DEFROUTE" == "1" ] && OVPN_ROUTES+=("192.168.254.0/24")
+
+# Preserve config
+if [ -f "$OVPN_ENV" ]; then
+    bak_env=$OVPN_ENV.$(date +%s).bak
+    echo "Backing up $OVPN_ENV -> $bak_env"
+    mv "$OVPN_ENV" "$bak_env"
+fi
+
+# Save the current OVPN_ vars to the ovpn_env.sh file
+(set | grep '^OVPN_') | while read -r var; do
+  echo "declare -x $var"  >> "$OVPN_ENV"
+done
+
+conf=${OPENVPN:-}/openvpn.conf
+if [ -f "$conf" ]; then
+    bak=$conf.$(date +%s).bak
+    echo "Backing up $conf -> $bak"
+    mv "$conf" "$bak"
+fi
+
+# Echo extra client configurations
+if [ ${#OVPN_EXTRA_CLIENT_CONFIG[@]} -gt 0 ]; then
+  for i in "${OVPN_EXTRA_CLIENT_CONFIG[@]}"; do
+    echo "Processing Extra Client Config: $i"
+  done
+fi
+
+cat > "$conf" <<EOF
+server $(getroute $OVPN_SERVER)
+verb 3
+key $EASYRSA_PKI/private/${OVPN_CN}.key
+ca $EASYRSA_PKI/ca.crt
+cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
+dh $EASYRSA_PKI/dh.pem
+tls-auth $EASYRSA_PKI/ta.key
+key-direction 0
+keepalive $OVPN_KEEPALIVE
+persist-key
+persist-tun
+
+proto $OVPN_PROTO
+# Rely on Docker to do port mapping, internally always 1194
+port 1194
+dev $OVPN_DEVICE$OVPN_DEVICEN
+status /tmp/openvpn-status.log
+
+user nobody
+group nogroup
+EOF
+
+if [ "${OVPN_DISABLE_PUSH_BLOCK_DNS}" == "1" ]; then
+  echo "Disable default push of 'block-outside-dns'"
+else
+  process_push_config "block-outside-dns"
+fi
+
+[ -n "$OVPN_TLS_CIPHER" ] && echo "tls-cipher $OVPN_TLS_CIPHER" >> "$conf"
+[ -n "$OVPN_CIPHER" ] && echo "cipher $OVPN_CIPHER" >> "$conf"
+[ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
+
+[ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
+[ "$OVPN_COMP_LZO" == "1" ] && echo "comp-lzo" >> "$conf"
+[ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
+
+[ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
+
+# Append route commands
+if [ ${#OVPN_ROUTES[@]} -gt 0 ]; then
+  for i in "${OVPN_ROUTES[@]}"; do
+    process_route_config "$i"
+  done
+  echo -e "\n### Route Configurations Below" >> "$conf"
+  cat $TMP_ROUTE_CONFIGFILE >> "$conf"
+fi
+
+# Append push commands
+[ "$OVPN_DNS" == "1" ] && for i in "${OVPN_DNS_SERVERS[@]}"; do
+  process_push_config "dhcp-option DNS $i"
+done
+
+if [ "$OVPN_COMP_LZO" == "0" ]; then
+    process_push_config "comp-lzo no"
+fi
+
+[ ${#OVPN_PUSH[@]} -gt 0 ] && for i in "${OVPN_PUSH[@]}"; do
+  process_push_config "$i"
+done
+
+echo -e "\n### Push Configurations Below" >> "$conf"
+cat $TMP_PUSH_CONFIGFILE >> "$conf"
+
+# Append optional OTP authentication support
+if [ -n "${OVPN_OTP_AUTH:-}" ]; then
+    echo -e "\n\n# Enable OTP+PAM for user authentication" >> "$conf"
+    echo "plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn" >> "$conf"
+    echo "reneg-sec 0" >> "$conf"
+fi
+
+# Append extra server configurations
+if [ ${#OVPN_EXTRA_SERVER_CONFIG[@]} -gt 0 ]; then
+  for i in "${OVPN_EXTRA_SERVER_CONFIG[@]}"; do
+    process_extra_config "$i"
+  done
+  echo -e "\n### Extra Configurations Below" >> "$conf"
+  cat $TMP_EXTRA_CONFIGFILE >> "$conf"
+fi
+
+set +e
+
+# Clean-up duplicate configs
+if diff -q "${bak_env:-}" "$OVPN_ENV" 2>/dev/null; then
+    echo "Removing duplicate back-up: $bak_env"
+    rm -fv "$bak_env"
+fi
+if diff -q "${bak:-}" "$conf" 2>/dev/null; then
+    echo "Removing duplicate back-up: $bak"
+    rm -fv "$bak"
+fi
+
+echo "Successfully generated config"

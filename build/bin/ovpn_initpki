@@ -1,0 +1,43 @@
+#!/bin/bash
+
+#
+# Initialize the EasyRSA PKI
+#
+
+if [ "$DEBUG" == "1" ]; then
+  set -x
+fi
+
+set -e
+
+source "$OPENVPN/ovpn_env.sh"
+
+# Specify "nopass" as arg[2] to make the CA insecure (not recommended!)
+nopass=$1
+
+# Provides a sufficient warning before erasing pre-existing files
+easyrsa init-pki
+
+# CA always has a password for protection in event server is compromised. The
+# password is only needed to sign client/server certificates.  No password is
+# needed for normal OpenVPN operation.
+easyrsa build-ca $nopass
+
+easyrsa gen-dh
+openvpn --genkey --secret $EASYRSA_PKI/ta.key
+
+# Was nice to autoset, but probably a bad idea in practice, users should
+# have to explicitly specify the common name of their server
+#if [ -z "$cn"]; then
+#    #TODO: Handle IPv6 (when I get a VPS with IPv6)...
+#    ip4=$(dig +short myip.opendns.com @resolver1.opendns.com)
+#    ptr=$(dig +short -x $ip4 | sed -e 's:\.$::')
+#
+#    [ -n "$ptr" ] && cn=$ptr || cn=$ip4
+#fi
+
+# For a server key with a password, manually init; this is autopilot
+easyrsa build-server-full "$OVPN_CN" nopass
+
+# Generate the CRL for client/server certificates revocation.
+easyrsa gen-crl

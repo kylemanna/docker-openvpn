@@ -1,0 +1,52 @@
+# Contributor: Fabio Napoleoni <f.napoleoni@gmail.com>
+# Maintainer:
+pkgname=google-authenticator
+pkgver=20160207
+pkgrel=1
+pkgdesc="Google Authenticator PAM module"
+url="https://github.com/google/google-authenticator"
+arch="all"
+license="ASL 2.0"
+depends=
+depends_dev=
+makedepends="$depends_dev autoconf automake libtool linux-pam-dev m4 openssl-dev"
+install=
+subpackages="$pkgname-doc"
+source="https://github.com/google/google-authenticator/archive/c0404dcdbda9ab9e4f0b8451ecdd44eee8db2425.zip"
+
+_builddir="$srcdir"/$pkgname-c0404dcdbda9ab9e4f0b8451ecdd44eee8db2425/libpam
+
+prepare() {
+	local i
+	cd "$_builddir"
+	for i in $source; do
+		case $i in
+			*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build() {
+	cd "$_builddir"
+		./bootstrap.sh || return 1
+		./configure \
+			--build=$CBUILD \
+			--host=$CHOST \
+			--prefix=/usr \
+			--libdir=/lib \
+			--sysconfdir=/etc \
+			--mandir=/usr/share/man \
+			--infodir=/usr/share/info \
+			|| return 1
+
+		make || return 1
+}
+
+package() {
+	cd "$_builddir"
+	make DESTDIR="$pkgdir" install || return 1
+}
+
+md5sums="33d3cbd0488bcb4f50b34b5670deffae  c0404dcdbda9ab9e4f0b8451ecdd44eee8db2425.zip"
+sha256sums="e32abe693e54195bdb6aca52783e6e1c239e67296876ac59211a59e4608338b8  c0404dcdbda9ab9e4f0b8451ecdd44eee8db2425.zip"
+sha512sums="b44a626e6cc5d8e27685f5d39b5d33f49fc7070331db7b458d3ee40723972821bb8ed5458f27a287dc664d162acf1f8f9a36ca3b1bf767f2bbf27d4f538e9872  c0404dcdbda9ab9e4f0b8451ecdd44eee8db2425.zip"

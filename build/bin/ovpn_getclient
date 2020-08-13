@@ -1,0 +1,132 @@
+#!/bin/bash
+
+#
+# Get an OpenVPN client configuration file
+#
+
+if [ "$DEBUG" == "1" ]; then
+    set -x
+fi
+
+set -e
+
+if [ -z "$OPENVPN" ]; then
+    export OPENVPN="$PWD"
+fi
+if ! source "$OPENVPN/ovpn_env.sh"; then
+    echo "Could not source $OPENVPN/ovpn_env.sh."
+    exit 1
+fi
+if [ -z "$EASYRSA_PKI" ]; then
+    export EASYRSA_PKI="$OPENVPN/pki"
+fi
+
+cn="$1"
+parm="$2"
+
+if [ ! -f "$EASYRSA_PKI/private/${cn}.key" ]; then
+    echo "Unable to find \"${cn}\", please try again or generate the key first" >&2
+    exit 1
+fi
+
+get_client_config() {
+    mode="$1"
+    echo "
+client
+nobind
+dev $OVPN_DEVICE
+remote-cert-tls server
+
+remote $OVPN_CN $OVPN_PORT $OVPN_PROTO"
+    if [ "$OVPN_PROTO" == "udp6" ]; then
+        echo "remote $OVPN_CN $OVPN_PORT udp"
+    fi
+    if [ "$OVPN_PROTO" == "tcp6" ]; then
+        echo "remote $OVPN_CN $OVPN_PORT tcp"
+    fi
+    for i in "${OVPN_EXTRA_CLIENT_CONFIG[@]}"; do
+      echo "$i"
+    done
+    if [ "$mode" == "combined" ]; then
+        echo "
+<key>
+$(cat $EASYRSA_PKI/private/${cn}.key)
+</key>
+<cert>
+$(openssl x509 -in $EASYRSA_PKI/issued/${cn}.crt)
+</cert>
+<ca>
+$(cat $EASYRSA_PKI/ca.crt)
+</ca>
+key-direction 1
+<tls-auth>
+$(cat $EASYRSA_PKI/ta.key)
+</tls-auth>
+"
+    elif [ "$mode" == "separated" ]; then
+        echo "
+key ${cn}.key
+ca ca.crt
+cert ${cn}.crt
+tls-auth ta.key 1
+"
+    fi
+
+    if [ "$OVPN_DEFROUTE" != "0" ];then
+        echo "redirect-gateway def1"
+    fi
+
+    if [ -n "$OVPN_MTU" ]; then
+        echo "tun-mtu $OVPN_MTU"
+    fi
+
+    if [ -n "$OVPN_TLS_CIPHER" ]; then
+        echo "tls-cipher $OVPN_TLS_CIPHER"
+    fi
+
+    if [ -n "$OVPN_CIPHER" ]; then
+        echo "cipher $OVPN_CIPHER"
+    fi
+
+    if [ -n "$OVPN_AUTH" ]; then
+        echo "auth $OVPN_AUTH"
+    fi
+
+    if [ -n "$OVPN_OTP_AUTH" ]; then
+        echo "auth-user-pass"
+        echo "auth-nocache"
+    fi
+
+    if [ "$OVPN_COMP_LZO" == "1" ]; then
+        echo "comp-lzo"
+    fi
+
+    if [ -n "$OVPN_OTP_AUTH" ]; then
+        echo reneg-sec 0
+    fi
+}
+
+dir="$OPENVPN/clients/$cn"
+case "$parm" in
+    "separated")
+        mkdir -p "$dir"
+        get_client_config "$parm" > "$dir/${cn}.ovpn"
+        cp "$EASYRSA_PKI/private/${cn}.key" "$dir/${cn}.key"
+        cp "$EASYRSA_PKI/ca.crt" "$dir/ca.crt"
+        cp "$EASYRSA_PKI/issued/${cn}.crt" "$dir/${cn}.crt"
+        cp "$EASYRSA_PKI/ta.key" "$dir/ta.key"
+        ;;
+    "" | "combined")
+        get_client_config "combined"
+        ;;
+    "combined-save")
+        mkdir -p "$dir"
+        get_client_config "combined" > "$dir/${cn}-combined.ovpn"
+        ;;
+    *)
+        echo "This script can produce the client configuration in two formats:" >&2
+        echo "    1. combined (default): All needed configuration and cryptographic material is in one file (Use \"combined-save\" to write the configuration file in the same path as the separated parameter does)." >&2
+        echo "    2. separated: Separated files." >&2
+        echo "Please specify one of those options as second parameter." >&2
+        ;;
+esac

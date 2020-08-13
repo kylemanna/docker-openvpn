@@ -1,0 +1,12 @@
+#!/bin/sh
+
+#
+# Get OpenVPN server status
+#
+if [ "$DEBUG" == "1" ]; then
+  set -x
+fi
+
+set -e
+
+tail -F /tmp/openvpn-status.log

@@ -1,0 +1,10 @@
+module docker-openvpn 1.0;
+
+require {
+	type svirt_lxc_net_t;
+	class tun_socket create;
+}
+
+#============= svirt_lxc_net_t ==============
+allow svirt_lxc_net_t self:tun_socket create;
+

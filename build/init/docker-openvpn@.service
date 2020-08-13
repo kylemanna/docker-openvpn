@@ -1,0 +1,76 @@
+#
+# Docker + OpenVPN systemd service
+#
+# Author: Kyle Manna <kyle@kylemanna.com>
+# Source: https://github.com/kylemanna/docker-openvpn
+#
+# This service aims to make the update and invocation of the docker-openvpn
+# container seamless.  It automatically downloads the latest docker-openvpn
+# image and instantiates a Docker container with that image.  At shutdown it
+# cleans-up the old container.
+#
+# In the event the service dies (crashes, or is killed) systemd will attempt
+# to restart the service every 10 seconds until the service is stopped with
+# `systemctl stop docker-openvpn@NAME`.
+#
+# A number of IPv6 hacks are incorporated to workaround Docker shortcomings and
+# are harmless for those not using IPv6.
+#
+# To use:
+# 1. Create a Docker volume container named `ovpn-data-NAME` where NAME is the
+#    user's choice to describe the use of the container.
+# 2. Initialize the data container according to the docker-openvpn README, but
+#    don't start the container. Stop the docker container if started.
+# 3. Download this service file to /etc/systemd/service/docker-openvpn@.service
+# 4. Enable and start the service template with:
+#    `systemctl enable --now docker-openvpn@NAME.service`
+# 5. Verify service start-up with:
+#    `systemctl status docker-openvpn@NAME.service`
+#    `journalctl --unit docker-openvpn@NAME.service`
+#
+# For more information, see the systemd manual pages.
+#
+[Unit]
+Description=OpenVPN Docker Container
+Documentation=https://github.com/kylemanna/docker-openvpn
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+RestartSec=10
+Restart=always
+
+# Modify IP6_PREFIX to match network config
+#Environment="IP6_PREFIX=2001:db8::/64"
+#Environment="ARGS=--config openvpn.conf --server-ipv6 2001:db8::/64"
+Environment="NAME=ovpn-%i"
+Environment="DATA_VOL=ovpn-data-%i"
+Environment="IMG=kylemanna/openvpn:latest"
+Environment="PORT=1194:1194/udp"
+
+# To override environment variables, use local configuration directory:
+# /etc/systemd/system/docker-openvpn@foo.d/local.conf
+# http://www.freedesktop.org/software/systemd/man/systemd.unit.html
+
+# Clean-up bad state if still hanging around
+ExecStartPre=-/usr/bin/docker rm -f $NAME
+
+# Attempt to pull new image for security updates
+ExecStartPre=-/usr/bin/docker pull $IMG
+
+# IPv6: Ensure forwarding is enabled on host's networking stack (hacky)
+# Would be nice to use systemd-network on the host, but this doesn't work
+# http://lists.freedesktop.org/archives/systemd-devel/2015-June/032762.html
+ExecStartPre=/bin/sh -c 'test -z "$IP6_PREFIX" && exit 0; sysctl net.ipv6.conf.all.forwarding=1'
+
+# Main process
+ExecStart=/usr/bin/docker run --rm --cap-add=NET_ADMIN -v ${DATA_VOL}:/etc/openvpn --name ${NAME} -p ${PORT} ${IMG} ovpn_run $ARGS
+
+# IPv6: Add static route for IPv6 after it starts up
+ExecStartPost=/bin/sh -c 'test -z "${IP6_PREFIX}" && exit 0; sleep 1; ip route replace ${IP6_PREFIX} via $(docker inspect -f "{{ .NetworkSettings.GlobalIPv6Address }}" $NAME ) dev docker0'
+
+# IPv6: Clean-up
+ExecStopPost=/bin/sh -c 'test -z "$IP6_PREFIX" && exit 0; ip route del $IP6_PREFIX dev docker0'
+
+[Install]
+WantedBy=multi-user.target
