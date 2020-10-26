@@ -49,9 +49,6 @@ grep 'reneg-sec 0' $CLIENT_DIR/config.ovpn || abort 'reneg-sec not set to 0 in c
 #
 # Fire up the server
 #
-sudo iptables -N DOCKER || echo 'Firewall already configured'
-sudo iptables -I FORWARD -j DOCKER || echo 'Forward already configured'
-# run in shell bg to get logs
 docker run --name "ovpn-test" -v $OVPN_DATA:/etc/openvpn --rm -p 1194:1194/udp --privileged $IMG &
 
 #for i in $(seq 10); do

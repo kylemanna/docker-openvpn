@@ -25,11 +25,11 @@ In an effort to not repeat bugs (and break less popular features), unit tests ar
 The style of the repo follows that of the Linux kernel, in particular:
 
 * Pull requests should be rebased to small atomic commits so that the merged history is more coherent
-* The subject of the commit should be in the form "<subsystem>: <subject>"
+* The subject of the commit should be in the form "`<subsystem>: <subject>`"
 * More details in the body
 * Match surrounding coding style (line wrapping, spaces, etc)
 
-More details in the [SubmittingPatches](https://www.kernel.org/doc/Documentation/SubmittingPatches) document included with the Linux kernel.  In particular the following sections:
+More details in the [SubmittingPatches](https://www.kernel.org/doc/html/latest/process/submitting-patches.html) document included with the Linux kernel.  In particular the following sections:
 
 * `2) Describe your changes`
 * `3) Separate your changes`

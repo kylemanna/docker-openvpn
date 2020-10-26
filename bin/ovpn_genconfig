@@ -178,13 +178,13 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             OVPN_AUTH="$OPTARG"
             ;;
         e)
-            mapfile -t TMP_EXTRA_SERVER_CONFIG < <(echo "$OPTARG")
+            mapfile -t TMP_EXTRA_SERVER_CONFIG <<< "$OPTARG"
             for i in "${TMP_EXTRA_SERVER_CONFIG[@]}"; do
               OVPN_EXTRA_SERVER_CONFIG+=("$i")
             done
             ;;
         E)
-            mapfile -t TMP_EXTRA_CLIENT_CONFIG < <(echo "$OPTARG")
+            mapfile -t TMP_EXTRA_CLIENT_CONFIG <<< "$OPTARG"
             for i in "${TMP_EXTRA_CLIENT_CONFIG[@]}"; do
               OVPN_EXTRA_CLIENT_CONFIG+=("$i")
             done
@@ -196,7 +196,7 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             OVPN_TLS_CIPHER="$OPTARG"
             ;;
         r)
-            mapfile -t TMP_ROUTES < <(echo "$OPTARG")
+            mapfile -t TMP_ROUTES <<< "$OPTARG"
             for i in "${TMP_ROUTES[@]}"; do
               OVPN_ROUTES+=("$i")
             done
@@ -218,13 +218,13 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             OVPN_CLIENT_TO_CLIENT=1
             ;;
         p)
-            mapfile -t TMP_PUSH < <(echo "$OPTARG")
+            mapfile -t TMP_PUSH <<< "$OPTARG"
             for i in "${TMP_PUSH[@]}"; do
               OVPN_PUSH+=("$i")
             done
             ;;
         n)
-            mapfile -t TMP_DNS_SERVERS < <(echo "$OPTARG")
+            mapfile -t TMP_DNS_SERVERS <<< "$OPTARG"
             for i in "${TMP_DNS_SERVERS[@]}"; do
               OVPN_DNS_SERVERS+=("$i")
             done
@@ -299,9 +299,9 @@ if [ -f "$OVPN_ENV" ]; then
 fi
 
 # Save the current OVPN_ vars to the ovpn_env.sh file
-while read -r var; do
+(set | grep '^OVPN_') | while read -r var; do
   echo "declare -x $var"  >> "$OVPN_ENV"
-done < <(set | grep '^OVPN_')
+done
 
 conf=${OPENVPN:-}/openvpn.conf
 if [ -f "$conf" ]; then
@@ -352,6 +352,7 @@ fi
 
 [ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
 [ "$OVPN_COMP_LZO" == "1" ] && echo "comp-lzo" >> "$conf"
+[ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
 
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
@@ -368,6 +369,10 @@ fi
 [ "$OVPN_DNS" == "1" ] && for i in "${OVPN_DNS_SERVERS[@]}"; do
   process_push_config "dhcp-option DNS $i"
 done
+
+if [ "$OVPN_COMP_LZO" == "0" ]; then
+    process_push_config "comp-lzo no"
+fi
 
 [ ${#OVPN_PUSH[@]} -gt 0 ] && for i in "${OVPN_PUSH[@]}"; do
   process_push_config "$i"
