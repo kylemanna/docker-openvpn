@@ -44,8 +44,9 @@ remote $OVPN_CN $OVPN_PORT $OVPN_PROTO"
     if [ "$OVPN_PROTO" == "tcp6" ]; then
         echo "remote $OVPN_CN $OVPN_PORT tcp"
     fi
-    echo "$OVPN_ADDITIONAL_CLIENT_CONFIG
-"
+    for i in "${OVPN_EXTRA_CLIENT_CONFIG[@]}"; do
+      echo "$i"
+    done
     if [ "$mode" == "combined" ]; then
         echo "
 <key>
@@ -57,10 +58,10 @@ $(openssl x509 -in $EASYRSA_PKI/issued/${cn}.crt)
 <ca>
 $(cat $EASYRSA_PKI/ca.crt)
 </ca>
+key-direction 1
 <tls-auth>
 $(cat $EASYRSA_PKI/ta.key)
 </tls-auth>
-key-direction 1
 "
     elif [ "$mode" == "separated" ]; then
         echo "

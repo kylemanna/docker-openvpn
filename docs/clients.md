@@ -11,9 +11,11 @@ Note that some client software might be picky about which configuration format i
 
 ## Client List
 
-See an overview of the configured clients, including revocation status:
+See an overview of the configured clients, including revocation and expiration status:
 
     docker run --rm -it -v $OVPN_DATA:/etc/openvpn kylemanna/openvpn ovpn_listclients
+
+ The output is generated using `openssl verify`. Error codes from the verification process different from `X509_V_ERR_CERT_HAS_EXPIRED` or `X509_V_ERR_CERT_REVOKED` will show the status `INVALID`.
 
 ## Batch Mode
 
