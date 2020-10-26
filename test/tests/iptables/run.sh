@@ -16,14 +16,17 @@ docker run -v $OVPN_DATA:/etc/openvpn --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_
 docker run -d --name $NAME -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN $IMG
 
 # check default iptables rules
-docker exec -ti $NAME bash -c 'source /etc/openvpn/ovpn_env.sh; eval iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o eth0 -j MASQUERADE'
+for i in $(seq 10); do
+    docker exec -ti $NAME bash -c 'source /etc/openvpn/ovpn_env.sh; exec iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o eth0 -j MASQUERADE' && break
+    echo waiting for server start-up
+    sleep 1
+done
 
 # append new setupIptablesAndRouting function to config
 docker exec -ti $NAME bash -c 'echo function setupIptablesAndRouting { iptables -t nat -A POSTROUTING -m comment --comment "test"\;} >> /etc/openvpn/ovpn_env.sh'
 
 # kill server in preparation to modify config
-docker kill $NAME
-docker rm $NAME
+docker rm -f $NAME
 
 # check that overridden function exists and that test iptables rules is active
 docker run -d --name $NAME -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN $IMG
@@ -33,6 +36,5 @@ docker exec -ti $NAME bash -c 'source /etc/openvpn/ovpn_env.sh; type -t setupIpt
 # kill server
 #
 
-docker kill $NAME
-docker rm $NAME
+docker rm -f $NAME
 docker volume rm $OVPN_DATA
