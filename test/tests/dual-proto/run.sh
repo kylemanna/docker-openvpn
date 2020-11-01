@@ -35,7 +35,8 @@ docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_listclients | grep $CLIENT_
 # Fire up the server
 #
 
-# run in shell bg to get logs
+# Run in shell bg to get logs, setup trap to clean-up
+trap "{ jobs -p | xargs -r kill; wait; }" EXIT
 docker run --name "ovpn-test-udp" -v $OVPN_DATA:/etc/openvpn --rm -p 1194:1194/udp --privileged $IMG &
 docker run --name "ovpn-test-tcp" -v $OVPN_DATA:/etc/openvpn --rm -p 443:1194/tcp --privileged $IMG ovpn_run --proto tcp &
 
@@ -47,10 +48,6 @@ docker run --name "ovpn-test-tcp" -v $OVPN_DATA:/etc/openvpn --rm -p 443:1194/tc
 docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh
 docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
 
-#
-# Client either connected or timed out, kill server
-#
-kill %1 %2
 
 #
 # Celebrate

@@ -23,6 +23,8 @@ function finish {
     # Stop the server and clean up
     docker rm -f $NAME
     docker volume rm $OVPN_DATA
+    jobs -p | xargs -r kill
+    wait
 }
 trap finish EXIT
 

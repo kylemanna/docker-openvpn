@@ -5,7 +5,8 @@ set -e
 
 OPENVPN_CONFIG=${1:-/client/config.ovpn}
 
-# Run in background, rely on bash for job management
+# Run in background using bash job management, setup trap to clean-up
+trap "{ jobs -p | xargs -r kill; wait; }" EXIT
 openvpn --config "$OPENVPN_CONFIG" --management 127.0.0.1 9999 &
 
 # Spin waiting for interface to exist signifying connection
@@ -31,8 +32,6 @@ done
 
 if [ $i -ge $timeout ]; then
     echo "Error starting OpenVPN, i=$i, exiting."
-    exit 2;
+    exit 2
 fi
 
-# The show is over.
-kill %1
