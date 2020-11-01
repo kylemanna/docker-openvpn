@@ -112,7 +112,7 @@ process_route_config() {
   # If user passed "0" skip this, assume no extra routes
   [[ "$ovpn_route_config" == "0" ]] && break;
   echo "Processing Route Config: '${ovpn_route_config}'"
-  [[ -n "$ovpn_route_config" ]] && echo "route $(getroute $ovpn_route_config)" >> "$TMP_ROUTE_CONFIGFILE"
+  [[ -n "$ovpn_route_config" ]] && echo "push \"route $(getroute $ovpn_route_config)\"" >> "$TMP_ROUTE_CONFIGFILE"
 }
 
 process_push_config() {
