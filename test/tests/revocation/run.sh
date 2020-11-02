@@ -29,7 +29,7 @@ function finish {
 trap finish EXIT
 
 # Put the server in the background
-docker run -d -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN -p 1194:1194/udp --name $NAME $IMG
+docker run -d -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN --name $NAME $IMG
 
 #
 # Test that easy_rsa generate CRLs with 'next publish' set to 3650 days.
@@ -51,10 +51,18 @@ docker exec -it $NAME easyrsa build-client-full $CLIENT1 nopass
 docker exec -it $NAME ovpn_getclient $CLIENT1 > $CLIENT_DIR/config.ovpn
 docker exec -it $NAME bash -c "echo 'yes' | ovpn_revokeclient $CLIENT1"
 
+# Determine IP address of container running daemon and update config
+for i in $(seq 10); do
+    SERV_IP_INTERNAL=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$NAME" 2>/dev/null || true)
+    test -n "$SERV_IP_INTERNAL" && break
+    sleep 0.1
+done
+sed -i -e s:$SERV_IP:$SERV_IP_INTERNAL:g $CLIENT_DIR/config.ovpn
+
 #
 # Test that openvpn client can't connect using $CLIENT1 config.
 #
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --cap-add=NET_ADMIN --net=host $IMG /client/wait-for-connect.sh; then
+if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN -e DEBUG $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #1." >&2
     exit 2
 fi
@@ -66,7 +74,14 @@ docker exec -it $NAME easyrsa build-client-full $CLIENT2 nopass
 docker exec -it $NAME ovpn_getclient $CLIENT2 > $CLIENT_DIR/config.ovpn
 docker exec -it $NAME bash -c "echo 'yes' | ovpn_revokeclient $CLIENT2"
 
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --cap-add=NET_ADMIN --net=host $IMG /client/wait-for-connect.sh; then
+# Determine IP address of container running daemon and update config
+for i in $(seq 10); do
+    SERV_IP_INTERNAL=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "$NAME" 2>/dev/null || true)
+    test -n "$SERV_IP_INTERNAL" && break
+    sleep 0.1
+done
+
+if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN -e DEBUG $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #2." >&2
     exit 2
 fi
@@ -79,7 +94,7 @@ docker stop $NAME && docker start $NAME
 #
 # Test for failed connection using $CLIENT2 config again.
 #
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --cap-add=NET_ADMIN --net=host $IMG /client/wait-for-connect.sh; then
+if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN -e DEBUG $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #3." >&2
     exit 2
 fi

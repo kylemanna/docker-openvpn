@@ -53,14 +53,15 @@ trap "{ jobs -p | xargs -r kill; wait; }" EXIT
 docker run --name "ovpn-test" -v $OVPN_DATA:/etc/openvpn --rm --cap-add=NET_ADMIN $IMG &
 
 for i in $(seq 10); do
-    SERV_IP_INTERNAL=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}')
+    SERV_IP_INTERNAL=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "ovpn-test" 2>/dev/null || true)
     test -n "$SERV_IP_INTERNAL" && break
+    sleep 0.1
 done
-sed -ie s:$SERV_IP:$SERV_IP:g $CLIENT_DIR/config.ovpn
+sed -i -e s:$SERV_IP:$SERV_IP_INTERNAL:g $CLIENT_DIR/config.ovpn
 
 #
 # Fire up a client in a container since openvpn is disallowed by Travis-CI
-docker run --rm --net=host --cap-add=NET_ADMIN --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh
+docker run --rm --cap-add=NET_ADMIN --volume $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh
 
 #
 # Celebrate
