@@ -37,17 +37,16 @@ docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_listclients | grep $CLIENT_
 
 # Run in shell bg to get logs, setup trap to clean-up
 trap "{ jobs -p | xargs -r kill; wait; }" EXIT
-docker run --name "ovpn-test-udp" -v $OVPN_DATA:/etc/openvpn --rm -p 1194:1194/udp --privileged $IMG &
-docker run --name "ovpn-test-tcp" -v $OVPN_DATA:/etc/openvpn --rm -p 443:1194/tcp --privileged $IMG ovpn_run --proto tcp &
+docker run --name "ovpn-test-udp" -v $OVPN_DATA:/etc/openvpn --rm -p 1194:1194/udp --cap-add=NET_ADMIN $IMG &
+docker run --name "ovpn-test-tcp" -v $OVPN_DATA:/etc/openvpn --rm -p 443:1194/tcp --cap-add=NET_ADMIN $IMG ovpn_run --proto tcp &
 
 #
 # Fire up a clients in a containers since openvpn is disallowed by Travis-CI, don't NAT
 # the host as it confuses itself:
 # "Incoming packet rejected from [AF_INET]172.17.42.1:1194[2], expected peer address: [AF_INET]10.240.118.86:1194"
 #
-docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh
-docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
-
+docker run --rm --net=host --cap-add=NET_ADMIN --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh
+docker run --rm --net=host --cap-add=NET_ADMIN --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
 
 #
 # Celebrate

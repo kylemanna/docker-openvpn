@@ -54,7 +54,7 @@ docker exec -it $NAME bash -c "echo 'yes' | ovpn_revokeclient $CLIENT1"
 #
 # Test that openvpn client can't connect using $CLIENT1 config.
 #
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --privileged --net=host $IMG /client/wait-for-connect.sh; then
+if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --cap-add=NET_ADMIN --net=host $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #1." >&2
     exit 2
 fi
@@ -66,7 +66,7 @@ docker exec -it $NAME easyrsa build-client-full $CLIENT2 nopass
 docker exec -it $NAME ovpn_getclient $CLIENT2 > $CLIENT_DIR/config.ovpn
 docker exec -it $NAME bash -c "echo 'yes' | ovpn_revokeclient $CLIENT2"
 
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --privileged --net=host $IMG /client/wait-for-connect.sh; then
+if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --cap-add=NET_ADMIN --net=host $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #2." >&2
     exit 2
 fi
@@ -79,7 +79,7 @@ docker stop $NAME && docker start $NAME
 #
 # Test for failed connection using $CLIENT2 config again.
 #
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --privileged --net=host $IMG /client/wait-for-connect.sh; then
+if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN --cap-add=NET_ADMIN --net=host $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #3." >&2
     exit 2
 fi
