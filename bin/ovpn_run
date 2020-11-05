@@ -39,11 +39,11 @@ function addArg {
 # this allows rules/routing to be altered by supplying this function
 # in an included file, such as ovpn_env.sh
 function setupIptablesAndRouting {
-    iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE || {
+    iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE 2>/dev/null || {
       iptables -t nat -A POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE
     }
     for i in "${OVPN_ROUTES[@]}"; do
-        iptables -t nat -C POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE || {
+        iptables -t nat -C POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE 2>/dev/null || {
           iptables -t nat -A POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE
         }
     done
@@ -87,13 +87,18 @@ fi
 
 ip -6 route show default 2>/dev/null
 if [ $? = 0 ]; then
-    echo "Enabling IPv6 Forwarding"
-    # If this fails, ensure the docker container is run with --privileged
-    # Could be side stepped with `ip netns` madness to drop privileged flag
+    echo "Checking IPv6 Forwarding"
+    if [ "$(</proc/sys/net/ipv6/conf/all/disable_ipv6)" != "0" ]; then
+        echo "Sysctl error for disable_ipv6, please run docker with '--sysctl net.ipv6.conf.all.disable_ipv6=0'"
+    fi
 
-    sysctl -w net.ipv6.conf.all.disable_ipv6=0 || echo "Failed to enable IPv6 support"
-    sysctl -w net.ipv6.conf.default.forwarding=1 || echo "Failed to enable IPv6 Forwarding default"
-    sysctl -w net.ipv6.conf.all.forwarding=1 || echo "Failed to enable IPv6 Forwarding"
+    if [ "$(</proc/sys/net/ipv6/conf/default/forwarding)" != "1" ]; then
+        echo "Sysctl error for default forwarding, please run docker with '--sysctl net.ipv6.conf.default.forwarding=1'"
+    fi
+
+    if [ "$(</proc/sys/net/ipv6/conf/all/forwarding)" != "1" ]; then
+        echo "Sysctl error for all forwarding, please run docker with '--sysctl net.ipv6.conf.all.forwarding=1'"
+    fi
 fi
 
 echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"

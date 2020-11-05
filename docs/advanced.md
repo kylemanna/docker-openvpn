@@ -17,4 +17,4 @@ The [`ovpn_genconfig`](/bin/ovpn_genconfig) script is intended for simple config
 
 * Start the server with:
 
-        docker run -v $PWD:/etc/openvpn -d -p 1194:1194/udp --privileged kylemanna/openvpn
+        docker run -v $PWD:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN kylemanna/openvpn
