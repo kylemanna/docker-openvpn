@@ -43,3 +43,11 @@ Then initialize the data container by specifying the TCP protocol, port 443 and 
 Then proceed to initialize the pki, create your users and start the container as usual.
     
 This will proxy all non OpenVPN traffic incoming on TCP port 443 to TCP port 4433 on the same host. This is currently only designed to work with HTTP or HTTPS protocol.
+
+## UDP Container and Second Fallback TCP Container with Forward HTTP/HTTPS connection to another TCP port
+
+The `port-share` option is not compatible with using UDP. So, you cannot add the `port-share` option to the configuration to the configuration, if you also want to run a server with UDP.
+To still make it happen, don't add the `port-share` option to the configuration (or remove it, if already done) and run the TCP server with following command:
+
+    docker run -v $OVPN_DATA:/etc/openvpn -d -p 443:1194/tcp --cap-add=NET_ADMIN kylemanna/openvpn \
+    ovpn_run --proto tcp --port-share FORWARD-SERVER-IP FORWARD-SERVER-IP
