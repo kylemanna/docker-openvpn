@@ -92,6 +92,10 @@ tls-auth ta.key 1
         echo "auth $OVPN_AUTH"
     fi
 
+    if [ -n "$OVPN_AUTH_NOCACHE" ]; then
+        echo "auth-nocache"
+    fi
+
     if [ -n "$OVPN_OTP_AUTH" ]; then
         echo "auth-user-pass"
         echo "auth-nocache"
