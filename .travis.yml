@@ -19,15 +19,23 @@ install:
 # Assist with ci test debugging:
 #   - DEBUG=1
 before_script:
+    - docker run --rm --privileged multiarch/qemu-user-static:register --reset
     - image="kylemanna/openvpn"
+    - image_arm="kylemanna/openvpn-arm"
     - docker build -t "$image" .
+    - docker build -f Dockerfile.armv7 -t "$image_arm" .
     - docker inspect "$image"
+    - docker inspect "$image_arm"
     - docker run --rm "$image" openvpn --version || true # why does it return 1?
+    - docker run --rm "$image_arm" openvpn --version || true # why does it return 1?
     - docker run --rm "$image" openssl version
+    - docker run --rm "$image_arm" openssl version
 
 script:
     - official-images/test/run.sh "$image"
     - test/run.sh "$image"
+    - official-images/test/run.sh "$image_arm"
+    - test/run.sh "$image_arm"
 
 after_script:
     - docker images
