@@ -59,6 +59,13 @@ if [ ! -c /dev/net/tun ]; then
     mknod /dev/net/tun c 10 200
 fi
 
+if [ $OVPN_DEVICE == "tap" ]; then
+        if [ $(ip link show | grep -c $OVPN_DEVICE$OVPN_DEVICEN:) -eq 0 ]; then
+                openvpn --mktun --dev $OVPN_DEVICE$OVPN_DEVICEN
+        fi
+        ip link set $OVPN_DEVICE$OVPN_DEVICEN up
+fi
+
 if [ -d "$OPENVPN/ccd" ]; then
     addArg "--client-config-dir" "$OPENVPN/ccd"
 fi
