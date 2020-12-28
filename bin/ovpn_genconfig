@@ -332,7 +332,7 @@ persist-tun
 
 proto $OVPN_PROTO
 # Rely on Docker to do port mapping, internally always 1194
-port 1194
+port $OVPN_PORT
 dev $OVPN_DEVICE$OVPN_DEVICEN
 status /tmp/openvpn-status.log
 
