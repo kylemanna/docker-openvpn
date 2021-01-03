@@ -49,6 +49,33 @@ function setupIptablesAndRouting {
     done
 }
 
+# clear iptables rules if they exist
+function clearIptablesAndRouting {
+    iptables -t nat -C POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE 2>/dev/null && {
+      iptables -t nat -D POSTROUTING -s $OVPN_SERVER -o $OVPN_NATDEVICE -j MASQUERADE
+    }
+    for i in "${OVPN_ROUTES[@]}"; do
+        iptables -t nat -C POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE 2>/dev/null && {
+          iptables -t nat -D POSTROUTING -s "$i" -o $OVPN_NATDEVICE -j MASQUERADE
+        }
+    done
+}
+
+# forward SIGTERM to the child and then cleanup
+function gracefully_shutdown {
+    kill -SIGTERM $child_pid
+    if [ "$OVPN_DEFROUTE" != "0" ] || [ "$OVPN_NAT" == "1" ] ; then
+        clearIptablesAndRouting
+    fi
+}
+
+# foward the signal
+function forward_handler {
+    sig_type="$1"
+    # forward this signal to the child
+    kill -"$sig_type" $child_pid
+}
+
 
 addArg "--config" "$OPENVPN/openvpn.conf"
 
@@ -101,5 +128,23 @@ if [ $? = 0 ]; then
     fi
 fi
 
+######## Do not exit immediately after this section #########
+set +e
+# Install the SIGTERM handler
+trap gracefully_shutdown SIGTERM SIGINT
+# Install other signals mentioned in the OpenVPN reference manual
+for sig in SIGHUP SIGUSR1 SIGUSR2; do
+    trap "forward_handler $sig" "$sig"
+done
+
 echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"
-exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
+# Run it in the background and then wait it later
+openvpn ${ARGS[@]} ${USER_ARGS[@]} &
+child_pid=$!
+
+# wait for the openvpn process to end
+wait $child_pid
+# keep wait for it if this process has not ended
+while [[ "$?" -ne 0 ]]; do
+    wait $child_pid
+done
