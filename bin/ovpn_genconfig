@@ -101,6 +101,7 @@ usage() {
     echo " -k    Set keepalive. Default: '10 60'"
     echo " -m    Set client MTU"
     echo " -N    Configure NAT to access external server network"
+    echo " -s    Skip TLS authentication"
     echo " -t    Use TAP device (instead of TUN device)"
     echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
     echo " -z    Enable comp-lzo compression."
@@ -167,12 +168,13 @@ OVPN_ROUTES=()
 OVPN_SERVER=192.168.255.0/24
 OVPN_SERVER_URL=''
 OVPN_TLS_CIPHER=''
+OVPN_TLSAUTH=1
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:stz2" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -240,6 +242,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             ;;
         m)
             OVPN_MTU="$OPTARG"
+            ;;
+        s)
+            OVPN_TLSAUTH=0
             ;;
         t)
             OVPN_DEVICE="tap"
@@ -324,7 +329,9 @@ key $EASYRSA_PKI/private/${OVPN_CN}.key
 ca $EASYRSA_PKI/ca.crt
 cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
 dh $EASYRSA_PKI/dh.pem
-tls-auth $EASYRSA_PKI/ta.key
+EOF
+[ "${OVPN_TLSAUTH}" == "1" ] && echo "tls-auth $EASYRSA_PKI/ta.key" >> "$conf"
+cat >> "$conf" <<EOF
 key-direction 0
 keepalive $OVPN_KEEPALIVE
 persist-key
