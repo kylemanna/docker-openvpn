@@ -49,28 +49,19 @@ grep 'reneg-sec 0' $CLIENT_DIR/config.ovpn || abort 'reneg-sec not set to 0 in c
 #
 # Fire up the server
 #
-sudo iptables -N DOCKER || echo 'Firewall already configured'
-sudo iptables -I FORWARD -j DOCKER || echo 'Forward already configured'
-# run in shell bg to get logs
-docker run --name "ovpn-test" -v $OVPN_DATA:/etc/openvpn --rm -p 1194:1194/udp --privileged $IMG &
+trap "{ jobs -p | xargs -r kill; wait; }" EXIT
+docker run --name "ovpn-test" -v $OVPN_DATA:/etc/openvpn --rm --cap-add=NET_ADMIN $IMG &
 
-#for i in $(seq 10); do
-#    SERV_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}')
-#    test -n "$SERV_IP" && break
-#done
-#sed -ie s:SERV_IP:$SERV_IP:g $CLIENT_DIR/config.ovpn
-
-#
-# Fire up a client in a container since openvpn is disallowed by Travis-CI, don't NAT
-# the host as it confuses itself:
-# "Incoming packet rejected from [AF_INET]172.17.42.1:1194[2], expected peer address: [AF_INET]10.240.118.86:1194"
-#
-docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh
+for i in $(seq 10); do
+    SERV_IP_INTERNAL=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "ovpn-test" 2>/dev/null || true)
+    test -n "$SERV_IP_INTERNAL" && break
+    sleep 0.1
+done
+sed -i -e s:$SERV_IP:$SERV_IP_INTERNAL:g $CLIENT_DIR/config.ovpn
 
 #
-# Client either connected or timed out, kill server
-#
-kill %1
+# Fire up a client in a container since openvpn is disallowed by Travis-CI
+docker run --rm --cap-add=NET_ADMIN --volume $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh
 
 #
 # Celebrate
