@@ -22,6 +22,7 @@ ENV EASYRSA=/usr/share/easy-rsa \
     EASYRSA_PKI=$OPENVPN/pki
 
 VOLUME ["/etc/openvpn"]
+VOLUME ["/var/log"]
 
 # Internally uses port 1194/udp, remap using `docker run -p 443:1194/tcp`
 EXPOSE 1194/udp
@@ -30,7 +31,7 @@ EXPOSE 443/tcp
 CMD ["ovpn_run"]
 
 ADD ./bin /usr/local/bin
-RUN chmod a+x /usr/local/bin/*
+RUN chmod a+x /usr/local/bin/* && chown -RH root:openvpn /usr/local/bin/
 
 # Add support for OTP authentication using a PAM module
 ADD ./otp/openvpn /etc/pam.d/

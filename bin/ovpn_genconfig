@@ -89,6 +89,7 @@ usage() {
     echo "                 [-p PUSH ...]"
     echo "                 [-r ROUTE ...]"
     echo "                 [-s SERVER_SUBNET]"
+    echo "                 [-H]"
     echo
     echo "optional arguments:"
     echo " -2    Enable two factor authentication using Google Authenticator."
@@ -104,6 +105,7 @@ usage() {
     echo " -t    Use TAP device (instead of TUN device)"
     echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
     echo " -z    Enable comp-lzo compression."
+    echo " -H    Enable admin https server"
 }
 
 process_route_config() {
@@ -127,6 +129,12 @@ process_extra_config() {
   ovpn_extra_config="$1"
   echo "Processing Extra Config: '${ovpn_extra_config}'"
   [[ -n "$ovpn_extra_config" ]] && echo "$ovpn_extra_config" >> "$TMP_EXTRA_CONFIGFILE"
+}
+
+gen_lighttpd_config() {
+  read -p "https username:" http_user || return 1
+  read -sp "$http_user password:" http_password || return 1
+  openssl-htpasswd /etc/openvpn/http/htpasswd "$http_user" "$http_password"
 }
 
 if [ "${DEBUG:-}" == "1" ]; then
@@ -167,12 +175,13 @@ OVPN_ROUTES=()
 OVPN_SERVER=192.168.255.0/24
 OVPN_SERVER_URL=''
 OVPN_TLS_CIPHER=''
+OVPN_HTTPS_ADMIN=0
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2H" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -252,6 +261,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             ;;
         f)
             OVPN_FRAGMENT="$OPTARG"
+            ;;
+        H)  
+            OVPN_HTTPS_ADMIN=1
             ;;
         \?)
             set +x
@@ -408,5 +420,7 @@ if diff -q "${bak:-}" "$conf" 2>/dev/null; then
     echo "Removing duplicate back-up: $bak"
     rm -fv "$bak"
 fi
+
+ [ "$OVPN_HTTPS_ADMIN" = 1 ] && gen_lighttpd_config
 
 echo "Successfully generated config"
