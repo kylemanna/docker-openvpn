@@ -8,7 +8,7 @@ print_user_table()
 	echo '<form><table>'
 
 	echo '<tr><th colspan=5>Existing users</th></tr>
-	<tr><th>name</th><th>valid from</th><th>valid to</th><th>status</th><th>config</th></tr>'
+	<tr><th>Username</th><th>Valid from</th><th>Valid to</th><th>Status</th><th>Config</th></tr>'
 
 	ovpn_listclients | tail -n +2 | while IFS=, read -r name valid_from valid_to status; do
 		
@@ -21,24 +21,28 @@ print_user_table()
 		<br/><br/>
 		<div id="popup">
 			<table
-			<tr><th colspan=2>Change user</th></tr>
+			<tr><th colspan=2>User management</th></tr>
+
+			<tr><td>Action</td>
+			<td><select id="action" name="action">
+				<option value="add">add</option>
+				<option value="del">delete</option>
+				<option value="renew">renew</option>
+			</select></td>
+			</tr>
+
 			<tr><td>Username</td>
 			<td><input type="text" id="username" name="username"/></td>
 			</tr>
 
-			<tr><td>Action</td>
-			<td><select id="action" name="action">
-				<option value="del">delete</option>
-				<option value="add">add</option>
-				<option value="renew">renew</option>
-			</select></td>
-
 			<tr><td>CA passphrase*</td>
 			<td><input type="password" id="capassphrase" name="capassphrase"/></td>
+			</tr>
+
 			<tr><td colspan=2><button type="submit" onclick="done()">Do it!</button></td></tr>
 			</table>
 		</div>
-		<div>* Passphrase can be found in keepassxc pwd db</div>
+		<div>* Global passphrase for the user management, can be found in keepassxc pwd db</div>
 
 	</form>'
 }
