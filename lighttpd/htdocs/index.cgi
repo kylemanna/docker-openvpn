@@ -5,7 +5,7 @@ print_user_table()
 # 	name,begin,end,status
 # ariya,Jul 21 11:15:44 2020 GMT,Jul  6 11:15:44 2023 GMT,VALID
 
-	echo '<form><table>'
+	echo '<form method="post"><table>'
 
 	echo '<tr><th colspan=5>Existing users</th></tr>
 	<tr><th>Username</th><th>Valid from</th><th>Valid to</th><th>Status</th><th>Config</th></tr>'
@@ -52,9 +52,11 @@ MY_PATH=$(readlink -f "$BASH_SOURCE")
 MYDIR=$(dirname "$MY_PATH")
 . "$MYDIR/defs"
 
-action=$(parse_arg "action")
-username=$(parse_arg "username")
-capassphrase=$(parse_arg "capassphrase")
+read -t 5 POST_STRING
+
+action=$(parse_post_arg "action")
+username=$(parse_post_arg "username")
+capassphrase=$(parse_post_arg "capassphrase")
 export EASYRSA_PASSIN="pass:$capassphrase"
 export EASYRSA_BATCH=1
 case "$action" in

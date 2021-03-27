@@ -5,7 +5,7 @@ MYDIR=$(dirname "$MY_PATH")
 . "$MYDIR/defs"
 
 
-username=$(parse_arg username)
+username=$(parse_get_arg username)
 [ "$?" != 0 -o -z "$username" ] && echo -e "$HEAD\n no valid user supplied!\n$END" && exit 1
 
 CONFIG=$(ovpn_getclient "$username")
