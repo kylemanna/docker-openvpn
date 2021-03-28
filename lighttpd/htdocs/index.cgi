@@ -43,6 +43,9 @@ print_user_table()
 			</table>
 		</div>
 		<div>* Global passphrase for the user management, can be found in keepassxc pwd db</div>
+		<br/>
+
+		<div><a href="web_password.cgi">Openvpn admin web (this page) access management</a>
 
 	</form>'
 }
