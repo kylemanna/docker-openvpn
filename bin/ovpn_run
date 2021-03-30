@@ -111,7 +111,7 @@ fi
 
 # TODO: ovpn user
 echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"
-exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
+exec openvpn --user ${OVPN_USER} -- group "${OVPN_GROUP}" ${ARGS[@]} ${USER_ARGS[@]}
 
 echo "shutting down https admin iface"
 [ "$OVPN_HTTPS_ADMIN" = 1 ] && [ -f /var/run/lighttpd.pid ] && kill -TERM $(cat /var/run/lighttpd.pid)
