@@ -136,13 +136,14 @@ resolvers like those of Google (8.8.4.4 and 8.8.8.8) or OpenDNS
 ## Https user admin
 If you wish to use https interface for configuring the clients
 * Pass -H to ovpn_genconfig
-       docker run -v $OVPN_DATA:/etc/openvpn -H --rm kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
+       docker run -v $OVPN_DATA:/etc/openvpn -v $OVPN_LOG:/var/log -H --rm kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
 It will ask you to specify username/password for the interface & for domain name for https certificate
 * If you wish to supply your certificate/key for the https server, place it in $OPENVPN/http/ and set ownership and access rights.
        cp server.pem server.key $OPENVPN/http/
        chown 101:102 $OPENVPN/http/server*
        chmod 600 $OPENVPN/http/server.key
        chmod 644 $OPENVPN/http/server.cer
+* Be aware that the lighttpd log files are not logrotated.
 
 ## Security Discussion
 
