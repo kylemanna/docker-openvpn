@@ -11,9 +11,19 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/reposi
     ln -s /usr/share/easy-rsa/easyrsa /usr/local/bin && \
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/*
 
+ENV OVPN_USER=openvpn
+ENV OVPN_GROUP=openvpn
+
 ADD ./lighttpd/htdocs/ /var/www/localhost/htdocs/
 ADD ./lighttpd/config/* /etc/lighttpd/
-RUN chown -R openvpn:openvpn /var/www/localhost/htdocs /etc/lighttpd /var/log/lighttpd
+RUN sed -i /etc/lighttpd/lighttpd.conf -e 's/server\.username.*/server.username\ =\ "$OVPN_USER"/' -e 's/server\.groupname.*/server.groupname\ =\ "$OVPN_GROUP"/' && \
+	chown -R ${OVPN_USER}:${OVPN_GROUP} /var/www/localhost/htdocs /etc/lighttpd /var/log/lighttpd
+
+ADD ./bin /usr/local/bin
+RUN chmod 755 /usr/local/bin/* && chown root:${OVPN_GROUP} /usr/local/bin/*
+
+# Add support for OTP authentication using a PAM module
+ADD ./otp/openvpn /etc/pam.d/
 
 # Needed by scripts
 ENV OPENVPN=/etc/openvpn
@@ -29,11 +39,5 @@ EXPOSE 1194/udp
 EXPOSE 443/tcp
 
 CMD ["ovpn_run"]
+USER $OVPN_USER:$OVPN_GROUP
 
-ADD ./bin /usr/local/bin
-RUN chmod a+x /usr/local/bin/* && chown -RH root:openvpn /usr/local/bin/
-
-# Add support for OTP authentication using a PAM module
-ADD ./otp/openvpn /etc/pam.d/
-
-# TODO: make sure here & in scripts that everything is done as "openvpn" user
