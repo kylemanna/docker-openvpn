@@ -36,7 +36,7 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
 * Start OpenVPN server process
 
-      docker run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN kylemanna/openvpn
+      docker run --user root -v $OVPN_DATA:/etc/openvpn -v $OVPN_LOGS:/var/log -d -p 1194:1194/udp -p 443:443 --cap-add=NET_ADMIN kylemanna/openvpn
 
 * Generate a client certificate without a passphrase
 
@@ -133,6 +133,16 @@ and they might not answer to you. If that happens, use public DNS
 resolvers like those of Google (8.8.4.4 and 8.8.8.8) or OpenDNS
 (208.67.222.222 and 208.67.220.220).
 
+## Https user admin
+If you wish to use https interface for configuring the clients
+* Pass -H to ovpn_genconfig
+       docker run -v $OVPN_DATA:/etc/openvpn -H --rm kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
+It will ask you to specify username/password for the interface & for domain name for https certificate
+* If you wish to supply your certificate/key for the https server, place it in $OPENVPN/http/ and set ownership and access rights.
+       cp server.pem server.key $OPENVPN/http/
+       chown 101:102 $OPENVPN/http/server*
+       chmod 600 $OPENVPN/http/server.key
+       chmod 644 $OPENVPN/http/server.cer
 
 ## Security Discussion
 
