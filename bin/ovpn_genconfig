@@ -134,7 +134,16 @@ process_extra_config() {
 gen_lighttpd_config() {
   read -p "https username:" http_user || return 1
   read -sp "$http_user password:" http_password || return 1
-  openssl-htpasswd /etc/openvpn/http/htpasswd "$http_user" "$http_password"
+  openssl-htpasswd "$OPENVPN/http/htpasswd" "$http_user" "$http_password"
+
+  if [ ! -f "$OPENVPN/http/server.key" ]; then
+    echo "generating https server cert..."
+    read -p "https server domain/ip:" cn || return 1
+    openssl req -x509 -newkey rsa:4096 -nodes -subj "/CN=$cn" -keyout "$OPENVPN/http/server.key" -out "$OPENVPN/http/server.pem" -days +365 || return 1
+    chown openvpn:openvpn "$OPENVPN"/http/server.*
+  fi
+
+  return 0
 }
 
 if [ "${DEBUG:-}" == "1" ]; then
@@ -421,6 +430,9 @@ if diff -q "${bak:-}" "$conf" 2>/dev/null; then
     rm -fv "$bak"
 fi
 
- [ "$OVPN_HTTPS_ADMIN" = 1 ] && gen_lighttpd_config
+[ "$OVPN_HTTPS_ADMIN" = 1 ] && gen_lighttpd_config
+
+# just to be sure if someone run this as root
+chown -R openvpn:openvpn "$OPENVPN" "/var/www" "/etc/lighttpd"
 
 echo "Successfully generated config"
