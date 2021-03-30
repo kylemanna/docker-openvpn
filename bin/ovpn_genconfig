@@ -185,6 +185,8 @@ OVPN_SERVER=192.168.255.0/24
 OVPN_SERVER_URL=''
 OVPN_TLS_CIPHER=''
 OVPN_HTTPS_ADMIN=0
+OVPN_USER=openvpn
+OVPN_GROUP=openvpn
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
