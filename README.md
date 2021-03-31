@@ -112,7 +112,6 @@ which dumps an inline OpenVPN client configuration file.  This single file can
 then be given to a client for access to the VPN.
 
 To enable Two Factor Authentication for clients (a.k.a. OTP) see [this document](/docs/otp.md).
-NOTE: requires easy-rsa 3.0.8 or higher
 
 ## OpenVPN Details
 
@@ -144,6 +143,8 @@ It will ask you to specify username/password for the interface & for domain name
        chmod 600 $OPENVPN/http/server.key
        chmod 644 $OPENVPN/http/server.cer
 * Be aware that the lighttpd log files are not logrotated.
+
+NOTE: requires easy-rsa 3.0.8 or higher (make sure you make the docker image from alpine 3.13 or so)
 
 ## Security Discussion
 
