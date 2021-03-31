@@ -54,6 +54,9 @@ addArg "--config" "$OPENVPN/openvpn.conf"
 
 source "$OPENVPN/ovpn_env.sh"
 
+[ -n "${OVPN_USER}" ] && addArg "--user" "${OVPN_USER}"
+[ -n "${OVPN_GROUP}" ] && addArg "--group" "${OVPN_GROUP}"
+
 mkdir -p /dev/net
 if [ ! -c /dev/net/tun ]; then
     mknod /dev/net/tun c 10 200
@@ -101,5 +104,18 @@ if [ $? = 0 ]; then
     fi
 fi
 
+chown -R openvpn:openvpn "$OPENVPN"
+
+echo "running https admin iface"
+if [ "$OVPN_HTTPS_ADMIN" = 1 ]; then
+	env | grep EASYRSA | while read line; do echo "export $line"; done > $OPENVPN/http/easyrsa.env && chown openvpn $OPENVPN/http/easyrsa.env
+	lighttpd -f /etc/lighttpd/lighttpd.conf
+fi
+
+# TODO: ovpn user
 echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"
 exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
+
+echo "shutting down https admin iface"
+[ "$OVPN_HTTPS_ADMIN" = 1 ] && [ -f /var/run/lighttpd.pid ] && kill -TERM $(cat /var/run/lighttpd.pid)
+

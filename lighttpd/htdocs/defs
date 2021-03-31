@@ -1,0 +1,36 @@
+HEAD='<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+	<link rel="stylesheet" href="style.css">
+	<title>Openvpn client management</title>
+</head>
+<body>'
+
+END='</body></html>'
+
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
+
+
+parse_get_arg()
+{
+	while IFS='=' read -r -d '&' var val; do
+		var=$(urldecode "$var")
+		[ "$var"  = "$1" ] && echo $(urldecode "$val") && return 0
+	done<<<"${QUERY_STRING}&"
+	return 1
+}
+export -f parse_get_arg
+
+parse_post_arg()
+{
+	while IFS='=' read -r -d '&' var val; do
+		var=$(urldecode "$var")
+		[ "$var"  = "$1" ] && echo $(urldecode "$val") && return 0
+	done<<<"${POST_STRING}&"
+	return 1
+}
+export -f parse_post_arg
+
+
+. /etc/openvpn/http/easyrsa.env
