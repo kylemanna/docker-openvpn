@@ -98,7 +98,7 @@ tls-auth ta.key 1
     fi
 
     if [ "$OVPN_COMP_LZO" == "1" ]; then
-        echo "comp-lzo"
+        echo "compress lzo"
     fi
 
     if [ -n "$OVPN_OTP_AUTH" ]; then
