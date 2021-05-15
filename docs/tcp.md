@@ -27,7 +27,30 @@ Instead of choosing between UDP and TCP, you can use both. A single instance of 
 
 This allows you to use UDP most of the time, but fall back to TCP on the rare occasion that you need it.
 
-Note that you will need to configure client connections manually. At this time it is not possible to generate a client config that will automatically fall back to the TCP connection.
+Note that you can either (1) configure client connections manually (to respect the fallback server port difference) or (2) add `connection` configuration to your ovpn profiles. Referencing the OpenVPN docs: 
+
+```
+<connection>
+Define a client connection profile. Client connection profiles are groups of OpenVPN options that describe how to connect to a given OpenVPN server.
+Client connection profiles are specified within an OpenVPN configuration file, and each profile is bracketed by <connection> and </connection>.
+An OpenVPN client will try each connection profile sequentially until it achieves a successful connection.
+```
+
+An example of this would be (inside of a client ovpn profile): 
+
+```
+...
+<connection>
+remote my.vpn.server 1194 udp
+</connection>
+
+<connection>
+remote my.vpn.server 443 tcp
+</connection>
+...
+```
+
+In this scenario, the client would first attempt to connect over UDP traffic on port 1194. If the connection is unsuccessful, it will then automatically attempt to the next connection block (in this case, TCP traffic on port 443). This can be very useful and seamless for setting up your fallback server.
 
 ## Forward HTTP/HTTPS connection to another TCP port
 You might run into cases where you want your OpenVPN server listening on TCP port 443 to allow connection behind a restricted network, but you already have a webserver on your host running on that port. OpenVPN has a built-in option named `port-share` that allow you to proxy incoming traffic that isn't OpenVPN protocol to another host and port.
