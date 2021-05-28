@@ -17,6 +17,11 @@ services:
      - ./openvpn-data/conf:/etc/openvpn
 ```
 
+* Pull Image
+
+```bash
+docker-compose pull
+```
 
 * Initialize the configuration files and certificates
 
