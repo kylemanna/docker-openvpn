@@ -17,6 +17,28 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 * Docker Registry @ [kylemanna/openvpn](https://hub.docker.com/r/kylemanna/openvpn/)
 * GitHub @ [kylemanna/docker-openvpn](https://github.com/kylemanna/docker-openvpn)
 
+## Super Quick Start
+
+#### setup volume
+```commandline
+./setup.sh ovpn-data-example your-domain-or-ip
+```
+
+#### start container
+```commandline
+/start_docker.sh ovpn-data-example
+```
+
+#### onboard client
+```commandline
+./gen_client.sh ovpn-data-example clientname
+```
+
+#### export clients
+```commandline
+./export_client.sh ovpn-data-example clientname
+```
+
 ## Quick Start
 
 * Pick a name for the `$OVPN_DATA` data volume container. It's recommended to
