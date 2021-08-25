@@ -101,5 +101,9 @@ if [ $? = 0 ]; then
     fi
 fi
 
+if [ -f "$OPENVPN/ovpn_after_run.sh" ]; then
+    source "$OPENVPN/ovpn_after_run.sh"
+fi
+
 echo "Running 'openvpn ${ARGS[@]} ${USER_ARGS[@]}'"
 exec openvpn ${ARGS[@]} ${USER_ARGS[@]}
