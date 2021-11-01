@@ -46,6 +46,8 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
       docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
+* Make sure to repeat `build-client-full` and `ovpn_getclient` with a separate `CLIENTNAME` for each separate user
+
 ## Next Steps
 
 ### More Reading
