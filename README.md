@@ -51,7 +51,7 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 ### More Reading
 
 Miscellaneous write-ups for advanced configurations are available in the
-[docs](docs) folder.
+[docs](https://github.com/kylemanna/docker-openvpn/blob/master/docs) folder.
 
 ### Systemd Init Scripts
 
@@ -59,11 +59,11 @@ A `systemd` init script is available to manage the OpenVPN container.  It will
 start the container on system boot, restart the container if it exits
 unexpectedly, and pull updates from Docker Hub to keep itself up to date.
 
-Please refer to the [systemd documentation](docs/systemd.md) to learn more.
+Please refer to the [systemd documentation](https://github.com/kylemanna/docker-openvpn/blob/master/docs/systemd.md) to learn more.
 
 ### Docker Compose
 
-If you prefer to use `docker-compose` please refer to the [documentation](docs/docker-compose.md).
+If you prefer to use `docker-compose` please refer to the [documentation](https://github.com/kylemanna/docker-openvpn/blob/master/docs/docker-compose.md).
 
 ## Debugging Tips
 
@@ -81,7 +81,7 @@ If you prefer to use `docker-compose` please refer to the [documentation](docs/d
         $ dig google.com  # won't use the search directives in resolv.conf
         $ nslookup google.com # will use search
 
-* Consider setting up a [systemd service](/docs/systemd.md) for automatic
+* Consider setting up a [systemd service](https://github.com/kylemanna/docker-openvpn/blob/master/docs/systemd.md) for automatic
   start-up at boot time and restart in the event the OpenVPN daemon or Docker
   crashes.
 
@@ -111,7 +111,7 @@ Conveniently, `kylemanna/openvpn` comes with a script called `ovpn_getclient`,
 which dumps an inline OpenVPN client configuration file.  This single file can
 then be given to a client for access to the VPN.
 
-To enable Two Factor Authentication for clients (a.k.a. OTP) see [this document](/docs/otp.md).
+To enable Two Factor Authentication for clients (a.k.a. OTP) see [this document](https://github.com/kylemanna/docker-openvpn/blob/master/docs/otp.md).
 
 ## OpenVPN Details
 
@@ -148,7 +148,7 @@ packets, etc).
   simplicity.  It's highly recommended to secure the CA key with some
   passphrase to protect against a filesystem compromise.  A more secure system
   would put the EasyRSA PKI CA on an offline system (can use the same Docker
-  image and the script [`ovpn_copy_server_files`](/docs/paranoid.md) to accomplish this).
+  image and the script [`ovpn_copy_server_files`](https://github.com/kylemanna/docker-openvpn/blob/master/docs/paranoid.md) to accomplish this).
 * It would be impossible for an adversary to sign bad or forged certificates
   without first cracking the key's passphase should the adversary have root
   access to the filesystem.
@@ -182,7 +182,7 @@ or separate ports are needed to communicate with the world).
 ### Some (arguable) Security Benefits
 
 At the simplest level compromising the container may prevent additional
-compromise of the server.  There are many arguments surrounding this, but the
+compromise of the server. There are many arguments surrounding this, but the
 take away is that it certainly makes it more difficult to break out of the
 container.  People are actively working on Linux containers to make this more
 of a guarantee in the future.
