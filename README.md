@@ -46,6 +46,12 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
       docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
+### Using Podman instead of Docker
+
+If Podman is to be used, then the OpenVPN server process must be started as follows.
+
+        podman run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN,mknod kylemanna/openvpn
+
 ## Next Steps
 
 ### More Reading
