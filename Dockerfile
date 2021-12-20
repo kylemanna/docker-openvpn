@@ -22,7 +22,7 @@ ADD server.conf /etc/share/easy-rsa/
 # Internally uses port 1194/udp, remap using `docker run -p 443:1194/tcp`
 EXPOSE 1194/tcp
 
-CMD ["ovpn_run_custom"]
+ENTRYPOINT ["ovpn_run_custom"]
 
 ADD ./bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
