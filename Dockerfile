@@ -17,12 +17,12 @@ ENV EASYRSA=/usr/share/easy-rsa \
     EASYRSA_CRL_DAYS=3650 \
     EASYRSA_PKI=$OPENVPN/pki
 
-VOLUME ["/etc/openvpn"]
+ADD server.conf /etc/share/easy-rsa/
 
 # Internally uses port 1194/udp, remap using `docker run -p 443:1194/tcp`
-EXPOSE 1194/udp
+EXPOSE 1194/tcp
 
-CMD ["ovpn_run"]
+ENTRYPOINT ["ovpn_run_custom"]
 
 ADD ./bin /usr/local/bin
 RUN chmod a+x /usr/local/bin/*
