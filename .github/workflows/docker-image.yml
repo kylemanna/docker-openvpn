@@ -3,6 +3,9 @@ name: Docker Image CI
 on:
   push:
     branches: [ master ]
+    tags:
+    - 'v*.*.*'
+  
   pull_request:
     branches: [ master ]
 
@@ -15,6 +18,16 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v3
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v3
+      with:
+        images: |
+          sebd/openvpn
+        # list of Docker images to use as base name for tags
+        tags: |
+          type=semver,pattern={{version}}
       
     - name: Set up QEMU
       uses: docker/setup-qemu-action@master
@@ -39,6 +52,6 @@ jobs:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64,linux/arm64
-        push: true
-        tags: sebd/openvpn:latest
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
         
