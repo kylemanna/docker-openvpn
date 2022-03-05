@@ -40,5 +40,5 @@ jobs:
         file: ./Dockerfile
         platforms: linux/amd64,linux/arm64
         push: true
-        tag: latest
+        tags: sebd/openvpn:latest
         
