@@ -12,6 +12,31 @@ set -e
 
 cd $OPENVPN
 
+# bootstrap things?
+if [[ "$BOOTSTRAP_CA" == "TRUE" ]]; then
+    echo "bootstrapping ca"
+
+    #check if it already exist to not overwrite things
+    if [ -f "/etc/openvpn/ovpn_env.sh" ]; then
+        echo "config already initialized - skipping"
+    else
+        ovpn_genconfig -u udp://VPN.SERVERNAME.COM
+        source "$OPENVPN/ovpn_env.sh"
+        easyrsa init-pki
+
+        easyrsa --batch --req-cn=$CA_SERVERNAME build-ca nopass
+
+        easyrsa gen-dh
+        openvpn --genkey secret $EASYRSA_PKI/ta.key
+        # For a server key with a password, manually init; this is autopilot
+        easyrsa build-server-full "$OVPN_CN" nopass
+
+        # Generate the CRL for client/server certificates revocation.
+        easyrsa gen-crl
+    fi
+fi
+
+
 # Build runtime arguments array based on environment
 USER_ARGS=("${@}")
 ARGS=()
