@@ -335,7 +335,7 @@ proto $OVPN_PROTO
 port 1194
 dev $OVPN_DEVICE$OVPN_DEVICEN
 status /tmp/openvpn-status.log
-
+reneg-sec 0
 user nobody
 group nogroup
 EOF
