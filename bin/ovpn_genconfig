@@ -103,7 +103,7 @@ usage() {
     echo " -N    Configure NAT to access external server network"
     echo " -t    Use TAP device (instead of TUN device)"
     echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
-    echo " -z    Enable comp-lzo compression."
+    echo " -z    Enable compress lzo compression."
 }
 
 process_route_config() {
@@ -335,7 +335,7 @@ proto $OVPN_PROTO
 port 1194
 dev $OVPN_DEVICE$OVPN_DEVICEN
 status /tmp/openvpn-status.log
-
+reneg-sec 0
 user nobody
 group nogroup
 EOF
@@ -351,8 +351,8 @@ fi
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
 [ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
-[ "$OVPN_COMP_LZO" == "1" ] && echo "comp-lzo" >> "$conf"
-[ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
+[ "$OVPN_COMP_LZO" == "1" ] && echo "compress lzo" >> "$conf"
+[ "$OVPN_COMP_LZO" == "0" ] && echo "compress lzo no" >> "$conf"
 
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
@@ -371,7 +371,7 @@ fi
 done
 
 if [ "$OVPN_COMP_LZO" == "0" ]; then
-    process_push_config "comp-lzo no"
+    process_push_config "compress lzo no"
 fi
 
 [ ${#OVPN_PUSH[@]} -gt 0 ] && for i in "${OVPN_PUSH[@]}"; do
