@@ -37,6 +37,8 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 * Start OpenVPN server process
 
       docker run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN kylemanna/openvpn
+* If you are using a firewall (or using a Cloud provider like Azure, AWS, GCP, DigitalOcean), you may have to enable inbound port udp:1194 in order to allow connections from external IP addresses. Refer to your firewall/cloud provider docs to do this.
+
 
 * Generate a client certificate without a passphrase
 
