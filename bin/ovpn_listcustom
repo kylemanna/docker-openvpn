@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ -z "$OPENVPN" ]; then
+    export OPENVPN="$PWD"
+fi
+if ! source "$OPENVPN/ovpn_env.sh"; then
+    echo "Could not source $OPENVPN/ovpn_env.sh."
+    exit 1
+fi
+
+cd "$OPENVPN/configs/fragments"
+
+for name in *; do
+    echo $name
+done

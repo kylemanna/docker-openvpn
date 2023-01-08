@@ -16,14 +16,20 @@ source "$OPENVPN/ovpn_env.sh"
 nopass=$1
 
 # Provides a sufficient warning before erasing pre-existing files
-easyrsa init-pki
+easyrsa --digest=sha512 --use-algo=ec init-pki
+cat >> $EASYRSA_PKI/vars <<EOF
+set_var EASYRSA_ALGO "ec"
+set_var EASYRSA_DIGEST "sha512"
+EOF
 
 # CA always has a password for protection in event server is compromised. The
 # password is only needed to sign client/server certificates.  No password is
 # needed for normal OpenVPN operation.
 easyrsa build-ca $nopass
 
-easyrsa gen-dh
+# don't need diffie-hellman since we changed the CA to Elliptic Curve Cryptography
+# in vars file above
+#easyrsa gen-dh
 openvpn --genkey --secret $EASYRSA_PKI/ta.key
 
 # Was nice to autoset, but probably a bad idea in practice, users should

@@ -37,3 +37,5 @@ revoke_client_certificate(){
 }
 
 revoke_client_certificate "$cn"
+rm -f $EASYRSA_PKI/private/${cn}.*
+rm -f $OPENVPN/configs/clients/${cn}.ovpn

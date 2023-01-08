@@ -1,0 +1,88 @@
+#!/bin/bash
+
+usage() {
+    echo "usage: $0 -d DOMAIN_NAME [-p OPENVPN_PORT_NUMBER] [-h]"
+    echo "   -d DOMAIN_NAME is required when installing. The clients will be configured to access the"
+    echo "      vpn at vpn.DOMAIN_NAME"
+    echo "   -p OPENVPN_PORT_NUMBER is optional and will override the default udp port number of 1194"
+    echo "   -u Uninstall docker-openvpn"
+    echo "   -h displays this help"
+}
+
+OPENVPN_PORT_NUMBER=1194
+OPENVPN_INSTALL=1
+while getopts ":d:p:uh" opt; do
+    case $opt in
+        d)
+            DOMAIN_NAME="$OPTARG"
+            ;;
+        p)
+            OPENVPN_PORT_NUMBER="$OPTARG"
+            ;;
+        u)
+            OPENVPN_INSTALL=0
+            ;;
+        h)
+            usage
+            exit 0
+            ;;
+        \?)
+            set +x
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            exit 1
+            ;;
+        :)
+            set +x
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+if [[ -z $DOMAIN_NAME && $OPENVPN_INSTALL == 1 ]]; then
+    usage
+    exit 1
+fi
+
+amiroot=`id -u`
+if (( $amiroot !=0 )); then
+    echo "You must run this script as root, or with sudo."
+    exit 1
+fi
+
+if [ $OPENVPN_INSTALL == 0 ]; then
+    rm -f /usr/local/bin/dockervpn
+    docker stop openvpn
+    docker rm openvpn
+    docker volume rm openvpn_data
+    # docker image rm castone38/dockervpn
+    exit 0
+fi
+
+if [ -f bin/dockervpn ]; then
+    mkdir -p /usr/local/bin
+    cp bin/dockervpn /usr/local/bin/dockervpn
+else
+    echo "Can not find bin/dockervpn."
+    echo "This command must be run from the root of the docker-openvpn git repository."
+    exit 1
+fi
+
+echo "Using domain name of $DOMAIN_NAME and openvpn port of $OPENVPN_PORT_NUMBER,"
+read -p "    is this correct (Y/n): " answer
+if [ ! -z "$answer" ]; then
+    if [[ $answer != "Y" && $answer != "y" ]]; then
+        exit 1
+    fi
+fi
+
+docker run -v openvpn_data:/etc/openvpn --rm -it castone38/dockervpn ovpn_genconfig \
+    -u udp://vpn.$DOMAIN_NAME -C AES-256-GCM -c -a SHA256 -s "10.8.0.0/24" -d \
+    -n "208.67.222.222 208.67.220.220" -e "explicit-exit-notify 1" \
+    -e "ifconfig-pool-persist /etc/openvpn/ipp.txt" \
+    -p "redirect-gateway def1 bypass-dhcp"
+docker run --name openvpn --restart unless-stopped -v openvpn_data:/etc/openvpn -d \
+    -p $OPENVPN_PORT_NUMBER:1194/udp --cap-add=NET_ADMIN castone38/dockervpn
+exit 0

@@ -1,0 +1,249 @@
+#!/bin/bash
+
+usage() {
+    echo "
+Docker VPN CLI usage and overview.
+
+USAGE: dockervpn command [command-options]
+
+To get detailed usage for a command, run:
+    dockervpn help COMMAND
+
+The list of commands is:
+
+    backup       - backup up the /etc/openvpn directory to a tar file
+    bash         - enter a bash shell in the container
+    getclient    - retrieve a client configuration file
+    listclients  - display a list of configured clients
+    listcustom   - display a list of custom file fragments
+    ls           - list a directory in the container filesystem
+    nano         - edit a file with the nano editor
+    revokeclient - revoke a client certificate, they will no longer be able to connect
+    removecustom - remove a custom fragment file
+    status       - display server status
+    vi           - edit a file with the vi editor
+"
+}
+
+# Detailed command help
+# When called with no args, calls usage(), otherwise shows help for a command
+cmd_help() {
+	case "$1" in
+        backup) echo "
+    backup
+        The contents of the /etc/openvpn directory in the container will be written to 
+        a bzipped tar file in the current directory of the host machine. The file will 
+        be called openvpn_data.tar.bz2.
+        "
+        ;;
+        bash) echo "
+    bash
+        Enter a bash shell in the container.
+        "
+        ;;
+        getclient) echo "
+    getclient filename [customfile]
+        filename is required. It is the path name of a local file to place the client
+        configuration in. This file name will be parsed into directory/client.extension.
+        for instance, /one/two/three.ovpn will be parsed into /one/two, three, ovpn. Then 
+        three will be used as the clientname that is sent to the ovpn server, and three 
+        would be the name that is listed in listclients.
+
+        customfile is optional. It is the name of a file containing configuration to add to
+        the client configuration file.
+        
+        If a client configuraton does not exist for clientname, then a new one is 
+        generated, stored, and returned on standard output. If the client configuration
+        does exist, it is retrieved and returned on standard output.
+
+        A customfile is used to provide additional client configuration that is to be added
+        to the client configuration file. For instance this can be used to configure mesh networking
+        between client A and client B. With mesh networking, client A's traffic will be routed 
+        through an Internet gateway connected to client B instead of through the vpn server. 
+        If the customfile does not exist, then the nano editor is started for the user to enter 
+        the custom configuration.
+
+        Example custom configration file:
+        Assuming the vpn server address has vpn address 10.8.0.1, and the vpn clients are on the
+        10.8.0.0/24 network, the following is an example configuration lines to reroute traffic 
+        from client A (10.8.0.2) to the internet gateway 192.168.2.1, which is connected via private 
+        network to client B (10.8.0.8):
+
+            pull-filter ignore redirect-gateway
+            route-nopull
+            route 192.168.2.0 255.255.255.0 10.8.0.8
+            route 0.0.0.0 128.0.0.0 192.168.2.1
+            route 128.0.0.0 128.0.0.0 192.168.2.1
+        "
+        ;;
+        listclients) echo "
+    listclients
+        List the names of existing client configurations.
+        "
+        ;;
+        listcustom) echo "
+    listcustom
+        List the names of existing custom fragment files.
+        "
+        ;;
+        ls) echo "
+    List a directory in the container filesystem.
+        "
+        ;;
+        nano) echo "
+    nano filepath/filename
+        Edit a file in the container filesystem using the nano editor.
+        "
+        ;;
+        revokeclient) echo "
+    revokeclient clientname
+        clientname is required. It is the name of an existing client whose access is to be denied.
+        "
+        ;;
+        removecustom) echo "
+    removecustom filename
+        filename is required. It is the name of an existing custom file fragment to be removed.
+        "
+        ;;
+        status) echo "
+    status
+        Display the vpn server status.
+        "
+        ;;
+        vi) echo "
+    vi filepath/filename
+        Edit a file in the container filesystem using the vi editor.
+        "
+        ;;
+    *)
+        echo "Invalid command $1."
+        usage
+        exit 1
+        ;;
+    esac
+}
+
+backup() {
+    docker run --rm --volumes-from openvpn -v $(pwd):/backup busybox tar cvf /backup/openvpn_data.tar /etc/openvpn
+    bzip2 openvpn_data.tar
+}
+
+bash() {
+    docker exec -it openvpn /bin/bash
+}
+
+getclient() {
+    if [ -z "$1" ]; then
+        >&2 echo "Client name is required.\n"
+        >&2 usage
+        exit 1
+    fi
+    dir=`dirname $1`
+    fname=`basename $1`
+    # extension="${filename##*.}"
+    client="${fname%.*}"
+    if [ ! -d "$dir" ]; then
+        mkdir -p $dir
+    fi 
+    if [ -z "$2" ]; then
+        docker exec -it openvpn /usr/local/bin/ovpn_makclient -n $client
+    else
+        docker exec -it openvpn /usr/local/bin/ovpn_makclient -n $client -f $2
+    fi
+    docker exec -it openvpn cat /etc/openvpn/configs/clients/$client.ovpn >$1
+}
+
+listclients() {
+    docker exec -it openvpn /usr/local/bin/ovpn_listclients
+}
+
+listcustom() {
+    docker exec -it openvpn /usr/local/bin/ovpn_listcustom
+}
+
+ls() {
+    docker exec -it openvpn ls -AlF $1
+}
+
+nano() {
+    docker exec -it openvpn nano $1
+}
+
+revokeclient() {
+    if [ -z "$1" ]; then
+        >&2 echo "Client name is required.\n"
+        >&2 usage
+        exit 1
+    fi
+    docker exec -it openvpn /usr/local/bin/ovpn_revokeclient $1
+}
+
+removecustom() {
+    docker exec -it openvpn rm -f /etc/openvpn/configs/fragments/$1
+}
+
+status() {
+    docker exec -it openvpn /usr/local/bin/ovpn_status
+}
+
+vi() {
+    docker exec -it openvpn vi $1
+}
+
+
+amiroot=`id -u`
+if (( $amiroot !=0 )); then
+    echo "You must run this script as root, or with sudo."
+    exit 1
+fi
+
+cmd="$1"
+[ -n "$1" ] && shift # scrape off command
+case "$cmd" in
+    backup)
+        backup
+        ;;
+    bash)
+        bash
+        ;;
+	help)
+        if [ -z "$@" ]; then
+            usage
+        else
+		    cmd_help "$@"
+        fi
+		;;
+    getclient)
+        getclient "$@"
+        ;;
+    listclients)
+        listclients
+        ;;
+    listcustom)
+        listcustom
+        ;;
+    ls)
+        ls "$@"
+        ;;
+    nano)
+        nano "$@"
+        ;;
+    revokeclient)
+        revokeclient "$@"
+        ;;
+    removecustom)
+        removecustom "$@"
+        ;;
+    status)
+        status
+        ;;
+    vi)
+        vi "$@"
+        ;;
+    *)
+        usage
+        exit 1
+    ;;
+esac
+
+exit 0

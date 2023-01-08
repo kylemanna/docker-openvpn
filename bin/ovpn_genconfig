@@ -91,19 +91,20 @@ usage() {
     echo "                 [-s SERVER_SUBNET]"
     echo
     echo "optional arguments:"
-    echo " -2    Enable two factor authentication using Google Authenticator."
-    echo " -a    Authenticate  packets with HMAC using the given message digest algorithm (auth)."
+    echo " -a    Authenticate  packets with HMAC using the given message digest algorithm (auth)"
     echo " -b    Disable 'push block-outside-dns'"
     echo " -c    Enable client-to-client option"
-    echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)."
+    echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)"
     echo " -d    Disable default route"
     echo " -D    Do not push dns servers"
     echo " -k    Set keepalive. Default: '10 60'"
     echo " -m    Set client MTU"
     echo " -N    Configure NAT to access external server network"
     echo " -t    Use TAP device (instead of TUN device)"
-    echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
-    echo " -z    Enable comp-lzo compression."
+    echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)"
+    echo " -x    Skip initialization of certificate authority pki"
+    echo " -y    Initialize certificate authority pki with nopass option (not recommended)"
+    echo " -z    Enable comp-lzo compression"
 }
 
 process_route_config() {
@@ -164,15 +165,17 @@ OVPN_PORT=''
 OVPN_PROTO=''
 OVPN_PUSH=()
 OVPN_ROUTES=()
-OVPN_SERVER=192.168.255.0/24
+OVPN_SERVER=192.168.254.0/24
 OVPN_SERVER_URL=''
 OVPN_TLS_CIPHER=''
+OVPN_NOPASS=0
+SKIP_PKI_INIT=0
 
 # Import existing configuration if present
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tyz" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -206,7 +209,6 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             ;;
         d)
             OVPN_DEFROUTE=0
-            OVPN_DISABLE_PUSH_BLOCK_DNS=1
             ;;
         u)
             OVPN_SERVER_URL="$OPTARG"
@@ -244,11 +246,14 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
         t)
             OVPN_DEVICE="tap"
             ;;
+        x)
+            SKIP_PKI_INIT=1
+            ;;
+        y)
+            OVPN_NOPASS=1
+            ;;
         z)
             OVPN_COMP_LZO=1
-            ;;
-        2)
-            OVPN_OTP_AUTH=1
             ;;
         f)
             OVPN_FRAGMENT="$OPTARG"
@@ -319,12 +324,13 @@ fi
 
 cat > "$conf" <<EOF
 server $(getroute $OVPN_SERVER)
+topology subnet
 verb 3
 key $EASYRSA_PKI/private/${OVPN_CN}.key
 ca $EASYRSA_PKI/ca.crt
 cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
-dh $EASYRSA_PKI/dh.pem
-tls-auth $EASYRSA_PKI/ta.key
+dh none
+tls-crypt $EASYRSA_PKI/ta.key
 key-direction 0
 keepalive $OVPN_KEEPALIVE
 persist-key
@@ -381,13 +387,6 @@ done
 echo -e "\n### Push Configurations Below" >> "$conf"
 cat $TMP_PUSH_CONFIGFILE >> "$conf"
 
-# Append optional OTP authentication support
-if [ -n "${OVPN_OTP_AUTH:-}" ]; then
-    echo -e "\n\n# Enable OTP+PAM for user authentication" >> "$conf"
-    echo "plugin /usr/lib/openvpn/plugins/openvpn-plugin-auth-pam.so openvpn" >> "$conf"
-    echo "reneg-sec 0" >> "$conf"
-fi
-
 # Append extra server configurations
 if [ ${#OVPN_EXTRA_SERVER_CONFIG[@]} -gt 0 ]; then
   for i in "${OVPN_EXTRA_SERVER_CONFIG[@]}"; do
@@ -410,3 +409,18 @@ if diff -q "${bak:-}" "$conf" 2>/dev/null; then
 fi
 
 echo "Successfully generated config"
+
+# Initialize the pki
+if [ "$SKIP_PKI_INIT" == "0" ]; then
+    echo "Initializing certificate authority..."
+    if [ "$OVPN_NOPASS" == "0" ]; then
+      /usr/local/bin/ovpn_initpki
+    else
+      /usr/local/bin/ovpn_initpki nopass
+    fi
+    echo "Successfully initialized certificate authority."
+fi
+
+# Create some required runtime directories
+mkdir -p $OPENVPN/configs/clients
+mkdir -p $OPENVPN/configs/fragments

@@ -1,0 +1,151 @@
+#!/bin/bash
+
+#
+# Get an OpenVPN client configuration file
+#
+
+make_client_config() {
+
+    echo "
+client
+nobind
+dev $OVPN_DEVICE
+proto udp
+remote-cert-tls server
+verb 3
+persist-key
+persist-tun
+user nobody
+group nogroup
+resolv-retry infinite
+key-direction 1
+remote $OVPN_CN $OVPN_PORT"
+
+    for i in "${OVPN_EXTRA_CLIENT_CONFIG[@]}"; do
+      echo "$i"
+    done
+
+    if [ "$OVPN_DEFROUTE" != "0" ];then
+        echo "redirect-gateway def1"
+    fi
+
+    if [ -n "$OVPN_MTU" ]; then
+        echo "tun-mtu $OVPN_MTU"
+    fi
+
+    if [ -n "$OVPN_TLS_CIPHER" ]; then
+        echo "tls-cipher $OVPN_TLS_CIPHER"
+    fi
+
+    if [ -n "$OVPN_CIPHER" ]; then
+        echo "cipher $OVPN_CIPHER"
+    fi
+
+    if [ -n "$OVPN_AUTH" ]; then
+        echo "auth $OVPN_AUTH"
+    fi
+
+    if [ -n "$OVPN_OTP_AUTH" ]; then
+        echo "auth-user-pass"
+        echo "auth-nocache"
+    fi
+
+    if [ "$OVPN_COMP_LZO" == "1" ]; then
+        echo "comp-lzo"
+    fi
+
+    echo "
+<key>
+$(cat $EASYRSA_PKI/private/${client}.key)
+</key>
+<cert>
+$(openssl x509 -in $EASYRSA_PKI/issued/${client}.crt)
+</cert>
+<ca>
+$(cat $EASYRSA_PKI/ca.crt)
+</ca>
+<tls-crypt>
+$(cat $EASYRSA_PKI/ta.key)
+</tls-crypt>
+"
+
+}
+
+usage() {
+    echo "usage: $0 -n clientname [-f customconfig] [-h]"
+    echo "   -n clientname is required."
+    echo "   -f customconfig (optional) provides the name of a file containing"
+    echo "        additional config lines to be added to the client config. If"
+    echo "        this file does not exist, the nano editor will be started to"
+    echo "        create it. Do not provide a directory name, the file will be"
+    echo "        stored in $OPENVPN/configs/fragments."
+    echo "   -h print this help"
+}
+
+if [ "$DEBUG" == "1" ]; then
+    set -x
+fi
+
+set -e
+
+if [ -z "$OPENVPN" ]; then
+    export OPENVPN="$PWD"
+fi
+if ! source "$OPENVPN/ovpn_env.sh"; then
+    echo "Could not source $OPENVPN/ovpn_env.sh."
+    exit 1
+fi
+if [ -z "$EASYRSA_PKI" ]; then
+    export EASYRSA_PKI="$OPENVPN/pki"
+fi
+
+# Parse arguments
+while getopts ":n:f:h" opt; do
+    case $opt in
+        f)
+            customfile="$OPTARG"
+            ;;
+        h)
+            usage
+            exit 0
+            ;;
+        n)
+            client="$OPTARG"
+            ;;
+        \?)
+            set +x
+            echo "Invalid option: -$OPTARG" >&2
+            usage
+            exit 1
+            ;;
+        :)
+            set +x
+            echo "Option -$OPTARG requires an argument." >&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+if [ -z $client ]; then
+    usage
+    exit 1
+fi
+
+dir="$OPENVPN/configs"
+if [ -f "$dir/clients/${client}.ovpn" ]; then
+    exit 0
+fi
+
+if [ ! -f "$EASYRSA_PKI/private/${client}.key" ]; then
+    echo "Unable to find \"${client}\" private key, generating the key." >&2
+    easyrsa build-client-full ${client} nopass
+fi
+
+make_client_config > "$dir/clients/${client}.ovpn"
+if [ ! -z $customfile ]; then
+    if [ ! -f $dir/fragments/$customfile ]; then
+        nano $dir/fragments/$customfile
+    fi
+    cat $dir/fragments/$customfile >> $dir/clients/${client}.ovpn
+fi

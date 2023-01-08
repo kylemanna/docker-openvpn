@@ -9,4 +9,4 @@ fi
 
 set -e
 
-tail -F /tmp/openvpn-status.log
+cat /tmp/openvpn-status.log
