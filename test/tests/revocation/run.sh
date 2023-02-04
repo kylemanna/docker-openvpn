@@ -14,7 +14,7 @@ SERV_IP="$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::
 #
 # Initialize openvpn configuration and pki.
 #
-docker volume create --name $OVPN_DATA
+docker volume create $OVPN_DATA
 docker run --rm -v $OVPN_DATA:/etc/openvpn $IMG ovpn_genconfig -u udp://$SERV_IP
 docker run --rm -v $OVPN_DATA:/etc/openvpn -it -e "EASYRSA_BATCH=1" -e "EASYRSA_REQ_CN=Travis-CI Test CA" $IMG ovpn_initpki nopass
 
