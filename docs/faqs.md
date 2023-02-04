@@ -4,14 +4,14 @@
 
 Use a Docker image with an editor and connect the volume container:
 
-    docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn vi /etc/openvpn/openvpn.conf
+    docker run -v $OVPN_DATA:/etc/openvpn --rm -it eilidhmae/openvpn vi /etc/openvpn/openvpn.conf
 
 
 ## Why not keep everything in one image?
 
-The run-time image (`kylemanna/openvpn`) is intended to be an ephemeral image. Nothing should be saved in it so that it can be re-downloaded and re-run when updates are pushed (i.e. newer version of OpenVPN or even Debian). The data container contains all this data and is attached at run time providing a safe home.
+The run-time image (`eilidhmae/openvpn`) is intended to be an ephemeral image. Nothing should be saved in it so that it can be re-downloaded and re-run when updates are pushed (i.e. newer version of OpenVPN or even Debian). The data container contains all this data and is attached at run time providing a safe home.
 
-If it was all in one container, an upgrade would require a few steps to extract all the data, perform some upgrade import, and re-run. This technique is also prone to people losing their EasyRSA PKI when they forget where it was.  With everything in the data container upgrading is as simple as re-running `docker pull kylemanna/openvpn` and then `docker run ... kylemanna/openvpn`.
+If it was all in one container, an upgrade would require a few steps to extract all the data, perform some upgrade import, and re-run. This technique is also prone to people losing their EasyRSA PKI when they forget where it was.  With everything in the data container upgrading is as simple as re-running `docker pull eilidhmae/openvpn` and then `docker run ... eilidhmae/openvpn`.
 
 ## How do I set up a split tunnel?
 

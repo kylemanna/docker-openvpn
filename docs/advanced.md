@@ -9,12 +9,12 @@ The [`ovpn_genconfig`](/bin/ovpn_genconfig) script is intended for simple config
 
         mkdir openvpn0
         cd openvpn0
-        docker run --rm -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM:1194
-        docker run --rm -v $PWD:/etc/openvpn -it kylemanna/openvpn ovpn_initpki
+        docker run --rm -v $PWD:/etc/openvpn eilidhmae/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM:1194
+        docker run --rm -v $PWD:/etc/openvpn -it eilidhmae/openvpn ovpn_initpki
         vim openvpn.conf
-        docker run --rm -v $PWD:/etc/openvpn -it kylemanna/openvpn easyrsa build-client-full CLIENTNAME nopass
-        docker run --rm -v $PWD:/etc/openvpn kylemanna/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
+        docker run --rm -v $PWD:/etc/openvpn -it eilidhmae/openvpn easyrsa build-client-full CLIENTNAME nopass
+        docker run --rm -v $PWD:/etc/openvpn eilidhmae/openvpn ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
 * Start the server with:
 
-        docker run -v $PWD:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN kylemanna/openvpn
+        docker run -v $PWD:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN eilidhmae/openvpn

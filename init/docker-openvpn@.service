@@ -2,7 +2,7 @@
 # Docker + OpenVPN systemd service
 #
 # Author: Kyle Manna <kyle@kylemanna.com>
-# Source: https://github.com/kylemanna/docker-openvpn
+# Source: https://github.com/eilidhmae/docker-openvpn
 #
 # This service aims to make the update and invocation of the docker-openvpn
 # container seamless.  It automatically downloads the latest docker-openvpn
@@ -32,7 +32,7 @@
 #
 [Unit]
 Description=OpenVPN Docker Container
-Documentation=https://github.com/kylemanna/docker-openvpn
+Documentation=https://github.com/eilidhmae/docker-openvpn
 After=network.target docker.service
 Requires=docker.service
 
@@ -45,7 +45,7 @@ Restart=always
 #Environment="ARGS=--config openvpn.conf --server-ipv6 2001:db8::/64"
 Environment="NAME=ovpn-%i"
 Environment="DATA_VOL=ovpn-data-%i"
-Environment="IMG=kylemanna/openvpn:latest"
+Environment="IMG=eilidhmae/openvpn:latest"
 Environment="PORT=1194:1194/udp"
 
 # To override environment variables, use local configuration directory:
