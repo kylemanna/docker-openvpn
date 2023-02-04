@@ -34,25 +34,32 @@ docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_listclients | grep $CLIENT_
 #
 # Fire up the server
 #
-sudo iptables -N DOCKER || echo 'Firewall already configured'
-sudo iptables -I FORWARD -j DOCKER || echo 'Forward already configured'
 
-# run in shell bg to get logs
-docker run --name "ovpn-test-udp" -v $OVPN_DATA:/etc/openvpn --rm -p 1194:1194/udp --privileged $IMG &
-docker run --name "ovpn-test-tcp" -v $OVPN_DATA:/etc/openvpn --rm -p 443:1194/tcp --privileged $IMG ovpn_run --proto tcp &
+# Run in shell bg to get logs, setup trap to clean-up
+trap "{ jobs -p | xargs -r kill; wait; docker volume rm ${OVPN_DATA}; }" EXIT
+docker run --name "ovpn-test-udp" -v $OVPN_DATA:/etc/openvpn --rm --cap-add=NET_ADMIN -e DEBUG $IMG &
+docker run --name "ovpn-test-tcp" -v $OVPN_DATA:/etc/openvpn --rm --cap-add=NET_ADMIN -e DEBUG $IMG ovpn_run --proto tcp --port 443 &
+
+# Update configs
+for i in $(seq 10); do
+    SERV_IP_INTERNAL=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "ovpn-test-udp" 2>/dev/null || true)
+    test -n "$SERV_IP_INTERNAL" && break
+    sleep 0.1
+done
+sed -i -e s:$SERV_IP:$SERV_IP_INTERNAL:g $CLIENT_DIR/config.ovpn
+
+for i in $(seq 10); do
+    SERV_IP_INTERNAL=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "ovpn-test-tcp" 2>/dev/null || true)
+    test -n "$SERV_IP_INTERNAL" && break
+    sleep 0.1
+done
+sed -i -e s:$SERV_IP:$SERV_IP_INTERNAL:g $CLIENT_DIR/config-tcp.ovpn
 
 #
-# Fire up a clients in a containers since openvpn is disallowed by Travis-CI, don't NAT
-# the host as it confuses itself:
-# "Incoming packet rejected from [AF_INET]172.17.42.1:1194[2], expected peer address: [AF_INET]10.240.118.86:1194"
+# Fire up a clients in a containers since openvpn is disallowed by Travis-CI
 #
-docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh
-docker run --rm --net=host --privileged --volume $CLIENT_DIR:/client $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
-
-#
-# Client either connected or timed out, kill server
-#
-kill %1 %2
+docker run --rm --cap-add=NET_ADMIN -v $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh
+docker run --rm --cap-add=NET_ADMIN -v $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
 
 #
 # Celebrate
