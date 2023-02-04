@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 testAlias+=(
-	[kylemanna/openvpn]='openvpn'
+	[eilidhmae/openvpn]='openvpn'
 )
 
 imageTests+=(

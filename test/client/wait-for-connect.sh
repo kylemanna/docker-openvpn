@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 [ -n "${DEBUG+x}" ] && set -x

@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 [ -n "${DEBUG+x}" ] && set -x
 
 OVPN_DATA=basic-data-otp
 CLIENT=travis-client
-IMG=kylemanna/openvpn
+IMG=eilidhmae/openvpn
 OTP_USER=otp
 CLIENT_DIR="$(readlink -f "$(dirname "$BASH_SOURCE")/../../client")"
 

@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 [ -n "${DEBUG+x}" ] && set -x
 OVPN_DATA=basic-data
-IMG="kylemanna/openvpn"
+IMG="eilidhmae/openvpn"
 NAME="ovpn-test"
 SERV_IP=$(ip -4 -o addr show scope global  | awk '{print $4}' | sed -e 's:/.*::' | head -n1)
 
