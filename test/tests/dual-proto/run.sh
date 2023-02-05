@@ -37,8 +37,8 @@ docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_listclients | grep $CLIENT_
 
 # Run in shell bg to get logs, setup trap to clean-up
 trap "{ jobs -p | xargs -r kill; wait; docker volume rm ${OVPN_DATA}; }" EXIT
-docker run --name "ovpn-test-udp" -v $OVPN_DATA:/etc/openvpn --rm --cap-add=NET_ADMIN -e DEBUG $IMG &
-docker run --name "ovpn-test-tcp" -v $OVPN_DATA:/etc/openvpn --rm --cap-add=NET_ADMIN -e DEBUG $IMG ovpn_run --proto tcp --port 443 &
+docker run --name "ovpn-test-udp" -v $OVPN_DATA:/etc/openvpn --rm --privileged -e DEBUG $IMG &
+docker run --name "ovpn-test-tcp" -v $OVPN_DATA:/etc/openvpn --rm --privileged -e DEBUG $IMG ovpn_run --proto tcp --port 443 &
 
 # Update configs
 for i in $(seq 10); do
@@ -58,8 +58,8 @@ sed -i -e s:$SERV_IP:$SERV_IP_INTERNAL:g $CLIENT_DIR/config-tcp.ovpn
 #
 # Fire up test clients in a container
 #
-docker run --rm --cap-add=NET_ADMIN -v $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh
-docker run --rm --cap-add=NET_ADMIN -v $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
+docker run --rm --privileged -v $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh
+docker run --rm --privileged -v $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh "/client/config-tcp.ovpn"
 
 #
 # Celebrate

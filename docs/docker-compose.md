@@ -10,6 +10,7 @@ services:
      - NET_ADMIN
     image: eilidhmae/openvpn
     container_name: openvpn
+    privileged: true
     ports:
      - "1194:1194/udp"
     restart: always

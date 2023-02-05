@@ -50,7 +50,7 @@ grep 'reneg-sec 0' $CLIENT_DIR/config.ovpn || abort 'reneg-sec not set to 0 in c
 # Fire up the server
 #
 trap "{ jobs -p | xargs -r kill; wait; }" EXIT
-docker run --name "ovpn-test" -v $OVPN_DATA:/etc/openvpn --rm --cap-add=NET_ADMIN $IMG &
+docker run --name "ovpn-test" -v $OVPN_DATA:/etc/openvpn --rm --privileged $IMG &
 
 for i in $(seq 10); do
     SERV_IP_INTERNAL=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' "ovpn-test" 2>/dev/null || true)
@@ -61,7 +61,7 @@ sed -i -e s:$SERV_IP:$SERV_IP_INTERNAL:g $CLIENT_DIR/config.ovpn
 
 #
 # Fire up client in a container
-docker run --rm --cap-add=NET_ADMIN --volume $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh
+docker run --rm --privileged --volume $CLIENT_DIR:/client -e DEBUG $IMG /client/wait-for-connect.sh
 
 #
 # Celebrate

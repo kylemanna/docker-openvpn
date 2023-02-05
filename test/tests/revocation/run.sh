@@ -29,7 +29,7 @@ function finish {
 trap finish EXIT
 
 # Put the server in the background
-docker run -d -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN --name $NAME $IMG
+docker run -d -v $OVPN_DATA:/etc/openvpn --privileged --name $NAME $IMG
 
 #
 # Test that easy_rsa generate CRLs with 'next publish' set to 3650 days.
@@ -62,7 +62,7 @@ sed -i -e s:$SERV_IP:$SERV_IP_INTERNAL:g $CLIENT_DIR/config.ovpn
 #
 # Test that openvpn client can't connect using $CLIENT1 config.
 #
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN -e DEBUG $IMG /client/wait-for-connect.sh; then
+if docker run --rm -v $CLIENT_DIR:/client --privileged -e DEBUG $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #1." >&2
     exit 2
 fi
@@ -81,7 +81,7 @@ for i in $(seq 10); do
     sleep 0.1
 done
 
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN -e DEBUG $IMG /client/wait-for-connect.sh; then
+if docker run --rm -v $CLIENT_DIR:/client --privileged -e DEBUG $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #2." >&2
     exit 2
 fi
@@ -94,7 +94,7 @@ docker stop $NAME && docker start $NAME
 #
 # Test for failed connection using $CLIENT2 config again.
 #
-if docker run --rm -v $CLIENT_DIR:/client --cap-add=NET_ADMIN -e DEBUG $IMG /client/wait-for-connect.sh; then
+if docker run --rm -v $CLIENT_DIR:/client --privileged -e DEBUG $IMG /client/wait-for-connect.sh; then
     echo "Client was able to connect after revocation test #3." >&2
     exit 2
 fi

@@ -13,7 +13,7 @@ docker run --rm -v $OVPN_DATA:/etc/openvpn $IMG ovpn_genconfig -u udp://$SERV_IP
 docker run -v $OVPN_DATA:/etc/openvpn --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_REQ_CN=Test CA" $IMG ovpn_initpki nopass
 
 # Fire up the server
-docker run -d --name $NAME -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN $IMG
+docker run -d --name $NAME -v $OVPN_DATA:/etc/openvpn --privileged $IMG
 
 # check default iptables rules
 for i in $(seq 10); do
@@ -29,7 +29,7 @@ docker exec -ti $NAME bash -c 'echo function setupIptablesAndRouting { iptables 
 docker rm -f $NAME
 
 # check that overridden function exists and that test iptables rules is active
-docker run -d --name $NAME -v $OVPN_DATA:/etc/openvpn --cap-add=NET_ADMIN $IMG
+docker run -d --name $NAME -v $OVPN_DATA:/etc/openvpn --privileged $IMG
 docker exec -ti $NAME bash -c 'source /etc/openvpn/ovpn_env.sh; type -t setupIptablesAndRouting && iptables -t nat -C POSTROUTING -m comment --comment "test"'
 
 #

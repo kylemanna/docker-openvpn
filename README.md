@@ -24,7 +24,7 @@ See GitHub @ [kylemanna/docker-openvpn](https://github.com/kylemanna/docker-open
 
 * Start OpenVPN server process
 
-      docker run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --cap-add=NET_ADMIN eilidhmae/openvpn
+      docker run -v $OVPN_DATA:/etc/openvpn -d -p 1194:1194/udp --privileged eilidhmae/openvpn
 
 * Generate a client certificate without a passphrase
 
@@ -58,7 +58,7 @@ This information was copied as-is from kylemanna/openvpn and may be out of date.
 
 * Create an environment variable with the name DEBUG and value of 1 to enable debug output (using "docker -e").
 
-        docker run -v $OVPN_DATA:/etc/openvpn -p 1194:1194/udp --cap-add=NET_ADMIN -e DEBUG=1 eilidhmae/openvpn
+        docker run -v $OVPN_DATA:/etc/openvpn -p 1194:1194/udp --privileged -e DEBUG=1 eilidhmae/openvpn
 
 * Test using a client that has openvpn installed correctly
 
