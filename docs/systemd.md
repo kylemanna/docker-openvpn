@@ -19,7 +19,7 @@ To use and enable automatic start by systemd:
    configuration, `NAME=example`.
    
         OVPN_DATA="ovpn-data-example"
-        docker volume create --name $OVPN_DATA
+        docker volume create $OVPN_DATA
    
 2. Initialize the data container, but don't start the container :
    

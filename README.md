@@ -18,7 +18,7 @@ See GitHub @ [kylemanna/docker-openvpn](https://github.com/kylemanna/docker-open
   and certificates.  The container will prompt for a passphrase to protect the
   private key used by the newly generated certificate authority.
 
-      docker volume create --name $OVPN_DATA
+      docker volume create $OVPN_DATA
       docker run -v $OVPN_DATA:/etc/openvpn --rm eilidhmae/openvpn ovpn_genconfig -u udp://VPN.SERVERNAME.COM
       docker run -v $OVPN_DATA:/etc/openvpn --rm -it eilidhmae/openvpn ovpn_initpki
 
