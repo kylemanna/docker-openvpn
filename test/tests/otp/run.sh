@@ -23,7 +23,7 @@ docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG cat /etc/openvpn/openvpn.conf | 
 # nopass is insecure
 docker run -v $OVPN_DATA:/etc/openvpn --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_REQ_CN=Test CA" $IMG ovpn_initpki nopass
 
-docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG easyrsa build-client-full $CLIENT nopass
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG easyrsa --batch build-client-full $CLIENT nopass
 
 # Generate OTP credentials for user named test, should return QR code for test user
 docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG ovpn_otp_user $OTP_USER | tee $CLIENT_DIR/qrcode.txt

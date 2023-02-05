@@ -28,7 +28,7 @@ See GitHub @ [kylemanna/docker-openvpn](https://github.com/kylemanna/docker-open
 
 * Generate a client certificate without a passphrase
 
-      docker run -v $OVPN_DATA:/etc/openvpn --rm -it eilidhmae/openvpn easyrsa build-client-full CLIENTNAME nopass
+      docker run -v $OVPN_DATA:/etc/openvpn --rm -it eilidhmae/openvpn easyrsa --batch build-client-full CLIENTNAME nopass
 
 * Retrieve the client configuration with embedded certificates
 

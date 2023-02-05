@@ -19,12 +19,12 @@ docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_genconfig -u tcp://$SERV_IP
 docker run -v $OVPN_DATA:/etc/openvpn --rm -it -e "EASYRSA_BATCH=1" -e "EASYRSA_REQ_CN=Test CA" $IMG ovpn_initpki nopass
 
 # gen TCP client
-docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG easyrsa build-client-full $CLIENT_TCP nopass
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG easyrsa --batch build-client-full $CLIENT_TCP nopass
 docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_getclient $CLIENT_TCP | tee $CLIENT_DIR/config-tcp.ovpn
 
 # switch to UDP config and gen UDP client
 docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_genconfig -u udp://$SERV_IP
-docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG easyrsa build-client-full $CLIENT_UDP nopass
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it $IMG easyrsa --batch build-client-full $CLIENT_UDP nopass
 docker run -v $OVPN_DATA:/etc/openvpn --rm $IMG ovpn_getclient $CLIENT_UDP | tee $CLIENT_DIR/config.ovpn
 
 #Verify client configs

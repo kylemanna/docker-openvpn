@@ -47,7 +47,7 @@ fi
 #
 # Generate a first client certificate and configuration using $CLIENT1 as CN then revoke it.
 #
-docker exec -it $NAME easyrsa build-client-full $CLIENT1 nopass
+docker exec -it $NAME easyrsa --batch build-client-full $CLIENT1 nopass
 docker exec -it $NAME ovpn_getclient $CLIENT1 > $CLIENT_DIR/config.ovpn
 docker exec -it $NAME bash -c "echo 'yes' | ovpn_revokeclient $CLIENT1"
 
@@ -70,7 +70,7 @@ fi
 #
 # Generate and revoke a second client certificate using $CLIENT2 as CN, then test for failed client connection.
 #
-docker exec -it $NAME easyrsa build-client-full $CLIENT2 nopass
+docker exec -it $NAME easyrsa --batch build-client-full $CLIENT2 nopass
 docker exec -it $NAME ovpn_getclient $CLIENT2 > $CLIENT_DIR/config.ovpn
 docker exec -it $NAME bash -c "echo 'yes' | ovpn_revokeclient $CLIENT2"
 
