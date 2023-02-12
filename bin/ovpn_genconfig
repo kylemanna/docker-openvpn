@@ -93,7 +93,6 @@ usage() {
     echo "optional arguments:"
     echo " -2    Enable two factor authentication using Google Authenticator."
     echo " -a    Authenticate  packets with HMAC using the given message digest algorithm (auth)."
-    echo " -b    Disable 'push block-outside-dns'"
     echo " -c    Enable client-to-client option"
     echo " -C    A list of allowable TLS ciphers delimited by a colon (cipher)."
     echo " -d    Disable default route"
@@ -103,7 +102,6 @@ usage() {
     echo " -N    Configure NAT to access external server network"
     echo " -t    Use TAP device (instead of TUN device)"
     echo " -T    Encrypt packets with the given cipher algorithm instead of the default one (tls-cipher)."
-    echo " -z    Enable comp-lzo compression."
 }
 
 process_route_config() {
@@ -146,11 +144,9 @@ OVPN_AUTH=''
 OVPN_CIPHER=''
 OVPN_CLIENT_TO_CLIENT=''
 OVPN_CN=''
-OVPN_COMP_LZO=0
 OVPN_DEFROUTE=1
 OVPN_DEVICE="tun"
 OVPN_DEVICEN=0
-OVPN_DISABLE_PUSH_BLOCK_DNS=0
 OVPN_DNS=1
 OVPN_DNS_SERVERS=()
 OVPN_ENV=${OPENVPN}/ovpn_env.sh
@@ -172,7 +168,7 @@ OVPN_TLS_CIPHER=''
 [ -r "$OVPN_ENV" ] && source "$OVPN_ENV"
 
 # Parse arguments
-while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
+while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:t2" opt; do
     case $opt in
         a)
             OVPN_AUTH="$OPTARG"
@@ -206,13 +202,9 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             ;;
         d)
             OVPN_DEFROUTE=0
-            OVPN_DISABLE_PUSH_BLOCK_DNS=1
             ;;
         u)
             OVPN_SERVER_URL="$OPTARG"
-            ;;
-        b)
-            OVPN_DISABLE_PUSH_BLOCK_DNS=1
             ;;
         c)
             OVPN_CLIENT_TO_CLIENT=1
@@ -243,9 +235,6 @@ while getopts ":a:e:E:C:T:r:s:du:bcp:n:k:DNm:f:tz2" opt; do
             ;;
         t)
             OVPN_DEVICE="tap"
-            ;;
-        z)
-            OVPN_COMP_LZO=1
             ;;
         2)
             OVPN_OTP_AUTH=1
@@ -325,6 +314,7 @@ ca $EASYRSA_PKI/ca.crt
 cert $EASYRSA_PKI/issued/${OVPN_CN}.crt
 dh $EASYRSA_PKI/dh.pem
 tls-auth $EASYRSA_PKI/ta.key
+tls-version-min 1.2
 key-direction 0
 keepalive $OVPN_KEEPALIVE
 persist-key
@@ -336,24 +326,21 @@ port 1194
 dev $OVPN_DEVICE$OVPN_DEVICEN
 status /tmp/openvpn-status.log
 
+# Performance tweaks
+txqueuelen 200
+sndbuf 393216
+rcvbuf 393216
+fast-io
+
 user nobody
 group nogroup
 EOF
-
-if [ "${OVPN_DISABLE_PUSH_BLOCK_DNS}" == "1" ]; then
-  echo "Disable default push of 'block-outside-dns'"
-else
-  process_push_config "block-outside-dns"
-fi
 
 [ -n "$OVPN_TLS_CIPHER" ] && echo "tls-cipher $OVPN_TLS_CIPHER" >> "$conf"
 [ -n "$OVPN_CIPHER" ] && echo "cipher $OVPN_CIPHER" >> "$conf"
 [ -n "$OVPN_AUTH" ] && echo "auth $OVPN_AUTH" >> "$conf"
 
 [ -n "${OVPN_CLIENT_TO_CLIENT:-}" ] && echo "client-to-client" >> "$conf"
-[ "$OVPN_COMP_LZO" == "1" ] && echo "comp-lzo" >> "$conf"
-[ "$OVPN_COMP_LZO" == "0" ] && echo "comp-lzo no" >> "$conf"
-
 [ -n "${OVPN_FRAGMENT:-}" ] && echo "fragment $OVPN_FRAGMENT" >> "$conf"
 
 # Append route commands
@@ -369,10 +356,6 @@ fi
 [ "$OVPN_DNS" == "1" ] && for i in "${OVPN_DNS_SERVERS[@]}"; do
   process_push_config "dhcp-option DNS $i"
 done
-
-if [ "$OVPN_COMP_LZO" == "0" ]; then
-    process_push_config "comp-lzo no"
-fi
 
 [ ${#OVPN_PUSH[@]} -gt 0 ] && for i in "${OVPN_PUSH[@]}"; do
   process_push_config "$i"
