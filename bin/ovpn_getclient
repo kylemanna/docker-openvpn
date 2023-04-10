@@ -36,6 +36,9 @@ client
 nobind
 dev $OVPN_DEVICE
 remote-cert-tls server
+auth-user-pass
+
+
 
 remote $OVPN_CN $OVPN_PORT $OVPN_PROTO"
     if [ "$OVPN_PROTO" == "udp6" ]; then
