@@ -65,7 +65,7 @@ export EASYRSA_BATCH=1
 case "$action" in
 	del) echo "$capassphrase" | ovpn_revokeclient "$username" remove 1>&2 && message="<h2>User $username removed</h2>";;
 	add) echo "$capassphrase" | easyrsa build-client-full "$username" nopass 1>&2  && message="<h2>Succesfully created user $username<h2>";;
-	renew) echo "$capassphrase" | easyrsa renew "$username" 1>&2 && message="<h2>Certificate of user $username renewed</h2>";;
+	renew) echo "$capassphrase" | easyrsa renew "$username" nopass 1>&2 && message="<h2>Certificate of user $username renewed</h2>";;
 esac
 
 echo "$HEAD"
