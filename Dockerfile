@@ -15,7 +15,9 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing/" >> /etc/apk/reposi
 ENV OPENVPN=/etc/openvpn
 ENV EASYRSA=/usr/share/easy-rsa \
     EASYRSA_CRL_DAYS=3650 \
+    EASYRSA_CERT_RENEW=3650 \
     EASYRSA_PKI=$OPENVPN/pki \
+    EASYRSA_BATCH=1 \
     OVPN_USER=openvpn \
     OVPN_GROUP=openvpn
 
