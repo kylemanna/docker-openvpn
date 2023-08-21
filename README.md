@@ -6,7 +6,6 @@
 [![ImageLayers](https://images.microbadger.com/badges/image/kylemanna/openvpn.svg)](https://microbadger.com/#/images/kylemanna/openvpn)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fkylemanna%2Fdocker-openvpn.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fkylemanna%2Fdocker-openvpn?ref=badge_shield)
 
-
 OpenVPN server in a Docker container complete with an EasyRSA PKI CA.
 
 Extensively tested on [Digital Ocean $5/mo node](http://bit.ly/1C7cKr3) and has
@@ -16,6 +15,45 @@ a corresponding [Digital Ocean Community Tutorial](http://bit.ly/1AGUZkq).
 
 * Docker Registry @ [kylemanna/openvpn](https://hub.docker.com/r/kylemanna/openvpn/)
 * GitHub @ [kylemanna/docker-openvpn](https://github.com/kylemanna/docker-openvpn)
+
+## Renew cert
+Edit easy-rsa like this : 
+```bash
+diff --git a/easyrsa3/easyrsa b/easyrsa3/easyrsa
+index cef3b82..2dafe09 100755
+--- a/easyrsa3/easyrsa
++++ b/easyrsa3/easyrsa
+@@ -1510,9 +1510,15 @@ at: $crt_in"
+                allow_renew_date=$(($(date -j +%s) + 24*60*60*EASYRSA_CERT_RENEW))
+        ;;
+        *)
+-               # This works on Windows, too, since uname doesn't exist and this is catch-all
+-               expire_date=$(date -d "$expire_date" +%s)
+-               allow_renew_date=$(date -d "+${EASYRSA_CERT_RENEW}day" +%s)
++               if [[ "$OSTYPE" != "linux-gnu"* ]]; then
++                       # This works on non-GNU Linux system (like alpine or busybox)
++                       expire_date=$(date -D "%b %e %H:%M:%S %Y" -d "$expire_date" +%s)
++                       allow_renew_date=$(( $(date +%s) + 86400 * ${EASYRSA_CERT_RENEW} ))
++               else
++                       # This works on Windows, too, since uname doesn't exist and this is catch-all
++                       expire_date=$(date -d "$expire_date" +%s)
++                       allow_renew_date=$(date -d "+${EASYRSA_CERT_RENEW}day" +%s)
++               fi
+        ;;
+        esac
+```
+
+And execute thoses commands in docker :
+```bash
+cd /etc/openvpn/pki/issued/
+easyrsa renew name-of-server-file-without-dot-crt nopass
+```
+When ca.crt key is asked, type your chosen key when you create the cert for the first time
+Do same for client's config
+
+
+
+
 
 ## Quick Start
 
